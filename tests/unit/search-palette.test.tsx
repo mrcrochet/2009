@@ -108,6 +108,16 @@ const world = WorldSchema.parse({
 
 const index = buildWorldIndex(world)
 
+/** The same world, with the driveway photograph disagreeing with the email about the car. */
+const disputedIndex = buildWorldIndex(
+  WorldSchema.parse({
+    ...world,
+    artifacts: world.artifacts.map((a) =>
+      a.id === 'photo-1' ? { ...a, reliability: 'deceptive', contradicts: ['mail-1'] } : a,
+    ),
+  }),
+)
+
 /** Two of the four traces of the Saab. Enough to act on, not enough to be the whole world. */
 const found = new Set(['mail-1', 'photo-1'])
 
@@ -313,7 +323,62 @@ describe('directory', () => {
 
   it('says how many traces of a fact are still out there', async () => {
     await openMarc()
-    expect(screen.getByText(/2 of 4 traces found/)).toBeInTheDocument()
+    expect(screen.getByText(/2 of 4 traces found — the rest are somewhere/)).toBeInTheDocument()
+  })
+
+  /**
+   * The correlation this game is for. Two documents nobody filed under the same heading, set
+   * side by side, with the machine declining to say which one is the lie — because it does not
+   * know, and a page that implied it did would be answering the question instead of asking it.
+   */
+  it('sets two things that cannot both be true side by side, and picks neither', async () => {
+    const user = userEvent.setup()
+    render(
+      <WorldProvider value={{ index: disputedIndex, discovered: found }}>
+        <DirectoryApp />
+      </WorldProvider>,
+    )
+    await user.click(screen.getByRole('option', { name: 'Marc Trudeau' }))
+
+    expect(screen.getByText('DOES NOT ADD UP')).toBeInTheDocument()
+    expect(screen.getByText('Two things you have cannot both be true.')).toBeInTheDocument()
+    const pair = document.querySelector('.hal-dir__conflict')!
+    expect(pair).toHaveTextContent('Re: the car')
+    expect(pair).toHaveTextContent('Driveway, March')
+    // Neither is marked as the false one.
+    expect(pair.textContent).not.toMatch(/false|wrong|lie|forged|suspect/i)
+  })
+
+  it('says nothing about consistency until the player holds both halves', async () => {
+    const user = userEvent.setup()
+    render(
+      <WorldProvider value={{ index: disputedIndex, discovered: new Set(['photo-1']) }}>
+        <DirectoryApp />
+      </WorldProvider>,
+    )
+    await user.click(screen.getByRole('option', { name: 'Marc Trudeau' }))
+    expect(screen.queryByText('DOES NOT ADD UP')).not.toBeInTheDocument()
+  })
+
+  /**
+   * The page must say that two things disagree and must not say which one is lying. The first is
+   * the investigation; the second is the answer key.
+   */
+  it('says when two things the player holds cannot both be true', async () => {
+    const user = userEvent.setup()
+    render(
+      <WorldProvider value={{ index: disputedIndex, discovered: found }}>
+        <DirectoryApp />
+      </WorldProvider>,
+    )
+    await user.click(screen.getByRole('option', { name: 'Marc Trudeau' }))
+
+    expect(screen.getByText('CORROBORATION — DISPUTED')).toBeInTheDocument()
+    expect(
+      screen.getByText(/2 of 4 traces found — two of them cannot both be true/),
+    ).toBeInTheDocument()
+    // Nothing on the page names the forgery.
+    expect(document.body.textContent).not.toMatch(/deceptive|mistaken|forged/i)
   })
 
   it('writes a rumour as reported speech, never as a statement of fact', async () => {

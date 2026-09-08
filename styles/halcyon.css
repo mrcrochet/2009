@@ -2836,6 +2836,55 @@
   color: var(--body-ink-soft);
 }
 
+/* Two documents that cannot both be true, set side by side and left there.
+   No red, no warning triangle, no "SUSPICIOUS" — the machine is not smart enough to know which
+   one is lying and would be lying itself if it implied otherwise. It rules a line and puts them
+   on either side of it, the way a case file does. */
+.hal-dir__conflicts {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hal-dir__conflict {
+  display: grid;
+  grid-template-columns: 1fr 14px 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border: 1px solid #cdd2d8;
+  background: #f4f1e9;
+  margin-bottom: 6px;
+}
+
+.hal-dir__conflictside {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.hal-dir__conflicttitle {
+  font-size: 11.5px;
+  color: var(--body-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hal-dir__conflictmeta {
+  font-size: 10px;
+  color: #79808a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hal-dir__conflictvs {
+  text-align: center;
+  font-size: 11px;
+  color: #9aa1a9;
+}
+
 /* Confidence is carried by grammar and grouping, not by colour: a rumour is written as reported
    speech, so it cannot be read as a document even at a glance. Weight only reinforces it. */
 .hal-dir__rel {

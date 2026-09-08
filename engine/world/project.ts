@@ -57,13 +57,24 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
 
   const base = (): Pick<
     WorldArtifact,
-    'ownerEntityId' | 'fields' | 'amountCents' | 'factId' | 'variants'
+    | 'ownerEntityId'
+    | 'fields'
+    | 'amountCents'
+    | 'factId'
+    | 'variants'
+    | 'reliability'
+    | 'contradicts'
   > => ({
     ownerEntityId: null,
     fields: {},
     amountCents: null,
     factId: null,
     variants: [],
+    // A projected day is the machine's own record of what it showed. Whether the *content* of a
+    // document is true is a matter for the day that authored it, and it says so in its own
+    // words rather than in a field here.
+    reliability: 'reliable',
+    contradicts: [],
   })
 
   for (const mail of content.mail) {

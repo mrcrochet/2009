@@ -74,6 +74,20 @@ const CONFIDENCE = {
 type Confidence = keyof typeof CONFIDENCE
 const CONFIDENCE_ORDER: readonly Confidence[] = ['asserted', 'inferred', 'rumoured']
 
+/**
+ * What the player is told about a fact they are partway through.
+ *
+ * It never says which document is wrong. Naming the lie would make this page an answer key; the
+ * useful thing — and the harder one — is knowing that two things you are holding cannot both be
+ * true, and having to work out which.
+ */
+function traceLine(fact: { found: number; total: number; conflicts: number }): string {
+  const held = `${fact.found} of ${fact.total} traces found`
+  if (fact.conflicts === 1) return `${held} — two of them cannot both be true`
+  if (fact.conflicts > 1) return `${held} — ${fact.conflicts} pairs of them cannot both be true`
+  return fact.found < fact.total ? `${held} — the rest are somewhere` : held
+}
+
 const GROUPS: readonly {
   readonly heading: string
   readonly types: readonly WorldEntity['type'][]
@@ -128,6 +142,8 @@ export function DirectoryApp() {
       ...factCoverage(world.index, factId, world.discovered),
     }))
   }, [world, dossier])
+
+  const disputed = facts.some((fact) => fact.conflicts > 0)
 
   if (!world) {
     return (
@@ -207,12 +223,49 @@ export function DirectoryApp() {
 
             {facts.length > 0 ? (
               <div className="hal-dir__section">
-                <div className="hal-dir__sectionhead">CORROBORATION</div>
+                <div className="hal-dir__sectionhead">
+                  {disputed ? 'CORROBORATION — DISPUTED' : 'CORROBORATION'}
+                </div>
                 <ul className="hal-dir__facts">
                   {facts.map((fact) => (
-                    <li key={fact.factId} className="hal-dir__fact">
-                      {fact.found} of {fact.total} traces found
-                      {fact.found < fact.total ? ' — the rest are somewhere' : ''}
+                    <li
+                      key={fact.factId}
+                      className="hal-dir__fact"
+                      data-conflicts={fact.conflicts > 0 ? 'yes' : undefined}
+                    >
+                      {traceLine(fact)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {dossier.conflicts.length > 0 ? (
+              <div className="hal-dir__section hal-dir__section--conflict">
+                <div className="hal-dir__sectionhead">DOES NOT ADD UP</div>
+                <p className="hal-dir__relnote">
+                  {dossier.conflicts.length === 1
+                    ? 'Two things you have cannot both be true.'
+                    : `${dossier.conflicts.length} pairs of things you have cannot both be true.`}
+                </p>
+                <ul className="hal-dir__conflicts">
+                  {dossier.conflicts.map(([a, b]) => (
+                    <li key={`${a.id}|${b.id}`} className="hal-dir__conflict">
+                      <span className="hal-dir__conflictside">
+                        <span className="hal-dir__conflicttitle">{a.title || a.source}</span>
+                        <span className="hal-dir__conflictmeta">
+                          {a.source} · {displayDate(a.date)}
+                        </span>
+                      </span>
+                      <span className="hal-dir__conflictvs" aria-hidden="true">
+                        ×
+                      </span>
+                      <span className="hal-dir__conflictside">
+                        <span className="hal-dir__conflicttitle">{b.title || b.source}</span>
+                        <span className="hal-dir__conflictmeta">
+                          {b.source} · {displayDate(b.date)}
+                        </span>
+                      </span>
                     </li>
                   ))}
                 </ul>

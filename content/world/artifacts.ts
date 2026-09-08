@@ -259,6 +259,10 @@ Cell shown is the tower that carried the call, not a position.`,
     fields: { In: '21:47', Out: '22:20', Level: '4', Paid: '$3.00' },
     amountCents: 300,
     factId: 'fact.marc-downtown-14th',
+    // Marc wrote at 23:51 that he stayed in all evening. He was on level 4 of a garage
+    // downtown at 21:47. Declared here so the machine can say the player is holding two things
+    // that cannot both be true — never which of them is the lie.
+    contradicts: ['d1.mail.m3'],
   },
   {
     id: 'art.atm-frame-index',
@@ -327,6 +331,7 @@ If it's yours, the sensor is too sensitive, it's been cold, that does it.`,
     mentions: ['place.1822-se-39th', 'person.marc-deleon', 'vehicle.saab-900-black'],
     fields: { Board: 'Cluster · SE Portland', Comments: '2' },
     factId: 'fact.marc-downtown-14th',
+    contradicts: ['d1.mail.m3'],
   },
 ]
 

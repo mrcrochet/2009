@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { WorldSchema } from '@/engine/world/schema'
 import {
   buildWorldIndex,
+  conflictingPairs,
   entityDossier,
   factCoverage,
   isEntityKnown,
@@ -176,7 +177,44 @@ describe('one fact, many surfaces', () => {
       'fact.marc-saab',
       new Set(['a.email-parts', 'a.bank-parts']),
     )
-    expect(partial).toEqual({ found: 2, total: 3 })
+    expect(partial).toEqual({ found: 2, total: 3, conflicts: 0 })
+  })
+
+  /**
+   * The distinction the schema could not previously make. Two of six because the world is large
+   * and two of six because you are holding a lie are the same number, and the second is the
+   * state this game is made of.
+   */
+  it('tells corroboration from contradiction, which are the same count', () => {
+    const disputed = buildWorldIndex(
+      WorldSchema.parse({
+        ...world,
+        artifacts: world.artifacts.map((a) =>
+          a.id === 'a.bank-parts'
+            ? { ...a, reliability: 'deceptive', contradicts: ['a.email-parts'] }
+            : a,
+        ),
+      }),
+    )
+
+    // One trace of each: nothing to disagree with yet.
+    expect(factCoverage(disputed, 'fact.marc-saab', new Set(['a.email-parts'])).conflicts).toBe(0)
+
+    // Both in hand, and they cannot both be true.
+    const both = factCoverage(
+      disputed,
+      'fact.marc-saab',
+      new Set(['a.email-parts', 'a.bank-parts']),
+    )
+    expect(both).toEqual({ found: 2, total: 3, conflicts: 1 })
+
+    // Declared in one direction, true in both.
+    const pairs = conflictingPairs(disputed, new Set(['a.email-parts', 'a.bank-parts']))
+    expect(pairs).toHaveLength(1)
+    expect(pairs[0]!.map((a) => a.id).sort()).toEqual(['a.bank-parts', 'a.email-parts'])
+
+    // And holding only one half of a disagreement is not a disagreement.
+    expect(conflictingPairs(disputed, new Set(['a.bank-parts']))).toHaveLength(0)
   })
 
   it('no fact is reachable from only one place', () => {

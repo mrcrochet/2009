@@ -14,6 +14,11 @@ export interface WorldIndex {
   readonly artifactsByEntity: ReadonlyMap<string, readonly WorldArtifact[]>
   readonly relationsByEntity: ReadonlyMap<string, readonly WorldRelation[]>
   readonly artifactsByFact: ReadonlyMap<string, readonly WorldArtifact[]>
+  /**
+   * Both directions of `contradicts`. An author declares "this receipt disagrees with that
+   * photograph" once; the player can be holding either one first.
+   */
+  readonly contradictedBy: ReadonlyMap<string, ReadonlySet<string>>
   /** Lowercased alias → entity id. What lets "saabman81" reach a person. */
   readonly aliasIndex: ReadonlyMap<string, string>
 }
@@ -41,6 +46,19 @@ export function buildWorldIndex(world: World): WorldIndex {
     if (artifact.factId) push(artifactsByFact, artifact.factId, artifact)
   }
 
+  const contradictedBy = new Map<string, Set<string>>()
+  const disagree = (a: string, b: string) => {
+    const set = contradictedBy.get(a)
+    if (set) set.add(b)
+    else contradictedBy.set(a, new Set([b]))
+  }
+  for (const artifact of world.artifacts) {
+    for (const other of artifact.contradicts) {
+      disagree(artifact.id, other)
+      disagree(other, artifact.id)
+    }
+  }
+
   for (const relation of world.relations) {
     push(relationsByEntity, relation.from, relation)
     push(relationsByEntity, relation.to, relation)
@@ -59,6 +77,7 @@ export function buildWorldIndex(world: World): WorldIndex {
     artifactsByEntity,
     relationsByEntity,
     artifactsByFact,
+    contradictedBy,
     aliasIndex,
   }
 }
@@ -244,6 +263,12 @@ export interface EntityDossier {
    */
   readonly undiscoveredCount: number
   readonly relations: readonly { relation: WorldRelation; other: WorldEntity | null }[]
+  /**
+   * Pairs the player is holding that cannot both be true, where at least one is about this
+   * person. The most useful contradiction in this game is between two documents nobody ever
+   * filed under the same heading — an alibi and a parking stub — so this is not scoped to a fact.
+   */
+  readonly conflicts: readonly (readonly [WorldArtifact, WorldArtifact])[]
   readonly firstSeen: string | null
   readonly lastSeen: string | null
 }
@@ -307,12 +332,18 @@ export function entityDossier(
       other: index.entityById.get(relation.from === entityId ? relation.to : relation.from) ?? null,
     }))
 
+  const mine = new Set(found.map((a) => a.id))
+  const conflicts = conflictingPairs(index, discovered).filter(
+    ([a, b]) => mine.has(a.id) || mine.has(b.id),
+  )
+
   return {
     entity,
     known,
     knownCount: found.length,
     undiscoveredCount: all.length - found.length,
     relations,
+    conflicts,
     firstSeen: found[0]?.date ?? null,
     lastSeen: found[found.length - 1]?.date ?? null,
   }
@@ -324,13 +355,61 @@ export function entityDossier(
  * Two of six is usually enough to act on. The remaining four are why the world feels bigger than
  * the investigation.
  */
+export interface FactCoverage {
+  readonly found: number
+  readonly total: number
+  /**
+   * How many pairs of what the player holds cannot both be true.
+   *
+   * Counting alone cannot tell 2-of-6 meaning "enough to act on" from 2-of-6 meaning "you are
+   * holding a contradiction and have not noticed". Those are the two states this game is made
+   * of, and they were the same number.
+   */
+  readonly conflicts: number
+}
+
 export function factCoverage(
   index: WorldIndex,
   factId: string,
   discovered: ReadonlySet<string>,
-): { readonly found: number; readonly total: number } {
+): FactCoverage {
   const traces = index.artifactsByFact.get(factId) ?? []
-  return { found: traces.filter((a) => discovered.has(a.id)).length, total: traces.length }
+  const found = traces.filter((a) => discovered.has(a.id))
+
+  let conflicts = 0
+  for (let i = 0; i < found.length; i += 1) {
+    for (let j = i + 1; j < found.length; j += 1) {
+      const a = found[i]!
+      const b = found[j]!
+      if (index.contradictedBy.get(a.id)?.has(b.id)) conflicts += 1
+    }
+  }
+
+  return { found: found.length, total: traces.length, conflicts }
+}
+
+/**
+ * Everything the player holds that disagrees with something else they hold.
+ *
+ * Not scoped to a fact, because the most useful contradiction in this game is between two
+ * documents that were never filed under the same heading — a parking stub and an alibi.
+ */
+export function conflictingPairs(
+  index: WorldIndex,
+  discovered: ReadonlySet<string>,
+): readonly (readonly [WorldArtifact, WorldArtifact])[] {
+  const pairs: [WorldArtifact, WorldArtifact][] = []
+  for (const id of discovered) {
+    const artifact = index.artifactById.get(id)
+    if (!artifact) continue
+    for (const otherId of index.contradictedBy.get(id) ?? []) {
+      // Once per pair, and only when the player is holding both ends of it.
+      if (otherId <= id || !discovered.has(otherId)) continue
+      const other = index.artifactById.get(otherId)
+      if (other) pairs.push([artifact, other])
+    }
+  }
+  return pairs
 }
 
 export function resolveAlias(index: WorldIndex, text: string): WorldEntity | null {

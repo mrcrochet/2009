@@ -92,6 +92,27 @@ export const WorldArtifactSchema = z.object({
    * from only one place.
    */
   factId: id.nullable().default(null),
+  /**
+   * Whether this document tells the truth.
+   *
+   * The whole game is that one of them does not, and without this the graph holds a lie and its
+   * refutation with identical authority. `mistaken` is sincerely wrong — a clock nobody reset, a
+   * neighbour who is sure it was Tuesday. `deceptive` was written to be believed by someone who
+   * would check.
+   *
+   * This is authoring metadata and never reaches a screen. A page that told the player which
+   * document is the lie would be an answer key. What the player is shown is that two things they
+   * hold cannot both be true.
+   */
+  reliability: z.enum(['reliable', 'mistaken', 'deceptive']).default('reliable'),
+  /**
+   * Artifacts this one cannot both be true with.
+   *
+   * Declared in one direction and read in both. This is what separates 2-of-6 meaning "you have
+   * enough" from 2-of-6 meaning "you are holding a contradiction and have not noticed" — the
+   * same number, and not remotely the same state.
+   */
+  contradicts: z.array(id).default([]),
   /** Rewritten when the world moves. Same mechanism as a browser page's variants. */
   variants: z
     .array(

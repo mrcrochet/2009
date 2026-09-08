@@ -161,6 +161,33 @@ describe('the world corpus holds together', () => {
   })
 
   /**
+   * The rule a game about a forged document lives or dies by. A lie the player cannot catch is
+   * not a lie, it is a false fact — the world simply told them something untrue and there was
+   * never a way to know.
+   */
+  it('gives every untrue document something that catches it', () => {
+    const suspect = GAME_WORLD.artifacts.filter((a) => a.reliability !== 'reliable')
+    for (const artifact of suspect) {
+      const contradicted =
+        artifact.contradicts.length > 0 ||
+        GAME_WORLD.artifacts.some((other) => other.contradicts.includes(artifact.id))
+      expect(
+        contradicted,
+        `${artifact.id} is ${artifact.reliability} and nothing in the world disagrees with it`,
+      ).toBe(true)
+    }
+  })
+
+  it('never asks the player to disbelieve a document on nothing but its own say-so', () => {
+    for (const artifact of GAME_WORLD.artifacts) {
+      for (const other of artifact.contradicts) {
+        expect(ids.has(other), `${artifact.id} contradicts a missing "${other}"`).toBe(true)
+        expect(other, `${artifact.id} contradicts itself`).not.toBe(artifact.id)
+      }
+    }
+  })
+
+  /**
    * One fact, many surfaces. A fact carried by a single artifact is a key: lose it and the
    * chain is dead, find it and there was nothing to work out.
    */
