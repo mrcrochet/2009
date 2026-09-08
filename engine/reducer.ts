@@ -30,6 +30,21 @@ import {
  * event log through `reduce` reproduces a snapshot exactly.
  */
 
+/**
+ * Ceilings the reducer enforces, matching `engine/timeline-schema.ts` exactly.
+ *
+ * Without these the game happily builds a timeline the runtime schema rejects — and because the
+ * local IndexedDB path does not validate, the player finds out at the paywall, after Day 01 has
+ * done its job, when they try to keep the thing they just made. A limit is only real if the code
+ * that grows the array is the code that knows about it.
+ */
+export const LIMITS = {
+  recalls: 128,
+  terminalLines: 512,
+  claimLog: 128,
+  notes: 20_000,
+} as const
+
 // How much in-world time each action costs.
 const TICK: Partial<Record<GameEvent['type'], number>> = {
   EVIDENCE_PINNED: 1,
@@ -57,10 +72,14 @@ export function reduce(state: TimelineState, event: GameEvent, content: DayConte
   const tick = TICK[event.type] ?? 0
   const divergence = DIVERGENCE[event.type] ?? 0
 
+  const minuteOfDay =
+    next.minuteOfDay === state.minuteOfDay ? state.minuteOfDay + tick : next.minuteOfDay
+
   return {
     ...next,
-    minuteOfDay:
-      next.minuteOfDay === state.minuteOfDay ? state.minuteOfDay + tick : next.minuteOfDay,
+    // A day cannot run past its own end. Without this the clock wraps to 00:12 while the menu
+    // bar still says Thursday the 15th, and `DAY_ENDED` then moves the clock backwards.
+    minuteOfDay: Math.min(minuteOfDay, DAY_END_MINUTE),
     divergence:
       next.divergence === state.divergence ? state.divergence + divergence : next.divergence,
   }
@@ -231,6 +250,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'WINDOW_MOVED': {
       const w = state.windows.find((v) => v.app === event.app)
       if (!w) return state
+      if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return state
       const def = appDef(content, event.app)
       const { x, y } = clampWindow(event.x, event.y, def.width, def.height, DEFAULT_VIEWPORT)
       if (w.x === x && w.y === y) return state
@@ -249,6 +269,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return { ...state, phone: { ...state.phone, tab: event.tab } }
 
     case 'PHONE_MOVED': {
+      if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return state
       const { x, y } = clampPhone(event.x, event.y, 296, 552, DEFAULT_VIEWPORT)
       if (state.phone.x === x && state.phone.y === y) return state
       return { ...state, phone: { ...state.phone, x, y } }
@@ -317,9 +338,12 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         flags: event.setsFlag ? { ...state.flags, [event.setsFlag]: true } : state.flags,
         chat: {
           ...state.chat,
-          waiting: true,
-          pendingReply: event.reply ? event.reply : null,
-          pendingAdvance: event.advances !== false,
+          waiting: { ...state.chat.waiting, [event.thread]: true },
+          pendingReply: { ...state.chat.pendingReply, [event.thread]: event.reply || null },
+          pendingAdvance: {
+            ...state.chat.pendingAdvance,
+            [event.thread]: event.advances !== false,
+          },
           log: {
             ...state.chat.log,
             [event.thread]: [
@@ -341,24 +365,26 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
 
       const log = [...state.chat.log[event.thread]]
 
-      // First: the answer to what was actually asked.
-      if (state.chat.pendingReply) {
-        log.push({ who: speaker, text: state.chat.pendingReply, mine: false, time })
+      // First: the answer to what was actually asked, in this thread.
+      const pendingReply = state.chat.pendingReply[event.thread]
+      if (pendingReply) {
+        log.push({ who: speaker, text: pendingReply, mine: false, time })
       }
 
       // Then the script moves on — which is how a person changes the subject. A choice marked
       // `advances: false` holds the conversation where it is, so the other option stays open.
-      const step = state.chat.pendingAdvance ? current + 1 : current
-      const node = state.chat.pendingAdvance ? thread.script[step] : undefined
+      const advance = state.chat.pendingAdvance[event.thread]
+      const step = advance ? current + 1 : current
+      const node = advance ? thread.script[step] : undefined
       if (node) log.push({ who: node.who, text: node.text, mine: false, time })
 
       return {
         ...state,
         chat: {
           ...state.chat,
-          waiting: false,
-          pendingReply: null,
-          pendingAdvance: true,
+          waiting: { ...state.chat.waiting, [event.thread]: false },
+          pendingReply: { ...state.chat.pendingReply, [event.thread]: null },
+          pendingAdvance: { ...state.chat.pendingAdvance, [event.thread]: true },
           step: { ...state.chat.step, [event.thread]: Math.min(step, thread.script.length - 1) },
           log: { ...state.chat.log, [event.thread]: log },
         },
@@ -370,7 +396,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return { ...state, browser: { ...state.browser, query: event.query } }
 
     case 'BROWSER_URL_CHANGED':
-      return { ...state, browser: { ...state.browser, url: event.url } }
+      return { ...state, browser: { ...state.browser, draftUrl: event.url } }
 
     case 'BROWSER_SEARCHED': {
       const query = event.query.trim()
@@ -383,6 +409,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           url: `${content.browser.home}/search?q=${encodeURIComponent(query)}`,
           query,
           resultIds,
+          draftUrl: null,
           history: pushHistory(state),
           forward: [],
         },
@@ -401,6 +428,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           url,
           query: state.browser.query,
           resultIds: state.browser.resultIds,
+          draftUrl: null,
           history,
           // Going somewhere new is what discards the forward stack, exactly as a
           // period browser did.
@@ -417,6 +445,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         ...state,
         browser: {
           ...prev,
+          draftUrl: null,
           history: history.slice(0, -1),
           forward: [currentEntry(state), ...forward].slice(0, 40),
         },
@@ -431,6 +460,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         ...state,
         browser: {
           ...next,
+          draftUrl: null,
           history: [...history, currentEntry(state)].slice(-40),
           forward: forward.slice(1),
         },
@@ -453,9 +483,11 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return runTerminal(state, event.command, event.at, content)
 
     // --- notes / recall ----------------------------------------------------
-    case 'NOTES_CHANGED':
-      if (state.notes === event.value) return state
-      return { ...state, notes: event.value }
+    case 'NOTES_CHANGED': {
+      const notes = event.value.slice(0, LIMITS.notes)
+      if (state.notes === notes) return state
+      return { ...state, notes }
+    }
 
     case 'RECALL_QUERY_CHANGED':
       return { ...state, recallQuery: event.value }
@@ -479,7 +511,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
             at: event.at,
           },
           ...state.recalls,
-        ],
+        ].slice(0, LIMITS.recalls),
       }
       return withBeat(withRecall, 'recall')
     }
@@ -517,7 +549,9 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       const withClaim: TimelineState = {
         ...state,
         lastVerdict: attempt,
-        claimLog: outcome.onRecord ? [...state.claimLog, attempt] : state.claimLog,
+        claimLog: outcome.onRecord
+          ? [...state.claimLog, attempt].slice(-LIMITS.claimLog)
+          : state.claimLog,
         heat: outcome.onRecord ? state.heat + 10 : state.heat,
         divergence: state.divergence + (outcome.onRecord ? 6 : 1),
       }
@@ -541,6 +575,9 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       const opp = content.economy.opportunities.find((o) => o.id === event.itemId)
       if (!opp) return state
       if (state.inventory.some((i) => i.id === event.itemId)) return state
+      // Cash cannot go negative. Today no reachable sequence of purchases would, but the
+      // invariant was absent rather than satisfied, and one more authored domain would break it.
+      if (state.cashCents < opp.buyCents) return state
       const item: InventoryItem = {
         id: opp.id,
         label: opp.label,
@@ -599,6 +636,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
 
     case 'DOMAIN_REGISTERED': {
       if (state.domains.includes(event.domain)) return state
+      if (state.cashCents < content.economy.domainPriceCents) return state
       return {
         ...state,
         domains: [...state.domains, event.domain],
@@ -711,6 +749,10 @@ function runTerminal(
     const d = cfg.decrypt
     if (state.files.decrypted) {
       out.push({ text: d.success, tone: 'ok' })
+    } else if (state.files.decryptAttempts >= d.maxAttempts) {
+      // The lockout said "the file has reported". It has to mean it — otherwise the fourth
+      // attempt with the right key simply works, and heat accrues without limit.
+      out.push({ text: d.lockout, tone: 'err' })
     } else if (lower.includes(d.key)) {
       out.push({ text: d.success, tone: 'ok' })
       nextState = {
@@ -748,7 +790,13 @@ function runTerminal(
     })
   }
 
-  return { ...nextState, terminal: { lines: [...state.terminal.lines, ...out], input: '' } }
+  return {
+    ...nextState,
+    terminal: {
+      lines: [...state.terminal.lines, ...out].slice(-LIMITS.terminalLines),
+      input: '',
+    },
+  }
 }
 
 export type { ThreadId }

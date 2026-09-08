@@ -17,7 +17,8 @@ const FORBIDDEN = [
   /^@\/(app|components|lib|state)\//,
 ]
 
-const ALLOWED_NODE_FREE = /^(node:|fs|path|crypto)$/
+/** Node builtins have no business in a portable engine either. */
+const FORBIDDEN_BUILTINS = /^(node:|fs|path|crypto)$/
 
 function walk(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -26,13 +27,26 @@ function walk(dir: string): string[] {
   })
 }
 
+/**
+ * Every shape a module specifier can take. The earlier version required `… from '…'`, which let
+ * four forms through — `import 'react'` (side-effect, no `from`), `require('react')`, a
+ * template-literal dynamic import, and anything computed. The first is not hypothetical: the
+ * repo uses that exact form for `server-only`.
+ */
+const SPECIFIER_PATTERNS = [
+  /(?:^|\n)\s*(?:import|export)[\s\S]*?from\s+['"`]([^'"`]+)['"`]/g,
+  /(?:^|\n)\s*import\s+['"`]([^'"`]+)['"`]/g,
+  /\bimport\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+  /\brequire\(\s*['"`]([^'"`]+)['"`]\s*\)/g,
+]
+
 function importsOf(source: string): string[] {
   const specifiers: string[] = []
-  const re = /(?:^|\n)\s*(?:import|export)[\s\S]*?from\s+['"]([^'"]+)['"]/g
-  let match: RegExpExecArray | null
-  while ((match = re.exec(source))) if (match[1]) specifiers.push(match[1])
-  const dynamic = /import\(\s*['"]([^'"]+)['"]\s*\)/g
-  while ((match = dynamic.exec(source))) if (match[1]) specifiers.push(match[1])
+  for (const pattern of SPECIFIER_PATTERNS) {
+    const re = new RegExp(pattern.source, pattern.flags)
+    let match: RegExpExecArray | null
+    while ((match = re.exec(source))) if (match[1]) specifiers.push(match[1])
+  }
   return specifiers
 }
 
@@ -46,13 +60,26 @@ describe('engine purity', () => {
   it.each(files)('%s imports nothing from a framework or platform', (file) => {
     const source = readFileSync(file, 'utf8')
     for (const specifier of importsOf(source)) {
-      expect(ALLOWED_NODE_FREE.test(specifier), `${file} imports node builtin ${specifier}`).toBe(
+      expect(FORBIDDEN_BUILTINS.test(specifier), `${file} imports node builtin ${specifier}`).toBe(
         false,
       )
       for (const pattern of FORBIDDEN) {
         expect(pattern.test(specifier), `${file} imports ${specifier}`).toBe(false)
       }
     }
+  })
+
+  it('catches every shape a module specifier can take', () => {
+    const source = [
+      "import 'react'",
+      "import x from 'next/link'",
+      "export { y } from '@/lib/errors'",
+      "const z = require('dexie')",
+      "void import('stripe')",
+    ].join('\n')
+    expect(importsOf(source).sort()).toEqual(
+      ['@/lib/errors', 'dexie', 'next/link', 'react', 'stripe'].sort(),
+    )
   })
 
   it('only ever reaches sideways into engine/ or content/', () => {

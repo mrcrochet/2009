@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { DayContent } from '@/engine/content-schema'
 import { createTimeline } from '@/engine/initial-state'
-import type { GameEvent, TimelineState } from '@/engine/types'
+import type { GameEvent, ThreadId, TimelineState } from '@/engine/types'
 import { selectCanEndDay, selectDaySummary } from '@/engine/selectors'
 import { track } from '@/lib/analytics'
 import { createAutosave, loadTimeline } from '@/lib/persistence/local-store'
@@ -170,21 +170,24 @@ export function GameRoot({ content, timelineId, mode }: Props) {
 
   // --- messenger reply delay ----------------------------------------------
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null
+    const timers = new Set<ReturnType<typeof setTimeout>>()
     const unsub = api.subscribe((s, prev) => {
-      if (s.timeline.chat.waiting && !prev.timeline.chat.waiting) {
-        const thread = s.timeline.chat.thread
-        timer = setTimeout(
+      // Per thread, because two people can be mid-reply at once — and one starting must not
+      // cancel the other's timer, or put its answer in the wrong person's mouth.
+      for (const thread of Object.keys(s.timeline.chat.waiting) as ThreadId[]) {
+        if (!s.timeline.chat.waiting[thread] || prev.timeline.chat.waiting[thread]) continue
+        const timer = setTimeout(
           () => {
             api.getState().dispatch({ type: 'CHAT_ADVANCED', thread })
           },
           pace(content.chatReplyDelayMs, reducedMotion),
         )
+        timers.add(timer)
       }
     })
     return () => {
       unsub()
-      if (timer) clearTimeout(timer)
+      for (const timer of timers) clearTimeout(timer)
     }
   }, [api, content, reducedMotion])
 

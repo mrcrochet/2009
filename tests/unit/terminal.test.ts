@@ -68,3 +68,36 @@ describe('terminal', () => {
     expect(state.terminal.lines[0]?.text).toContain('Halcyon Terminal')
   })
 })
+
+describe('the lockout locks', () => {
+  it('refuses the right key once the file has reported', () => {
+    let state = fresh()
+    for (const key of ['1111', '2222', '3333']) {
+      state = dispatch(state, {
+        type: 'TERMINAL_COMMAND_RUN',
+        command: `decrypt cibles.enc --key ${key}`,
+      })
+    }
+    expect(state.flags.decryptReported).toBe(true)
+
+    const before = state.heat
+    state = dispatch(state, {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: 'decrypt cibles.enc --key 0412',
+    })
+    expect(state.files.decrypted).toBe(false)
+    expect(last(state)?.text).toBe(content.terminal.decrypt.lockout)
+    // And heat stops accruing, so the loudest ending cannot be farmed.
+    expect(state.heat).toBe(before)
+  })
+
+  it('a flag on a known command is still that command', () => {
+    const state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'ls -l' })
+    expect(last(state)?.text).toContain('cibles.enc')
+  })
+
+  it('ps leaves the surveillance in the process table', () => {
+    const state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'ps' })
+    expect(state.terminal.lines.map((l) => l.text).join('\n')).toContain('hd_sync --remote --quiet')
+  })
+})

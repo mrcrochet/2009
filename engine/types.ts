@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 6
+export const SCHEMA_VERSION = 8
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -142,6 +142,11 @@ export interface BrowserEntry {
 }
 
 export interface BrowserState extends BrowserEntry {
+  /**
+   * What is in the address bar, when it differs from where the player actually is. A typed but
+   * unsubmitted address is a draft — it must not move the browser, and it does not replay.
+   */
+  readonly draftUrl: string | null
   /** Real back-stack. The URL field and the back button both operate on it. */
   readonly history: readonly BrowserEntry[]
   /** Everything the player has stepped back past, until they navigate somewhere new. */
@@ -251,10 +256,14 @@ export interface TimelineState {
     readonly thread: ThreadId
     readonly log: Readonly<Record<ThreadId, readonly ChatLine[]>>
     readonly step: Readonly<Record<ThreadId, number>>
-    readonly waiting: boolean
-    /** What the other person is about to say back, and whether the script moves on after it. */
-    readonly pendingReply: string | null
-    readonly pendingAdvance: boolean
+    /**
+     * Per thread, because two people can be mid-reply at once. Held globally, the first
+     * CHAT_ADVANCED consumed the other thread's answer and put it in the wrong person's mouth —
+     * and "typing…" appeared under whichever contact the player happened to be looking at.
+     */
+    readonly waiting: Readonly<Record<ThreadId, boolean>>
+    readonly pendingReply: Readonly<Record<ThreadId, string | null>>
+    readonly pendingAdvance: Readonly<Record<ThreadId, boolean>>
   }
   readonly browser: BrowserState
   readonly files: {

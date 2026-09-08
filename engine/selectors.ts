@@ -76,7 +76,7 @@ export const selectMail: (state: TimelineState, content: DayContent) => readonly
     s.mail.openId,
     s.claimLog,
     s.mail.unknownArrived ? s.heat : 0,
-    s.mail.unknownArrived ? s.notes.length : 0,
+    s.mail.unknownArrived ? s.notes.trim().length : 0,
     s.mail.unknownArrived ? s.watchlist : 0,
     c,
   ],
@@ -126,7 +126,7 @@ export const selectOpenMail: (state: TimelineState, content: DayContent) => Mail
     s.mail.openId,
     s.claimLog,
     s.mail.unknownArrived ? s.heat : 0,
-    s.mail.unknownArrived ? s.notes.length : 0,
+    s.mail.unknownArrived ? s.notes.trim().length : 0,
     s.mail.unknownArrived ? s.watchlist : 0,
     c,
   ],
@@ -146,7 +146,7 @@ export const selectChoices: (state: TimelineState, content: DayContent) => reado
   memoBy(
     (s, c) => [s.chat.waiting, s.chat.thread, s.chat.step, s.chat.log, s.evidence, c],
     (state, content) => {
-      if (state.chat.waiting) return []
+      if (state.chat.waiting[state.chat.thread]) return []
       const thread = content.threads.find((t) => t.id === state.chat.thread)
       if (!thread) return []
       if (state.chat.log[state.chat.thread].length === 0) return []

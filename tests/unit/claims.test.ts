@@ -122,3 +122,43 @@ describe('choices that answer themselves', () => {
     expect(selectChoices(after, content).map((c) => c.text)).toContain('Where were you last night?')
   })
 })
+
+describe('two conversations at once', () => {
+  it('one thread cannot answer with another thread’s line', () => {
+    let state = run(fresh(), [
+      { type: 'CHAT_STARTED', thread: 'marc' },
+      { type: 'CHAT_STARTED', thread: 'lea' },
+    ])
+    state = dispatch(state, {
+      type: 'CHAT_REPLY_SENT',
+      thread: 'marc',
+      text: 'q',
+      reply: 'MARC-ANSWER',
+    })
+    state = dispatch(state, {
+      type: 'CHAT_REPLY_SENT',
+      thread: 'lea',
+      text: 'q',
+      reply: 'LEA-ANSWER',
+    })
+    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'marc' })
+
+    expect(state.chat.log.marc.map((l) => l.text)).toContain('MARC-ANSWER')
+    expect(state.chat.log.marc.map((l) => l.text)).not.toContain('LEA-ANSWER')
+
+    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'lea' })
+    expect(state.chat.log.lea.map((l) => l.text)).toContain('LEA-ANSWER')
+  })
+
+  it('only the thread being answered is waiting', () => {
+    let state = run(fresh(), [{ type: 'CHAT_STARTED', thread: 'marc' }])
+    state = dispatch(state, { type: 'CHAT_REPLY_SENT', thread: 'marc', text: 'q', reply: 'a' })
+    expect(state.chat.waiting.marc).toBe(true)
+    expect(state.chat.waiting.lea).toBe(false)
+
+    // Switching tabs mid-reply must not freeze the other composers.
+    state = dispatch(state, { type: 'THREAD_SELECTED', thread: 'lea' })
+    state = dispatch(state, { type: 'CHAT_STARTED', thread: 'lea' })
+    expect(selectChoices(state, content).length).toBeGreaterThan(0)
+  })
+})

@@ -105,3 +105,47 @@ describe('save size', () => {
     expect(log.map((e) => e.type)).toEqual(['NOTES_CHANGED', 'EVIDENCE_PINNED', 'NOTES_CHANGED'])
   })
 })
+
+describe('replay under a hostile log', () => {
+  it('reproduces a session of interleaving, switching and backtracking', () => {
+    const played = run(fresh(), [
+      { type: 'APP_OPENED', app: 'web' },
+      { type: 'BROWSER_SEARCHED', query: 'rask' },
+      { type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/obits/rask' },
+      { type: 'BROWSER_WENT_BACK' },
+      { type: 'BROWSER_WENT_FORWARD' },
+      { type: 'NOTES_CHANGED', value: 'he died' },
+      { type: 'CHAT_STARTED', thread: 'marc' },
+      { type: 'CHAT_STARTED', thread: 'lea' },
+      { type: 'CHAT_REPLY_SENT', thread: 'marc', text: 'q', reply: 'MARC' },
+      { type: 'NOTES_CHANGED', value: 'he died on the 19th' },
+      {
+        type: 'CHAT_REPLY_SENT',
+        thread: 'lea',
+        text: 'q',
+        reply: 'LEA',
+        setsFlag: 'leaPostRemoved',
+      },
+      { type: 'CHAT_ADVANCED', thread: 'lea' },
+      { type: 'CHAT_ADVANCED', thread: 'marc' },
+      { type: 'ITEM_PURCHASED', itemId: 'tradepost-parts', amountCents: 4000, label: 'parts' },
+      { type: 'ITEM_LISTED', itemId: 'tradepost-parts' },
+      { type: 'ITEM_SOLD', itemId: 'tradepost-parts', amountCents: 1500 },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'ps' },
+      { type: 'RECALL_USED', query: 'what happens to apple' },
+      { type: 'BROWSER_URL_CHANGED', url: 'half-typed.com' },
+    ])
+
+    // The base has to start where the played timeline did, or `stage` alone diverges.
+    const base = createTimeline(content, {
+      id: played.id,
+      stage: 'playing',
+      now: played.createdAt,
+    })
+    const replayed = applyEvents(base, played.eventLog, content)
+
+    const { eventLog: _a, updatedAt: _b, ...playedRest } = withoutDraftInput(played)
+    const { eventLog: _c, updatedAt: _d, ...replayedRest } = withoutDraftInput(replayed)
+    expect(replayedRest).toEqual(playedRest)
+  })
+})

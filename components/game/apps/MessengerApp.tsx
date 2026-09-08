@@ -11,7 +11,7 @@ export function MessengerApp() {
   const dispatch = useDispatch()
   const thread = useTimeline((s) => s.chat.thread)
   const lines = useTimeline((s) => s.chat.log[s.chat.thread])
-  const waiting = useTimeline((s) => s.chat.waiting)
+  const waiting = useTimeline((s) => s.chat.waiting[s.chat.thread])
   const choices = useTimeline((s) => selectChoices(s, content))
   const logRef = useRef<HTMLDivElement>(null)
 

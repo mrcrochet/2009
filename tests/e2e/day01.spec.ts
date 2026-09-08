@@ -31,17 +31,15 @@ test.describe('Day 01', () => {
     await expect(page.getByRole('group', { name: /menu bar/ })).toContainText('HALCYON')
     await expect(page.getByRole('navigation', { name: 'Dock' })).toBeVisible()
 
-    // No SaaS shell anywhere in the playing surface.
-    for (const forbidden of [
-      'Dashboard',
-      'Overview',
-      'Business',
-      'Timeline',
-      'Settings',
-      'Upgrade',
-    ]) {
-      await expect(page.getByRole('button', { name: forbidden, exact: true })).toHaveCount(0)
-    }
+    // No SaaS shell anywhere in the playing surface. Anchored positively first, so this cannot
+    // pass by virtue of nothing having rendered.
+    const dockItems = page.getByRole('navigation', { name: 'Dock' }).getByRole('button')
+    await expect(dockItems).toHaveCount(10)
+    await expect(page.locator('.hal-desktop')).toBeVisible()
+    // The tray is the only aside, and it stays collapsed until something is pinned.
+    await expect(page.locator('aside')).toHaveCount(0)
+    await expect(page.getByRole('navigation')).toHaveCount(1)
+    await expect(page.locator('body')).not.toContainText(/Dashboard|Overview|Upgrade now/)
 
     // --- Ember Messenger opens itself ------------------------------------
     const messenger = page.locator('[data-app="msg"]')

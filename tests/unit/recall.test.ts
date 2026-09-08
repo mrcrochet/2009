@@ -46,8 +46,28 @@ describe('recall', () => {
     expect(outcome.text).not.toContain('incompatible versions')
   })
 
-  it('prefers the longest matching key', () => {
-    expect(resolveRecall(content, 'lea voss', 100).memoryId).not.toBe('mem-crash')
+  it('prefers the longest matching key, and does not shadow its neighbours', () => {
+    // `gold price` and `goldman sachs` share a prefix; only the first is a memory.
+    expect(resolveRecall(content, 'gold price', 100).memoryId).toBe('mem-metals')
+    expect(resolveRecall(content, 'goldman sachs', 100).memoryId).toBeNull()
+    // `bet` would have swallowed `alphabet`; the keys are chosen so it cannot.
+    expect(resolveRecall(content, 'alphabet', 100).memoryId).toBe('mem-google')
+  })
+
+  it('answers a question, not just a keyword', () => {
+    // Every existing test passed an exact key, so replacing the substring matcher with
+    // equality passed the whole suite. This is what a player actually types.
+    const asked: [string, string][] = [
+      ['tell me about bitcoin', 'mem-bitcoin'],
+      ['what happens to apple', 'mem-apple'],
+      ['was there a pandemic', 'mem-pandemic'],
+      ['is the housing crash over', 'mem-crash'],
+      ['who wins the election', 'mem-election'],
+      ['should i buy google', 'mem-google'],
+    ]
+    for (const [query, memoryId] of asked) {
+      expect(resolveRecall(content, query, 100).memoryId, query).toBe(memoryId)
+    }
   })
 
   it('moves the timeline and fires its beat', () => {

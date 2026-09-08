@@ -3,6 +3,7 @@ import { selectPage, selectSearchResults } from '@/engine/selectors'
 import { searchIndex } from '@/engine/rules'
 import { normalizeUrl } from '@/engine/reducer'
 import { isPageAltered, resolveBlocks } from '@/engine/temporal'
+import { BrowserPageSchema } from '@/engine/content-schema'
 import { content, dispatch, fresh, run } from './helpers'
 
 describe('fictional browser', () => {
@@ -207,9 +208,47 @@ describe('a choice that rewrites a page', () => {
     expect(blocks.some((b) => b.kind === 'evidence')).toBe(false)
   })
 
+  it('ranks a flag above a shift even when both variants match', () => {
+    // No authored page carries both kinds, so the ranking has to be exercised directly —
+    // otherwise removing it passes the whole suite.
+    const page = BrowserPageSchema.parse({
+      url: 'test.local',
+      background: '#ffffff',
+      blocks: [{ kind: 'p', text: 'baseline' }],
+      variants: [
+        { minShift: 1, blocks: [{ kind: 'p', text: 'drifted' }] },
+        { whenFlag: 'decided', blocks: [{ kind: 'p', text: 'decided' }] },
+      ],
+    })
+    expect(resolveBlocks(page, 0, {})[0]).toMatchObject({ text: 'baseline' })
+    expect(resolveBlocks(page, 5, {})[0]).toMatchObject({ text: 'drifted' })
+    expect(resolveBlocks(page, 5, { decided: true })[0]).toMatchObject({ text: 'decided' })
+  })
+
   it('does not report a decision as the timeline drifting under the player', () => {
     // The Lea page changed because they asked for it. That is not the same thing as a page
     // rewriting itself, and the day-end summary must not conflate them.
     expect(isPageAltered(leaPage, 9)).toBe(false)
+  })
+})
+
+describe('the address bar is not the location', () => {
+  it('typing an address does not move the browser', () => {
+    let state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' })
+    state = dispatch(state, { type: 'BROWSER_URL_CHANGED', url: 'half-typ' })
+    expect(state.browser.url).toBe('tradepost.com')
+    expect(state.browser.draftUrl).toBe('half-typ')
+    expect(selectPage(state, content).found).toBe(true)
+  })
+
+  it('going back discards what was half-typed', () => {
+    let state = run(fresh(), [
+      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' },
+      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com/pdx/electronics' },
+      { type: 'BROWSER_URL_CHANGED', url: 'nonsen' },
+    ])
+    state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
+    expect(state.browser.draftUrl).toBeNull()
+    expect(state.browser.url).toBe('tradepost.com')
   })
 })

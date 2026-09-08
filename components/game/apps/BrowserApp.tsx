@@ -61,10 +61,10 @@ export function BrowserApp() {
           className="hal-web__url"
           aria-label="Address"
           spellCheck={false}
-          value={browser.url}
+          value={browser.draftUrl ?? browser.url}
           onChange={(e) => dispatch({ type: 'BROWSER_URL_CHANGED', url: e.target.value })}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') go(browser.url)
+            if (e.key === 'Enter') go(browser.draftUrl ?? browser.url)
           }}
         />
         <span className="hal-web__engine">{content.browser.engineName}</span>

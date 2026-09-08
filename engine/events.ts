@@ -107,7 +107,9 @@ export function withoutDraftInput(state: TimelineState): TimelineState {
   return {
     ...state,
     recallQuery: '',
-    browser: { ...state.browser, query: '' },
+    // An address typed but never submitted is a draft like any other. Only `view: 'page'` or
+    // `'results'` means the player actually went somewhere, and those events are in the log.
+    browser: { ...state.browser, query: '', draftUrl: null },
     terminal: { ...state.terminal, input: '' },
   }
 }

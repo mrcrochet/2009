@@ -81,6 +81,40 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 6,
+    to: 7,
+    describe: 'the chat pending-reply state is per thread',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const chat = { ...((snapshot.chat as AnyRecord) ?? {}) }
+      const threads = ['unknown', 'marc', 'lea'] as const
+      const spread = <T>(value: T) => Object.fromEntries(threads.map((t) => [t, value]))
+      if (typeof chat.waiting !== 'object' || chat.waiting === null) {
+        chat.waiting = spread(chat.waiting === true)
+      }
+      if (typeof chat.pendingReply !== 'object' || chat.pendingReply === null) {
+        chat.pendingReply = spread(null)
+      }
+      if (typeof chat.pendingAdvance !== 'object' || chat.pendingAdvance === null) {
+        chat.pendingAdvance = spread(true)
+      }
+      snapshot.chat = chat
+      return { ...row, snapshot }
+    },
+  },
+  {
+    from: 7,
+    to: 8,
+    describe: 'the address bar is a draft, separate from the location',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const browser = { ...((snapshot.browser as AnyRecord) ?? {}) }
+      if (browser.draftUrl === undefined) browser.draftUrl = null
+      snapshot.browser = browser
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {
