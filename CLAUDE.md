@@ -27,6 +27,10 @@ recreates it. It is never reinterpreted into a dashboard.
 - Investigation Board is a focused in-world mode.
 - Cash lives in Bank; investments live in Quoteline/finance apps.
 - Recall is an app **and** a resource mechanic.
+- One search reaches every surface at once, and its counts say the world is larger than the
+  question. It is a Find window, not a command palette.
+- The Directory holds only what this machine has learned. It is never a cast list.
+- The relay console is a focused in-world mode, like the board, and never a browser tab.
 - Divergence is experienced through changing world content, not only a meter.
 - Guest can begin immediately with no account.
 - Save/account prompt happens only after the experience has earned it.
@@ -107,6 +111,15 @@ seeded PRNG (`engine/seed.ts`) recorded in the timeline.
 **Data-driven content.** Emails, dialogue, browser pages, evidence, claims, recall memories,
 economy opportunities and temporal shifts live under `content/`, validated by Zod. React
 components render content; they never own narrative truth.
+
+**One world.** `content/world/` is the corpus the days happen inside — entities, artifacts,
+relations, facts — and `content/index.ts` projects every authored day into it, so a player who
+searches a name reaches the mail they actually read rather than a second copy of that person.
+`worldAsOf` cuts it to the date being played. Authoring rules and the invariants the build
+enforces are in `docs/CORPUS.md`.
+
+**Every page has an address.** A document on the web surface must be reachable by typing its URL,
+and two documents may never share one. A day's browser pages and the corpus are one internet.
 
 **Choices must answer themselves.** A dialogue choice carries its own reply, may hold the
 conversation, may set a world flag, and may require evidence before it is offered. A
@@ -189,8 +202,8 @@ Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mob
 - **`prefers-reduced-motion` must reach the JavaScript.** The boot ticker, the typing pause, the
   resale settle and the surveillance hold are timers, not CSS. `pace()` collapses them. The beats
   still happen; the waiting does not.
-- **Keyboard routes**: `Ctrl+\`` cycles windows, `Ctrl+D`reaches the dock,`Ctrl+E` the tray.
-  With nine windows open the dock is otherwise ~100 Tab presses away.
+- **Keyboard routes**: `Ctrl+\`` cycles windows, `Ctrl+D`reaches the dock,`Ctrl+E`the tray,`Ctrl+K` the search. With nine windows open the dock is otherwise ~100 Tab presses away, and
+  the search is a route through the machine rather than another thing to find in it.
 - **Sound** is generated at runtime by `lib/audio/` — no files ship. The mute control lives in
   the menu bar, where a 2009 machine put it, and the choice persists.
 
@@ -198,7 +211,19 @@ Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mob
 
 Unit: money invariants, evidence pinning idempotency, Recall cost/degradation, claim requirement
 logic, temporal article mutation, Day 01 gating, save migration, engine purity.
-E2E: the full Day 01 golden path (`tests/e2e/day01.spec.ts`).
+
+The corpus has invariants of its own, and they fail the build: a page on the web with no address,
+two documents at one address, a connection nothing the player could hold supports, a fact carried
+by a single trace, an untrue document nothing catches, and a world that has stopped being mostly
+ordinary. `tests/unit/content.test.ts` is the corpus report — it fails with the numbers in the
+message.
+
+E2E: the full Day 01 golden path (`tests/e2e/day01.spec.ts`), the world surfaces
+(`tests/e2e/world.spec.ts`), the narrow layout and the keyboard routes (`tests/e2e/mobile.spec.ts`).
+
+`tests/unit/day02.test.ts` plays a second authored day through a real night, because "days 02–30
+are content, not rewrites" is a claim about the engine and has to be exercised rather than
+asserted.
 
 ## 24. Definition of done
 

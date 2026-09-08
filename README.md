@@ -17,18 +17,21 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-Day 01 is fully playable with **no configuration and no account**. Supabase, Stripe, analytics
-and error reporting all degrade to a working local-only state when their environment variables
-are absent. Copy `.env.example` to `.env.local` to turn any of them on.
+Day 01 is fully playable with **no configuration and no account**. Day 02 exists and is authored
+entirely in `content/day02/`; it is behind the entitlement boundary, which is checked on the
+server. Supabase, Stripe, analytics, error reporting and the Way Up relay all degrade to a
+working local-only state when their environment variables are absent — the relay's degraded
+state is an authored screen rather than an error. Copy `.env.example` to `.env.local` to turn any
+of them on.
 
 ## Verifying it
 
 ```bash
 npm run typecheck
 npm run lint
-npm run test                       # 101 unit + component tests
+npm run test                       # unit, component and content-invariant tests
 npm run build
-npm run test:e2e -- --project=chromium   # the full Day 01 golden path
+npm run test:e2e -- --project=chromium   # Day 01 end to end, the world surfaces, narrow layout
 ```
 
 ## What is where
