@@ -24,5 +24,15 @@ insert policy until something actually writes to it, and `billing_customers` acc
 self-insert but never an update, so entitlement stays writable only by the webhook's service
 role.
 
-`prune_billing_events()` should be run on a schedule (pg_cron, or any daily job); Stripe stops
-retrying long before the 30-day window it keeps.
+`prune_billing_events()` should be run on a schedule (pg_cron, or any daily job) **as the service
+role**; Stripe stops retrying long before the 30-day window it keeps.
+
+Both `SECURITY DEFINER` functions have `EXECUTE` revoked from `public`, `anon` and
+`authenticated`, and the schema's default privileges revoke it for future ones too. Supabase
+exposes every `public` function at `/rest/v1/rpc/<name>`, so without that revoke anyone holding
+the publishable key could call `prune_billing_events()` and empty the idempotency ledger —
+after which previously-processed Stripe events replay as new. Supabase's own database linter
+found this; `tests/e2e/supabase.spec.ts` now asserts it stays fixed.
+
+`billing_events` has RLS enabled with **no policies at all**, which the linter reports as INFO.
+That is deliberate: it is fail-closed, and only the webhook's service role touches it.

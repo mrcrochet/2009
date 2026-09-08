@@ -1,12 +1,12 @@
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
-import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from './config'
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, isSupabaseConfigured } from './config'
 
 /** Cookie-based SSR client. Never receives the service-role key. */
 export async function createServerSupabase() {
   if (!isSupabaseConfigured()) return null
   const store = await cookies()
-  return createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  return createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
       getAll() {
         return store.getAll()
