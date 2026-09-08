@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;padding:0;background:#07090b;overflow:hidden}
+*{box-sizing:border-box}
+a{color:#2b5f96;text-decoration:underline}
+a:hover{color:#8a3b2c}
+button{font:inherit}
+textarea,input{font:inherit}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+@keyframes riseup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes glowpulse{0%,100%{opacity:.55}50%{opacity:.95}}
+@keyframes iconpop{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:none}}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#dcdcd8}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#b6bac0,#8d939a);border:1px solid #74797f;border-radius:6px}
+</style>
+</helmet>
+<div style="position:relative;width:100%;height:100vh;background:#07090b;overflow:hidden;font-family:'Lucida Grande',Tahoma,Geneva,sans-serif;-webkit-font-smoothing:antialiased">
+
+  <sc-if value="{{ isLanding }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 8%,#15181c 0%,#0a0c0e 55%,#07090b 100%);display:flex;flex-direction:column;justify-content:space-between;padding:38px 46px;font-family:Archivo,sans-serif">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;color:#5e666e;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase">
+        <span>2009</span>
+        <span>An interactive record</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:34px;max-width:900px;animation:riseup .9s ease both">
+        <h1 style="margin:0;color:#eceef0;font-weight:800;font-size:clamp(38px,6.4vw,88px);line-height:.96;letter-spacing:-.03em;text-wrap:balance">YOU WAKE UP<br>IN 2009.<br><span style="color:#6f7880">YOU REMEMBER<br>EVERYTHING.</span></h1>
+        <div style="display:flex;flex-direction:column;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#8b949c;letter-spacing:.02em">
+          <span>$437.82 in an account that is not yours.</span>
+          <span>30 days.</span>
+          <span style="color:#c8ced3">What do you do first?</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <button onClick="{{ wake }}" style="appearance:none;border:1px solid #d8dcdf;background:#eceef0;color:#0a0c0e;font-family:Archivo,sans-serif;font-weight:700;font-size:14px;letter-spacing:.16em;padding:15px 34px;cursor:pointer;transition:background .18s,transform .18s" style-hover="background:#fff;transform:translateY(-1px)">WAKE UP</button>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5e666e">No account. It starts immediately.</span>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#454c53;letter-spacing:.1em">15 JAN 2009 · 07:32 · PORTLAND, OR</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isBoot }}">
+    <div style="position:absolute;inset:0;background:#05070800;background-color:#050708;padding:44px 52px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:#9aa6ad;line-height:1.85">
+      <sc-for list="{{ bootLines }}" as="ln" hint-placeholder-count="3">
+        <div style="animation:fadein .18s both">{{ ln }}</div>
+      </sc-for>
+      <span style="display:inline-block;width:7px;height:14px;background:#9aa6ad;animation:blink 1s step-end infinite;vertical-align:-2px"></span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDesk }}">
+  <div style="position:absolute;inset:0;animation:fadein .8s both">
+    <div style="position:absolute;inset:0;background:radial-gradient(105% 80% at 26% 14%,#22323b 0%,#131c22 46%,#080b0e 100%)"></div>
+    <div style="position: absolute; inset: 0; opacity: .055; background-image: repeating-linear-gradient(0deg,rgba(255,255,255,.7) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(255,255,255,.5) 0 1px,transparent 1px 3px); mix-blend-mode: overlay; pointer-events: none; left: 489px; top: -105px"></div>
+
+    <div style="position:absolute;top:0;left:0;right:0;height:23px;display:flex;align-items:center;gap:18px;padding:0 12px;background:linear-gradient(180deg,rgba(30,35,40,.94),rgba(14,17,20,.94));border-bottom:1px solid rgba(0,0,0,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.09);color:#c3cad0;font-size:11px;z-index:9000;backdrop-filter:blur(6px)">
+      <span style="display:inline-flex;align-items:center;gap:6px;font-weight:700;letter-spacing:.06em"><span style="width:9px;height:9px;border:1.5px solid #7fa6c4;border-radius:50%;display:inline-block"></span>HALCYON</span>
+      <span style="opacity:.72">{{ frontTitle }}</span>
+      <span style="opacity:.5">File</span><span style="opacity:.5">Edit</span><span style="opacity:.5">View</span>
+      <span style="flex:1"></span>
+      <sc-if value="{{ canEndDay }}">
+        <button onClick="{{ endDay }}" style="appearance:none;background:none;border:none;color:#9fb6c7;font-size:11px;letter-spacing:.05em;cursor:pointer;padding:0" style-hover="color:#fff">End day 01</button>
+      </sc-if>
+      <span style="opacity:.85;font-variant-numeric:tabular-nums">Thu 15 Jan {{ clock }}</span>
+    </div>
+
+    <div style="position:absolute;top:44px;left:26px;display:flex;flex-direction:column;gap:20px;z-index:10">
+      <sc-for list="{{ deskIcons }}" as="ic" hint-placeholder-count="1">
+        <div onClick="{{ ic.open }}" style="width:78px;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;animation:iconpop .45s both">
+          <div style="width:44px;height:54px;background:linear-gradient(170deg,#f6f6f2,#d3d3cb);border:1px solid #9a9a92;border-radius:2px;box-shadow:0 3px 7px rgba(0,0,0,.5);position:relative;overflow:hidden">
+            <div style="position:absolute;top:0;right:0;width:15px;height:15px;background:linear-gradient(225deg,#b9b9b0 50%,transparent 50%)"></div>
+            <div style="padding:11px 7px 0;display:flex;flex-direction:column;gap:3px">
+              <span style="display:block;height:1.5px;background:#a8a8a0"></span><span style="display:block;height:1.5px;background:#a8a8a0"></span><span style="display:block;height:1.5px;background:#a8a8a0;width:70%"></span>
+            </div>
+          </div>
+          <span style="font-size:10.5px;color:#e6ebee;text-shadow:0 1px 2px rgba(0,0,0,.85);text-align:center;line-height:1.25">{{ ic.name }}</span>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-for list="{{ windows }}" as="w" hint-placeholder-count="0">
+      <div style="{{ w.frame }}">
+        <div style="display:flex;flex-direction:column;height:100%;background:#ecece8;border:1px solid #4b5055;border-radius:5px 5px 3px 3px;box-shadow:0 22px 48px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.06) inset;overflow:hidden">
+          <div onMouseDown="{{ w.drag }}" style="height:25px;flex:none;display:flex;align-items:center;gap:8px;padding:0 9px;background:{{ w.barBg }};border-bottom:1px solid #7d838a;box-shadow:inset 0 1px 0 rgba(255,255,255,.55);cursor:default;user-select:none">
+            <span onClick="{{ w.close }}" style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9c92,#c0392b);border:1px solid #8e2b20;cursor:pointer"></span>
+            <span style="width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d6d6d0,#a9a9a2);border:1px solid #8a8a83"></span>
+            <span style="flex:1;text-align:center;font-size:11.5px;font-weight:600;color:{{ w.barInk }};letter-spacing:.02em;padding-right:22px">{{ w.title }}</span>
+          </div>
+          <div style="flex:1;min-height:0;display:flex;overflow:hidden">
+
+            <sc-if value="{{ w.isMail }}">
+              <div style="width:214px;flex:none;border-right:1px solid #c6c6c0;background:#f4f4f0;overflow:auto">
+                <div style="padding:6px 9px;font-size:9.5px;letter-spacing:.12em;color:#8b8b84;border-bottom:1px solid #dcdcd6">INBOX — CORVID MAIL</div>
+                <sc-for list="{{ mail }}" as="m" hint-placeholder-count="3">
+                  <div onClick="{{ m.open }}" style="{{ m.rowStyle }}">
+                    <div style="display:flex;justify-content:space-between;gap:6px"><span style="font-weight:{{ m.weight }};font-size:11.5px;color:#1d2126;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.from }}</span><span style="font-size:10px;color:#8b8b84;flex:none">{{ m.time }}</span></div>
+                    <div style="font-size:11px;color:#4a5158;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.subj }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="flex:1;min-width:0;background:#fff;overflow:auto;padding:16px 20px">
+                <div style="font-size:15px;font-weight:600;color:#15181c;margin-bottom:3px">{{ openMail.subj }}</div>
+                <div style="font-size:11px;color:#79808a;border-bottom:1px solid #e6e6e0;padding-bottom:9px;margin-bottom:13px">{{ openMail.meta }}</div>
+                <sc-for list="{{ openMail.body }}" as="p" hint-placeholder-count="3">
+                  <p style="margin:0 0 11px;font-size:12.5px;line-height:1.62;color:#22262b;white-space:pre-wrap">{{ p }}</p>
+                </sc-for>
+                <sc-if value="{{ openMail.hasEv }}">
+                  <button onClick="{{ openMail.pin }}" style="{{ pinBtn }}">{{ openMail.pinLabel }}</button>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isMsg }}">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#f7f7f4">
+                <div style="display:flex;gap:0;border-bottom:1px solid #c6c6c0;background:linear-gradient(180deg,#e9e9e4,#dadad4)">
+                  <sc-for list="{{ threads }}" as="t" hint-placeholder-count="2">
+                    <button onClick="{{ t.open }}" style="{{ t.tab }}">{{ t.name }}</button>
+                  </sc-for>
+                </div>
+                <div style="flex:1;min-height:0;overflow:auto;padding:11px 12px;display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ chat }}" as="c" hint-placeholder-count="3">
+                    <div style="{{ c.wrap }}"><span style="font-size:9.5px;color:#9a9a92;letter-spacing:.06em">{{ c.who }} · {{ c.time }}</span><div style="{{ c.bubble }}">{{ c.text }}</div></div>
+                  </sc-for>
+                </div>
+                <div style="flex:none;border-top:1px solid #c6c6c0;padding:9px 11px;background:#efefeb;display:flex;flex-direction:column;gap:6px">
+                  <sc-for list="{{ chatChoices }}" as="ch" hint-placeholder-count="2">
+                    <button onClick="{{ ch.pick }}" style="appearance:none;text-align:left;border:1px solid #b3b8bd;border-radius:3px;background:linear-gradient(180deg,#fff,#ececeb);padding:7px 10px;font-size:11.5px;color:#20252b;cursor:pointer" style-hover="border-color:#5f8fb4;background:#fff">{{ ch.text }}</button>
+                  </sc-for>
+                  <sc-if value="{{ chatWaiting }}"><span style="font-size:10.5px;color:#9a9a92;font-style:italic">typing…</span></sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isWeb }}">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#fff">
+                <div style="flex:none;display:flex;align-items:center;gap:7px;padding:7px 9px;background:linear-gradient(180deg,#e4e4de,#cfcfc9);border-bottom:1px solid #a9a9a2">
+                  <button onClick="{{ webBack }}" style="appearance:none;width:23px;height:20px;border:1px solid #93938c;border-radius:3px;background:linear-gradient(180deg,#fbfbf9,#dedeD8);cursor:pointer;color:#4a5158;font-size:11px">‹</button>
+                  <input value="{{ web.url }}" onChange="{{ webUrlChange }}" onKeyDown="{{ webUrlGo }}" style="flex:1;min-width:0;height:21px;border:1px solid #93938c;border-radius:3px;padding:0 7px;font-size:11.5px;background:#fff;color:#1d2126">
+                  <span style="font-size:10px;color:#6f7680;letter-spacing:.06em">CORVID</span>
+                </div>
+                <div style="flex:1;min-height:0;overflow:auto">
+                  <sc-if value="{{ web.isHome }}">
+                    <div style="padding:64px 30px;display:flex;flex-direction:column;align-items:center;gap:18px;font-family:Verdana,Geneva,sans-serif">
+                      <div style="font-size:38px;font-weight:700;color:#1f4e79;letter-spacing:-.02em">corvid<span style="color:#c0392b">.</span></div>
+                      <div style="display:flex;gap:6px"><input value="{{ web.query }}" onChange="{{ webQChange }}" onKeyDown="{{ webSearch }}" style="width:300px;height:24px;border:1px solid #7f7f7f;padding:0 7px;font-size:12px"><button onClick="{{ webSearchBtn }}" style="height:24px;border:1px solid #7f7f7f;background:linear-gradient(180deg,#f2f2f2,#dcdcdc);font-size:11px;padding:0 12px;cursor:pointer">Search</button></div>
+                      <div style="font-size:10.5px;color:#8a8a8a">Web · Images · Groups · News · Mail — © 2009 Corvid Inc.</div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ web.isResults }}">
+                    <div style="padding:14px 18px;font-family:Verdana,Geneva,sans-serif">
+                      <div style="font-size:11px;color:#767676;border-bottom:1px solid #e2e2e2;padding-bottom:8px;margin-bottom:14px">Results for <b>{{ web.query }}</b> — {{ web.count }} found</div>
+                      <sc-for list="{{ web.results }}" as="r" hint-placeholder-count="3">
+                        <div style="margin-bottom:17px;max-width:520px">
+                          <div onClick="{{ r.open }}" style="font-size:13.5px;color:#1f4e79;text-decoration:underline;cursor:pointer">{{ r.title }}</div>
+                          <div style="font-size:11px;color:#2a7a2a;margin:2px 0 3px">{{ r.url }}</div>
+                          <div style="font-size:11.5px;color:#3a3a3a;line-height:1.5">{{ r.snip }}</div>
+                        </div>
+                      </sc-for>
+                      <sc-if value="{{ web.empty }}"><div style="font-size:12px;color:#3a3a3a;line-height:1.7">Your search did not match any documents.<br>Try different keywords. Remember: this index only knows what exists now.</div></sc-if>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ web.isPage }}">
+                    <div style="{{ web.pageStyle }}">
+                      <sc-for list="{{ web.blocks }}" as="b" hint-placeholder-count="3">
+                        <div style="margin-bottom:12px">
+                          <sc-if value="{{ b.isH }}"><div style="font-size:19px;font-weight:700;color:{{ b.ink }};margin-bottom:4px">{{ b.text }}</div></sc-if>
+                          <sc-if value="{{ b.isSub }}"><div style="font-size:11px;color:#777;letter-spacing:.04em">{{ b.text }}</div></sc-if>
+                          <sc-if value="{{ b.isP }}"><div style="font-size:12.5px;line-height:1.65;color:#2a2a2a;white-space:pre-wrap">{{ b.text }}</div></sc-if>
+                          <sc-if value="{{ b.isRule }}"><div style="height:1px;background:#d5d5cf"></div></sc-if>
+                          <sc-if value="{{ b.isListing }}">
+                            <div style="border:1px solid #cfcfc7;background:#fbfbf7;padding:10px 12px;display:flex;flex-direction:column;gap:5px">
+                              <div style="display:flex;justify-content:space-between;gap:10px"><span style="font-size:13px;font-weight:600;color:#1f4e79">{{ b.title }}</span><span style="font-size:13px;font-weight:700;color:#2a2a2a">{{ b.price }}</span></div>
+                              <div style="font-size:11px;color:#777">{{ b.loc }}</div>
+                              <div style="font-size:12px;line-height:1.55;color:#3a3a3a">{{ b.text }}</div>
+                              <div><button onClick="{{ b.act }}" style="{{ b.actStyle }}">{{ b.actLabel }}</button></div>
+                            </div>
+                          </sc-if>
+                          <sc-if value="{{ b.isEv }}"><button onClick="{{ b.pin }}" style="{{ pinBtn }}">{{ b.pinLabel }}</button></sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isFiles }}">
+              <div style="width:140px;flex:none;background:linear-gradient(180deg,#e2e6ea,#d3d8dd);border-right:1px solid #b3b8bd;padding:9px 0;font-size:11.5px;color:#2a3138">
+                <div style="padding:3px 12px;font-size:9.5px;letter-spacing:.12em;color:#87909a">PLACES</div>
+                <div style="padding:4px 12px;background:#8fa8bd;color:#fff">Desktop</div>
+                <div style="padding:4px 12px;opacity:.6">Documents</div>
+                <div style="padding:4px 12px;opacity:.6">Pictures</div>
+                <div style="padding:4px 12px;opacity:.35">Network</div>
+              </div>
+              <div style="width:210px;flex:none;border-right:1px solid #c6c6c0;background:#fff;overflow:auto">
+                <sc-for list="{{ files }}" as="f" hint-placeholder-count="4">
+                  <div onClick="{{ f.open }}" style="{{ f.row }}">
+                    <span style="font-size:11.5px;color:#1d2126">{{ f.name }}</span>
+                    <span style="font-size:10px;color:#9a9a92">{{ f.meta }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="flex:1;min-width:0;background:#fbfbf9;overflow:auto;padding:14px 16px">
+                <div style="font-family:Monaco,'Courier New',monospace;font-size:11.5px;line-height:1.8;color:#22262b;white-space:pre-wrap">{{ fileBody }}</div>
+                <sc-if value="{{ fileHasEv }}"><button onClick="{{ filePin }}" style="{{ pinBtn }}">{{ filePinLabel }}</button></sc-if>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isBank }}">
+              <div style="flex:1;min-width:0;overflow:auto;background:#fff;font-family:Verdana,Geneva,sans-serif">
+                <div style="background:linear-gradient(180deg,#1f4e79,#163a5a);color:#fff;padding:11px 16px;display:flex;justify-content:space-between;align-items:baseline">
+                  <span style="font-size:14px;font-weight:700;letter-spacing:.02em">MERIDIAN SAVINGS &amp; LOAN</span><span style="font-size:10px;opacity:.8">Online Banking</span>
+                </div>
+                <div style="padding:14px 16px;border-bottom:1px solid #e2e2dc">
+                  <div style="font-size:10.5px;color:#777;letter-spacing:.08em">CHECKING ····4471 — RASK, O.</div>
+                  <div style="font-size:30px;font-weight:700;color:#1a1a1a;margin-top:4px;font-variant-numeric:tabular-nums">{{ cashText }}</div>
+                  <div style="font-size:11px;color:#8a8a8a;margin-top:3px">Available balance · Account opened 06 Jan 2009</div>
+                  <button onClick="{{ pinBank }}" style="{{ pinBtn }}">{{ bankPinLabel }}</button>
+                </div>
+                <div style="padding:12px 16px">
+                  <div style="font-size:10.5px;color:#777;letter-spacing:.08em;margin-bottom:7px">RECENT ACTIVITY</div>
+                  <sc-for list="{{ txns }}" as="t" hint-placeholder-count="4">
+                    <div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted #dedad2;font-size:11.5px">
+                      <span style="color:#8a8a8a;flex:none;width:52px">{{ t.date }}</span>
+                      <span style="flex:1;min-width:0;color:#2a2a2a">{{ t.label }}</span>
+                      <span style="flex:none;font-variant-numeric:tabular-nums;color:{{ t.ink }}">{{ t.amt }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isMkt }}">
+              <div style="flex:1;min-width:0;overflow:auto;background:#fff">
+                <div style="padding:9px 14px;background:linear-gradient(180deg,#2b2f34,#1b1f23);color:#cfd6dc;font-size:11px;letter-spacing:.1em;display:flex;justify-content:space-between"><span>QUOTELINE TERMINAL</span><span style="opacity:.6">15 JAN 2009 · DELAYED 20 MIN</span></div>
+                <sc-for list="{{ quotes }}" as="q" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid #eee;font-size:12px">
+                    <span style="width:56px;flex:none;font-weight:700;color:#1d2126">{{ q.sym }}</span>
+                    <span style="flex:1;min-width:0;color:#6f7680;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.name }}</span>
+                    <span style="width:64px;flex:none;text-align:right;font-variant-numeric:tabular-nums;color:#1d2126">{{ q.px }}</span>
+                    <span style="width:56px;flex:none;text-align:right;font-variant-numeric:tabular-nums;color:{{ q.ink }}">{{ q.chg }}</span>
+                  </div>
+                </sc-for>
+                <div style="padding:13px 14px;background:#faf6ea;border-top:1px solid #e6dcc0;font-size:11.5px;color:#6b5a2a;line-height:1.6">Brokerage account required to place orders. Minimum opening deposit: $2,000.00. <span style="color:#9a8a5a">You have no brokerage account.</span></div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isNotes }}">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#fffdf2">
+                <div style="flex:none;padding:6px 10px;font-size:9.5px;letter-spacing:.12em;color:#9a8f6a;border-bottom:1px solid #eae3c8">UNTITLED — NOT SAVED</div>
+                <textarea value="{{ notes }}" onChange="{{ notesChange }}" placeholder="Write down what you still remember. It will not stay accurate." style="flex:1;min-height:0;border:none;outline:none;resize:none;background:transparent;padding:13px 15px;font-family:Monaco,'Courier New',monospace;font-size:12px;line-height:1.75;color:#2a2620"></textarea>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isTerm }}">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:#0d1013">
+                <div style="flex:1;min-height:0;overflow:auto;padding:11px 13px;font-family:Monaco,'Courier New',monospace;font-size:11.5px;line-height:1.7;color:#c2cdd4">
+                  <sc-for list="{{ term }}" as="t" hint-placeholder-count="2">
+                    <div style="color:{{ t.ink }};white-space:pre-wrap">{{ t.text }}</div>
+                  </sc-for>
+                </div>
+                <div style="flex:none;display:flex;align-items:center;gap:7px;padding:8px 13px;border-top:1px solid #22282d;font-family:Monaco,'Courier New',monospace;font-size:11.5px;color:#6f9ab5">
+                  <span>orask$</span>
+                  <input value="{{ termIn }}" onChange="{{ termChange }}" onKeyDown="{{ termRun }}" style="flex:1;min-width:0;background:transparent;border:none;outline:none;color:#dfe7ec;font-family:Monaco,'Courier New',monospace;font-size:11.5px">
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ w.isRecall }}">
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#14181d,#0b0e11)">
+                <div style="flex:none;padding:11px 14px;border-bottom:1px solid #262c33">
+                  <div style="font-size:9.5px;letter-spacing:.16em;color:#6d7c88">RECALL — SEARCH YOUR OWN MEMORY</div>
+                  <div style="display:flex;gap:6px;margin-top:9px">
+                    <input value="{{ recallQ }}" onChange="{{ recallChange }}" onKeyDown="{{ recallRun }}" placeholder="a company, a year, a thing you know happened" style="flex:1;min-width:0;height:24px;background:#080a0c;border:1px solid #2c333a;border-radius:2px;padding:0 8px;color:#dbe3e8;font-size:11.5px;outline:none">
+                    <button onClick="{{ recallBtn }}" style="height:24px;border:1px solid #3d4a55;background:linear-gradient(180deg,#2a323a,#1b2128);color:#c6d2da;font-size:11px;padding:0 12px;cursor:pointer;border-radius:2px">Recall</button>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+                    <span style="font-size:9.5px;letter-spacing:.1em;color:#5c6a75">COHERENCE</span>
+                    <span style="flex:1;height:3px;background:#1d2329;position:relative;overflow:hidden"><span style="{{ integrityBar }}"></span></span>
+                    <span style="font-size:10px;color:#7d8b96;font-variant-numeric:tabular-nums">{{ integrityText }}</span>
+                  </div>
+                </div>
+                <div style="flex:1;min-height:0;overflow:auto;padding:12px 14px;display:flex;flex-direction:column;gap:13px">
+                  <sc-for list="{{ recalls }}" as="r" hint-placeholder-count="1">
+                    <div style="border-left:2px solid {{ r.ink }};padding-left:11px">
+                      <div style="font-size:10px;letter-spacing:.1em;color:#5c6a75">{{ r.q }}</div>
+                      <div style="font-size:12.5px;line-height:1.65;color:#cfd8de;margin:5px 0 6px;white-space:pre-wrap">{{ r.text }}</div>
+                      <div style="font-size:9.5px;letter-spacing:.14em;color:{{ r.ink }}">CONFIDENCE: {{ r.conf }}</div>
+                    </div>
+                  </sc-for>
+                  <sc-if value="{{ noRecalls }}"><div style="font-size:12px;line-height:1.7;color:#5c6a75">Nothing retrieved yet.<br><br>Every retrieval loosens the rest. You will not be told which memory it cost you.</div></sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+          </div>
+        </div>
+      </div>
+    </sc-for>
+
+    <sc-if value="{{ phoneOpen }}">
+      <div style="{{ phoneFrame }}">
+        <div onMouseDown="{{ phoneDrag }}" style="height:100%;background:linear-gradient(175deg,#2c3035,#14171a);border-radius:22px;border:1px solid #05070800;box-shadow:0 26px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.14);padding:26px 12px 34px;display:flex;flex-direction:column;user-select:none">
+          <div style="position:absolute;top:11px;left:0;right:0;text-align:center;font-size:8.5px;letter-spacing:.22em;color:#5f676e">NOKORA N90</div>
+          <div style="flex:1;min-height:0;background:#e9eaec;border-radius:3px;border:1px solid #000;display:flex;flex-direction:column;overflow:hidden">
+            <div style="flex:none;height:19px;background:linear-gradient(180deg,#4d5b68,#334150);color:#dfe6ec;font-size:9.5px;display:flex;align-items:center;justify-content:space-between;padding:0 7px"><span>MERIDIAN WIRELESS</span><span>{{ clock }}</span></div>
+            <div style="flex:none;display:flex;border-bottom:1px solid #b9bcc0;background:#dcdee1">
+              <sc-for list="{{ phoneTabs }}" as="t" hint-placeholder-count="3">
+                <button onClick="{{ t.open }}" style="{{ t.style }}">{{ t.name }}</button>
+              </sc-for>
+            </div>
+            <div style="flex:1;min-height:0;overflow:auto">
+              <sc-if value="{{ phoneIsSms }}">
+                <div style="display:flex;flex-direction:column">
+                  <sc-for list="{{ smsList }}" as="s" hint-placeholder-count="3">
+                    <div style="{{ s.wrap }}"><div style="font-size:8.5px;color:#8b9098;letter-spacing:.06em;margin-bottom:2px">{{ s.who }} · {{ s.time }}</div><div style="{{ s.bubble }}">{{ s.text }}</div></div>
+                  </sc-for>
+                  <div style="padding:8px 9px;display:flex;flex-direction:column;gap:5px;border-top:1px solid #c6c9cd">
+                    <sc-for list="{{ smsChoices }}" as="c" hint-placeholder-count="2">
+                      <button onClick="{{ c.pick }}" style="appearance:none;text-align:left;border:1px solid #a9adb3;border-radius:2px;background:#f6f7f8;padding:6px 8px;font-size:10.5px;color:#22262b;cursor:pointer" style-hover="background:#fff;border-color:#5f8fb4">{{ c.text }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ phoneIsPhotos }}">
+                <div style="padding:9px;display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ photos }}" as="p" hint-placeholder-count="2">
+                    <div style="border:1px solid #b9bcc0;background:#fff">
+                      <div style="height:78px;background:repeating-linear-gradient(135deg,#c9ced4 0 8px,#bfc5cc 8px 16px);display:flex;align-items:center;justify-content:center;font-size:9px;letter-spacing:.1em;color:#6c757e">{{ p.label }}</div>
+                      <div style="padding:6px 7px;font-size:9.5px;color:#5f676e;line-height:1.5">{{ p.meta }}</div>
+                      <sc-if value="{{ p.hasEv }}"><div style="padding:0 7px 7px"><button onClick="{{ p.pin }}" style="{{ pinBtnSm }}">{{ p.pinLabel }}</button></div></sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ phoneIsContacts }}">
+                <div style="padding:4px 0">
+                  <sc-for list="{{ contacts }}" as="c" hint-placeholder-count="3">
+                    <div style="padding:7px 10px;border-bottom:1px solid #d6d9dd;font-size:11px;color:#22262b;display:flex;justify-content:space-between"><span>{{ c.name }}</span><span style="color:#8b9098;font-size:10px">{{ c.num }}</span></div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center;gap:26px;margin-top:8px">
+            <span onClick="{{ phoneClose }}" style="width:34px;height:14px;border-radius:8px;background:linear-gradient(180deg,#4a5158,#2b3137);border:1px solid #1b1f23;cursor:pointer"></span>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <div onClick="{{ toggleTray }}" style="position:absolute;top:50%;right:0;transform:translateY(-50%);z-index:8000;writing-mode:vertical-rl;padding:15px 6px;background:linear-gradient(90deg,rgba(20,24,28,.94),rgba(12,15,18,.94));border:1px solid rgba(255,255,255,.11);border-right:none;border-radius:4px 0 0 4px;color:#a9b6c0;font-size:10px;letter-spacing:.16em;cursor:pointer;box-shadow:-4px 0 14px rgba(0,0,0,.4)">EVIDENCE {{ evCountText }}</div>
+
+    <sc-if value="{{ trayOpen }}">
+      <div style="position:absolute;top:23px;bottom:0;right:0;width:268px;z-index:8100;background:linear-gradient(180deg,rgba(18,22,26,.97),rgba(10,13,16,.97));border-left:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;animation:fadein .22s both;backdrop-filter:blur(8px)">
+        <div style="flex:none;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.09)">
+          <span style="font-size:9.5px;letter-spacing:.16em;color:#8fa0ac">PINNED EVIDENCE</span>
+          <span onClick="{{ toggleTray }}" style="color:#6d7c88;font-size:13px;cursor:pointer">×</span>
+        </div>
+        <div style="flex:1;min-height:0;overflow:auto;padding:11px 12px;display:flex;flex-direction:column;gap:9px">
+          <sc-for list="{{ evCards }}" as="e" hint-placeholder-count="1">
+            <div style="border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.045);padding:9px 10px">
+              <div style="font-size:9px;letter-spacing:.12em;color:#7f8f9b">{{ e.src }}</div>
+              <div style="font-size:11.5px;line-height:1.55;color:#d4dce2;margin-top:4px">{{ e.text }}</div>
+            </div>
+          </sc-for>
+          <sc-if value="{{ noEv }}"><div style="font-size:11.5px;line-height:1.7;color:#5c6a75">Nothing pinned.<br><br>Anything with a timestamp, a name or an amount can be kept. The machine will not decide what matters.</div></sc-if>
+        </div>
+        <div style="flex:none;padding:11px 12px;border-top:1px solid rgba(255,255,255,.09)">
+          <button onClick="{{ openBoard }}" style="width:100%;appearance:none;border:1px solid #3d4a55;background:linear-gradient(180deg,#2a323a,#1a2027);color:#c6d2da;font-size:11px;letter-spacing:.1em;padding:9px 0;cursor:pointer;border-radius:2px" style-hover="border-color:#6f9ab5;color:#fff">OPEN BOARD</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ boardOpen }}">
+      <div style="position:absolute;inset:23px 0 0 0;z-index:8500;background:rgba(6,8,10,.9);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:26px;animation:fadein .2s both">
+        <div style="width:min(860px,100%);max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#171b1f,#0d1013);border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 70px rgba(0,0,0,.7)">
+          <div style="flex:none;display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.1)">
+            <span style="font-size:10px;letter-spacing:.18em;color:#8fa0ac">INVESTIGATION — BUILD A CLAIM</span>
+            <span onClick="{{ closeBoard }}" style="color:#6d7c88;font-size:15px;cursor:pointer">×</span>
+          </div>
+          <div style="flex:1;min-height:0;display:flex;overflow:hidden">
+            <div style="width:50%;border-right:1px solid rgba(255,255,255,.09);overflow:auto;padding:14px 15px">
+              <div style="font-size:9.5px;letter-spacing:.14em;color:#6d7c88;margin-bottom:10px">SELECT THE PIECES YOU ARE RELYING ON</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <sc-for list="{{ boardEv }}" as="e" hint-placeholder-count="2">
+                  <div onClick="{{ e.toggle }}" style="{{ e.style }}">
+                    <div style="font-size:9px;letter-spacing:.12em;color:#7f8f9b">{{ e.src }}</div>
+                    <div style="font-size:11.5px;line-height:1.55;color:#d4dce2;margin-top:3px">{{ e.text }}</div>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ noEv }}"><div style="font-size:11.5px;color:#5c6a75;line-height:1.7">Pin something first.</div></sc-if>
+              </div>
+            </div>
+            <div style="width:50%;overflow:auto;padding:14px 15px;display:flex;flex-direction:column;gap:9px">
+              <div style="font-size:9.5px;letter-spacing:.14em;color:#6d7c88">ASSERT</div>
+              <sc-for list="{{ claims }}" as="c" hint-placeholder-count="3">
+                <div onClick="{{ c.pick }}" style="{{ c.style }}">{{ c.text }}</div>
+              </sc-for>
+              <button onClick="{{ assert }}" style="margin-top:5px;appearance:none;border:1px solid #4b5b68;background:linear-gradient(180deg,#2e3841,#1c2329);color:#d3dde4;font-size:11px;letter-spacing:.12em;padding:10px 0;cursor:pointer" style-hover="border-color:#7fa6c4;color:#fff">SUBMIT CLAIM</button>
+              <sc-if value="{{ hasVerdict }}">
+                <div style="{{ verdictStyle }}">{{ verdict }}</div>
+              </sc-if>
+              <sc-if value="{{ hasLog }}">
+                <div style="margin-top:6px;border-top:1px solid rgba(255,255,255,.09);padding-top:9px">
+                  <div style="font-size:9px;letter-spacing:.14em;color:#6d7c88;margin-bottom:6px">CLAIMS ON RECORD</div>
+                  <sc-for list="{{ claimLog }}" as="l" hint-placeholder-count="1">
+                    <div style="font-size:10.5px;line-height:1.6;color:#7e8b95">— {{ l }}</div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);z-index:8800;display:flex;align-items:flex-end;gap:7px;padding:8px 13px 9px;background:linear-gradient(180deg,rgba(28,33,38,.82),rgba(12,15,18,.92));border:1px solid rgba(255,255,255,.13);border-bottom:none;border-radius:9px 9px 0 0;box-shadow:0 -6px 22px rgba(0,0,0,.45);backdrop-filter:blur(10px)">
+      <sc-for list="{{ dock }}" as="d" hint-placeholder-count="8">
+        <div onClick="{{ d.open }}" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:42px">
+          <div style="{{ d.icon }}">
+            <svg viewBox="0 0 20 20" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <sc-if value="{{ d.isMail }}"><g><rect x="2.5" y="5.5" width="15" height="9.5" rx="1.4"></rect><path d="M2.8 6.4l7.2 5.2 7.2-5.2"></path></g></sc-if>
+              <sc-if value="{{ d.isMsg }}"><g><path d="M3 5.5h14v7.6h-6.6l-3.9 2.9v-2.9H3z"></path><path d="M6.4 9.3h7.2" opacity=".65"></path></g></sc-if>
+              <sc-if value="{{ d.isWeb }}"><g><circle cx="10" cy="10" r="7"></circle><path d="M3 10h14"></path><path d="M10 3c2.6 2.7 2.6 11.3 0 14M10 3c-2.6 2.7-2.6 11.3 0 14"></path></g></sc-if>
+              <sc-if value="{{ d.isFiles }}"><g><path d="M2.5 6.2h5.2l1.6 2.1h8.2v8.2h-15z"></path><path d="M2.5 10.4h15" opacity=".55"></path></g></sc-if>
+              <sc-if value="{{ d.isBank }}"><g><path d="M3 8.2l7-4.2 7 4.2"></path><path d="M5 8.6v6.6M8.3 8.6v6.6M11.7 8.6v6.6M15 8.6v6.6"></path><path d="M3 16.4h14"></path></g></sc-if>
+              <sc-if value="{{ d.isMkt }}"><g><path d="M3 15.2l4.2-5 3.4 2.9L17 5.4"></path><path d="M12.6 5.4H17v4.3"></path></g></sc-if>
+              <sc-if value="{{ d.isNotes }}"><g><rect x="4.2" y="3" width="11.6" height="14" rx="1.4"></rect><path d="M7 7.2h6M7 10.2h6M7 13.2h3.6"></path></g></sc-if>
+              <sc-if value="{{ d.isTerm }}"><g><rect x="2.5" y="4.2" width="15" height="11.6" rx="1.4"></rect><path d="M5.6 8.4l2.1 1.9-2.1 1.9M10 12.6h4.6"></path></g></sc-if>
+              <sc-if value="{{ d.isRecall }}"><g><path d="M10 3.2a6.8 6.8 0 1 0 6.7 8"></path><path d="M10 6.4a3.6 3.6 0 1 1-3.5 4.3"></path><circle cx="10" cy="10" r=".9" fill="currentColor" stroke="none"></circle></g></sc-if>
+              <sc-if value="{{ d.isPhone }}"><g><rect x="6" y="3.2" width="8" height="13.6" rx="1.3"></rect><path d="M8.2 5.6h3.6M8.2 14.4h3.6" opacity=".7"></path></g></sc-if>
+            </svg>
+          </div>
+          <span style="{{ d.dotStyle }}"></span>
+        </div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ watched }}">
+      <div style="position:absolute;inset:0;z-index:9500;pointer-events:none">
+        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(560px,72%);height:120px;background:radial-gradient(60% 100% at 50% 0%,rgba(190,215,235,.13),transparent 72%)"></div>
+        <div style="position:absolute;top:16px;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:50%;background:#e2483a;box-shadow:0 0 12px 4px rgba(226,72,58,.55);animation:glowpulse 2.4s ease-in-out infinite"></div>
+        <div style="position:absolute;top:34px;left:50%;transform:translateX(-50%);width:min(420px,58%);height:64px;background:linear-gradient(180deg,rgba(210,225,240,.07),transparent);border-radius:50% 50% 40% 40%/70% 70% 30% 30%"></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ dayCard }}">
+      <div style="position:absolute;inset:0;z-index:9700;background:rgba(4,6,7,.94);display:flex;align-items:center;justify-content:center;padding:34px;animation:fadein .7s both;font-family:Archivo,sans-serif">
+        <div style="width:min(560px,100%);display:flex;flex-direction:column;gap:24px;animation:riseup .8s .2s both">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.22em;color:#5f686f">15 JANUARY 2009 · 23:41</div>
+          <div style="font-size:clamp(30px,4.6vw,52px);font-weight:800;letter-spacing:-.02em;color:#eceef0;line-height:1">DAY 01<br>COMPLETE</div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8b949c;line-height:1.7">
+            <span>Balance: {{ cashText }} · Quota 01: $10,000.00 · 29 days left</span>
+            <span>Memory coherence: {{ integrityText }}</span>
+            <span>Claims on record: {{ claimCount }}</span>
+            <sc-if value="{{ hasHoldings }}"><span>Held: {{ holdings }}</span></sc-if>
+            <sc-if value="{{ shifted }}"><span style="color:#c0a87a">One page you read today no longer says what it said.</span></sc-if>
+            <span style="color:#c8ced3">Someone was watching the last four hours of this.</span>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,.12)"></div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="font-size:19px;font-weight:600;color:#dfe3e6;letter-spacing:-.01em">Day 02 is available.</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#8b949c;line-height:1.7">Your timeline is held locally. Save it to keep the version of 2009 you just made.</div>
+            <div style="display:flex;gap:11px;flex-wrap:wrap">
+              <button style="appearance:none;border:1px solid #d8dcdf;background:#eceef0;color:#0a0c0e;font-weight:700;font-size:12.5px;letter-spacing:.1em;padding:13px 24px;cursor:pointer" style-hover="background:#fff">CONTINUE YOUR TIMELINE</button>
+              <button style="appearance:none;border:1px solid rgba(255,255,255,.22);background:transparent;color:#a9b2b9;font-size:12.5px;letter-spacing:.06em;padding:13px 20px;cursor:pointer" style-hover="color:#fff;border-color:#fff">Save this timeline — free</button>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#5f686f;line-height:1.7">Full access · $6.99/mo — days 02–30, alternate timelines, the scenarios that only exist if you fail.</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:800},&quot;skipIntro&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;startAtDayEnd&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;alwaysAllowEndDay&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+const EV = {
+  e1:{src:'READ_ME.TXT — DESKTOP',text:'“Quota 01: $10,000.00. 30 days. Do not contact anyone about this file.”'},
+  e2:{src:'CORVID MAIL — HEADER',text:'Aion settlement notice sent 03:11, four hours before you woke up.'},
+  e3:{src:'COLUMBIA REGISTER — OBITUARY',text:'Owen T. Rask, 34, died 19 December 2008.'},
+  e4:{src:'MERIDIAN SAVINGS',text:'Checking ····4471 in the name of Rask, O. — opened 06 January 2009.'},
+  e5:{src:'SMS — MARC, 14 JAN',text:'21:58 — “you home? need to drop something off.”'},
+  e6:{src:'PHOTO — 14 JAN 22:08',text:'Frame taken 22:08 in a parking structure, not at Marc’s address.'},
+  e7:{src:'TERMINAL — CIBLES.ENC',text:'Target list copied 22:14. Entry: RASK, O. — status ACTIVE.'},
+  e8:{src:'MERIDIAN SAVINGS',text:'$500.00 ATM withdrawal, 14 Jan 22:17, SE Morrison branch.'},
+  e9:{src:'CLUSTER — LEA VOSS',text:'Posted 04:12: “someone has been parked outside my building for two nights.”'},
+  e10:{src:'NAMEWELL — WHOIS',text:'aion-group.com registered 11 Dec 2008. Registrant address is the SE Morrison branch of Meridian Savings.'}
+};
+const CLAIMS = [
+  {id:'c1',text:'Marc was not at home on the night of the 14th.',need:['e5','e6'],ok:true,
+   yes:'ACCEPTED. Two records, one contradiction, no interpretation required. The claim holds.',
+   no:'INSUFFICIENT. You are asserting where he was not. You need something that places him elsewhere at a known time.'},
+  {id:'c2',text:'Owen Rask is dead and someone else is operating his accounts.',need:['e3','e4'],ok:true,
+   yes:'ACCEPTED. A man who died on 19 December did not open a checking account on 6 January. You are using his name.',
+   no:'INSUFFICIENT. A death and an account are not yet the same story. Find both.'},
+  {id:'c3',text:'The quota notice was written before you woke up.',need:['e2'],ok:true,
+   yes:'ACCEPTED. 03:11. Whoever sent it knew you would be here at 07:32.',
+   no:'INSUFFICIENT. You need the header, not the feeling.'},
+  {id:'c4',text:'Marc works for the Aion Group.',need:['e7','e2','e8'],ok:false,
+   yes:'REFUSED. Proximity is not employment. The claim is filed anyway — under your name.',
+   no:'REFUSED. The claim is filed anyway — under your name.'},
+  {id:'c5',text:'Lea Voss is being watched because of what she is building.',need:['e9','e7'],ok:true,
+   yes:'ACCEPTED. Her name is on a list you were not supposed to read, and someone is sitting outside her door. She does not know either of these things.',
+   no:'INSUFFICIENT. You need her own words and the list that names her.'},
+  {id:'c6',text:'Aion and the bank that opened your account are the same address.',need:['e10','e4'],ok:true,
+   yes:'ACCEPTED. The creditor and the account are one building on SE Morrison. Someone walked in and made you.',
+   no:'INSUFFICIENT. A registrar record alone proves a mailbox, not a relationship.'}
+];
+const RECALL = [
+  {k:['apple','aapl','iphone','jobs'],t:'Apple is at eighty-something dollars this month. You are certain it goes up by an order of magnitude. You cannot remember whether the split came before or after the first tablet.',c:'HIGH'},
+  {k:['bitcoin','btc','crypto'],t:'A currency with no issuer. It exists already — nine days old, worth nothing, traded by almost no one. You remember a number that ends in a lot of zeros and a story about a hard drive in a landfill.',c:'HIGH'},
+  {k:['netflix','nflx','streaming','dvd'],t:'They mail red envelopes right now. They stop. Streaming is the whole company later. The year they stopped mailing is not in your memory.',c:'MEDIUM'},
+  {k:['electric','tesla','car','ev'],t:'One electric-car company becomes worth more than every other carmaker combined. It is not public yet. You remember the name of the man better than the name of the company.',c:'HIGH'},
+  {k:['amazon','amzn','aws'],t:'Books now, everything later, and the profitable part is renting out computers. That part is already running and almost nobody has noticed.',c:'HIGH'},
+  {k:['facebook','social','myspace','twitter'],t:'The one with the blue bar wins. The one you are on right now does not. There is a lawsuit about who wrote it.',c:'MEDIUM'},
+  {k:['housing','mortgage','real estate','crash','recession'],t:'It is not over. March is the floor. You are inside the worst quarter of it right now.',c:'HIGH'},
+  {k:['aion','quota','rask','owen'],t:'Nothing. You have no memory of any of this from any year. That is what frightens you.',c:'NONE'},
+  {k:['2026','future','me','myself'],t:'You remember a room, a screen, a date twenty-six years out, and the sensation of standing up. Nothing before it.',c:'LOW'}
+];
+const APPS = {
+  mail:{title:'Corvid Mail',mono:'M',w:640,h:410},
+  msg:{title:'Ember Messenger',mono:'E',w:318,h:392},
+  web:{title:'Halcyon Browser',mono:'W',w:720,h:472},
+  files:{title:'Files',mono:'F',w:600,h:352},
+  bank:{title:'Meridian Savings',mono:'B',w:472,h:364},
+  mkt:{title:'Quoteline',mono:'Q',w:520,h:340},
+  notes:{title:'Notes',mono:'N',w:352,h:300},
+  term:{title:'Terminal',mono:'>',w:568,h:328},
+  recall:{title:'Recall',mono:'R',w:428,h:352}
+};
+const DOCK = ['mail','msg','web','files','bank','mkt','notes','term','recall'];
+const BOOT = [
+  'HALCYON 4.1  (build 4.1.882)','','Memory check ........ 2048 MB OK',
+  'Volume “Macintosh HD” ... mounted','Network interface en0 ... 10.0.1.14',
+  'Last login: Wed Jan 14 22:14:03 on console','',
+  'Restoring session for user: orask','', 'Loading desktop …'
+];
+
+class Component extends DCLogic {
+  state = {
+    stage:'landing', boot:0, min:32, cash:437.82, integrity:100,
+    wins:[], z:20, icons:[], drag:null,
+    mailOpen:'m1', mailRead:['m1'], mailExtra:false,
+    thread:'unknown', chatLog:{unknown:[],marc:[],lea:[]}, chatStep:{unknown:0,marc:0,lea:0}, chatWait:false,
+    web:{view:'home',url:'corvid.com',query:''}, webHist:[], shift:0, domains:[],
+    file:'readme', notes:'', term:[{text:'Halcyon Terminal — type “help”',ink:'#6f9ab5'}], termIn:'',
+    recallQ:'', recalls:[],
+    phone:false, phoneApp:'sms', phoneX:null, phoneY:null,
+    smsStep:0, smsLog:[],
+    tray:false, board:false, ev:[], sel:[], claim:null, verdict:null, log:[],
+    bought:false, listed:false, sold:false,
+    beats:{}, watched:false, dayCard:false, decrypted:false
+  };
+
+  componentDidMount(){
+    if(this.props.skipIntro) this.setState({stage:'desk',icons:[{id:'readme'}]});
+    if(this.props.startAtDayEnd) this.setState({stage:'desk',icons:[{id:'readme'}],watched:true,dayCard:true,mailExtra:true});
+    window.addEventListener('mousemove',this.onMove);
+    window.addEventListener('mouseup',this.onUp);
+  }
+  componentWillUnmount(){
+    window.removeEventListener('mousemove',this.onMove);
+    window.removeEventListener('mouseup',this.onUp);
+    if(this.bt) clearInterval(this.bt);
+  }
+
+  tick(n){ this.setState(s=>({min:s.min+(n||1)})); }
+  beat(k){ this.setState(s=>({beats:{...s.beats,[k]:true}})); }
+
+  wake = () => {
+    this.setState({stage:'boot',boot:0});
+    this.bt = setInterval(()=>{
+      this.setState(s=>{
+        const b=s.boot+1;
+        if(b>=BOOT.length){ clearInterval(this.bt); setTimeout(()=>this.enterDesk(),700); }
+        return {boot:b};
+      });
+    },170);
+  };
+  enterDesk(){
+    this.setState({stage:'desk'});
+    setTimeout(()=>{ this.open('msg'); this.setState({thread:'unknown'}); this.pushChat('unknown'); },1100);
+    setTimeout(()=>this.setState({icons:[{id:'readme'}]}),2600);
+  }
+
+  // ---------- windows ----------
+  open = (app) => {
+    this.setState(s=>{
+      const found=s.wins.find(w=>w.app===app);
+      const z=s.z+1;
+      if(found) return {wins:s.wins.map(w=>w.app===app?{...w,z}:w),z};
+      const a=APPS[app], n=s.wins.length;
+      const x=Math.min(150+n*34, Math.max(20, window.innerWidth-a.w-40));
+      const y=Math.min(70+n*28, Math.max(40, window.innerHeight-a.h-90));
+      return {wins:[...s.wins,{app,x,y,z}],z};
+    });
+    if(app==='recall') this.beat('recall');
+  };
+  close = (app) => this.setState(s=>({wins:s.wins.filter(w=>w.app!==app)}));
+  startDrag = (app,e) => {
+    const w=this.state.wins.find(v=>v.app===app); if(!w) return;
+    this.setState(s=>({drag:{app,dx:e.clientX-w.x,dy:e.clientY-w.y},z:s.z+1,wins:s.wins.map(v=>v.app===app?{...v,z:s.z+1}:v)}));
+    e.preventDefault();
+  };
+  startPhoneDrag = (e) => {
+    const t=e.target; if(t.tagName==='BUTTON'||t.tagName==='INPUT') return;
+    const r=this.phoneRect();
+    this.setState({drag:{app:'__phone',dx:e.clientX-r.x,dy:e.clientY-r.y}});
+  };
+  phoneRect(){
+    const x=this.state.phoneX==null?Math.max(20,window.innerWidth-330):this.state.phoneX;
+    const y=this.state.phoneY==null?70:this.state.phoneY;
+    return {x,y};
+  }
+  onMove = (e) => {
+    const d=this.state.drag; if(!d) return;
+    if(d.app==='__phone'){ this.setState({phoneX:e.clientX-d.dx,phoneY:e.clientY-d.dy}); return; }
+    this.setState(s=>({wins:s.wins.map(w=>w.app===d.app?{...w,x:e.clientX-d.dx,y:e.clientY-d.dy}:w)}));
+  };
+  onUp = () => { if(this.state.drag) this.setState({drag:null}); };
+
+  // ---------- evidence ----------
+  pin = (id) => { this.setState(s=>s.ev.includes(id)?{}:{ev:[...s.ev,id],tray:true}); this.tick(); };
+  toggleSel = (id) => this.setState(s=>({sel:s.sel.includes(id)?s.sel.filter(x=>x!==id):[...s.sel,id]}));
+  assert = () => {
+    const c=CLAIMS.find(x=>x.id===this.state.claim); if(!c) return;
+    const sel=this.state.sel;
+    const complete=c.need.every(n=>sel.includes(n)) && sel.length===c.need.length;
+    const good=c.ok&&complete;
+    this.setState(s=>({
+      verdict:good?c.yes:c.no,
+      log:good?s.log:[...s.log,c.text],
+      beats:{...s.beats,claim:true}
+    }));
+    this.tick(6);
+  };
+
+  // ---------- mail ----------
+  mailData(){
+    const list=[
+      {id:'m1',from:'AION GROUP — SETTLEMENTS',subj:'Quota 01 — statement of obligation',time:'03:11',
+       meta:'From settlements@aion-group.com · to o.rask@corvidmail.com · Thu 15 Jan 2009, 03:11',
+       body:['Obligation on record: $10,000.00.','Term: thirty (30) calendar days from waking.','Instrument of payment is your discretion. Origin of funds is your problem.','No further correspondence will be sent. There will be no reminder and no extension.','— Settlements'],
+       ev:'e2'},
+      {id:'m2',from:'Meridian Savings & Loan',subj:'Your new account is ready',time:'06 Jan',
+       meta:'From no-reply@meridiansavings.com · Tue 06 Jan 2009, 09:14',
+       body:['Welcome, Mr. Rask.','Your checking account ····4471 was opened on 06 January 2009 at our SE Morrison branch. Your available balance is $437.82.','Please retain this message for your records.'],
+       ev:'e4'},
+      {id:'m3',from:'Marc Deleon',subj:'sat night',time:'Wed',
+       meta:'From m.deleon@fastwebmail.net · Wed 14 Jan 2009, 23:51',
+       body:['stayed in all evening, watched the game. call me tomorrow, i have something that pays.','—m'],
+       ev:null}
+    ];
+    if(this.state.mailExtra) list.unshift({id:'m0',from:'UNKNOWN',subj:'(no subject)',time:'23:39',
+      meta:'From — · Thu 15 Jan 2009, 23:39 · sender could not be resolved',
+      body:['You shouldn’t have opened that file.', this.state.log.length? 'And you should be more careful what you put your name to. “'+this.state.log[this.state.log.length-1]+'” is now on record as yours.' : 'We read the quiet ones too.'],
+      ev:null});
+    return list;
+  }
+
+  // ---------- messenger ----------
+  chatScript = {
+    unknown:[
+      {who:'unknown_',text:'You have 30 days.',choices:['Who is this?','What happens after 30 days?']},
+      {who:'unknown_',text:'A file will appear on your desktop. Read it. Then stop asking me things I will not answer.',choices:['Why me?']},
+      {who:'unknown_',text:'Because the name you are using is available. — M',choices:[]}
+    ],
+    marc:[
+      {who:'Marc',text:'youre up. good. i have a thing that pays today, no questions',choices:['What kind of thing?','Where were you last night?']},
+      {who:'Marc',text:'guy on tradepost is dumping a phone he doesnt know the value of. 60 bucks. you flip it, we split',choices:['Send me the listing.','You said you were home last night.']},
+      {who:'Marc',text:'i was home. why are you asking me that',choices:[]}
+    ],
+    lea:[
+      {who:'Lea',text:'you dont know me but marc gave me this screen name. im the one building the thing he keeps calling “the website”',choices:['What are you building?','Why are you messaging me at 4am?']},
+      {who:'Lea',text:'a way to put a short clip on a page without a plugin. everyone says nobody wants that. i think everyone is wrong',choices:['Everyone is wrong.','How much would it take to finish it?']},
+      {who:'Lea',text:'nine thousand and four months. i have neither. also i think there is a car outside my building again. probably nothing',choices:['Post about the car somewhere public.','Say nothing about the car.']},
+      {who:'Lea',text:'ok. posted it to cluster. if i vanish at least it is written down somewhere',choices:[]}
+    ]
+  };
+  pushChat(t){
+    this.setState(s=>{
+      const i=s.chatStep[t], node=this.chatScript[t][i]; if(!node) return {};
+      return {chatLog:{...s.chatLog,[t]:[...s.chatLog[t],{who:node.who,text:node.text,me:false,time:this.clockStr(s.min)}]}};
+    });
+  }
+  pickChat = (text) => {
+    const t=this.state.thread;
+    this.setState(s=>({chatLog:{...s.chatLog,[t]:[...s.chatLog[t],{who:'you',text,me:true,time:this.clockStr(s.min)}]},chatWait:true}));
+    this.tick(2);
+    setTimeout(()=>{
+      this.setState(s=>({chatStep:{...s.chatStep,[t]:s.chatStep[t]+1},chatWait:false}),()=>this.pushChat(t));
+      setTimeout(()=>this.pushChat(t),40);
+    },900);
+    if(t==='marc') this.beat('marc');
+  };
+
+  // ---------- web ----------
+  pages = () => ({
+    'tradepost.com/pdx/electronics':{bg:'#fff',blocks:[
+      {h:'TradePost — Portland / electronics',ink:'#7a0f0f'},
+      {sub:'posted today · 4 items · flag as spam'},
+      {rule:true},
+      {listing:'Nokora N90 — unlocked, boxed',price:'$60',loc:'SE Portland · cash only',
+       text:'Company gave it to my brother, he never used it. No idea what it is worth. Screen is like a little computer. Comes with the charger and a paper manual.',act:'buy'},
+      {listing:'Sony CRT television 27"',price:'$25',loc:'Gresham · you haul',text:'Works. Heavy. Bring two people and a truck.',act:'none'},
+      {listing:'Snowboard, 158cm',price:'$140',loc:'Hillsboro',text:'Ridden two seasons. Bindings included.',act:'none'}
+    ]},
+    'columbia-register.com/obits/rask':{bg:'#fbfbf5',blocks:[
+      {h:'Obituaries — December 2008',ink:'#1a1a1a'},
+      {sub:'The Columbia Register · archived page'},
+      {rule:true},
+      {p:'RASK, Owen T., 34, of Portland, died Friday, December 19, 2008, following a short illness. He was a systems technician. He is survived by no immediate family. At his request there will be no service.'},
+      {p:'Condolences may be left in the guest book below. (Guest book is empty.)'},
+      {ev:'e3'}
+    ]},
+    'aion-group.com':{bg:'#f2f2ee',blocks:[
+      {h:'AION GROUP',ink:'#22262b'},
+      {sub:'Settlements · Recovery · Actuarial'},
+      {rule:true},
+      {p:'This domain is registered and in use. No public information is available.'},
+      {p:'Correspondence is outbound only.'}
+    ]},
+    'nullcache.org/thread/3312':{bg:'#0f1216',blocks:[
+      {h:'nullcache › general › “anyone else lose a week?”',ink:'#8fb6d4'},
+      {sub:'12 replies · last post 09 Jan 2009'},
+      {rule:true},
+      {p:'>> 3312  anon\nwoke up tuesday and it was tuesday but the whole apartment was someone elses. bank card in a name thats not mine and it works. am i insane'},
+      {p:'>> 3319  anon\nhappened to a guy on here in november. he stopped posting. dont use your real name and dont pay them'},
+      {p:'>> 3327  anon\nthirty days is the number they always give. thats all i will say'}
+    ]},
+    'cluster.com/leavoss':{bg:'#eef2f6',blocks:[
+      {h:'Cluster — lea.voss',ink:'#2b5f96'},
+      {sub:'Portland, OR · 41 friends · last updated today, 04:12'},
+      {rule:true},
+      {p:'04:12 — someone has been parked outside my building for two nights. same car. i am writing this here so it is written somewhere.'},
+      {p:'11 Jan — demo works in three browsers. it does not work in the one everybody uses.'},
+      {p:'02 Jan — new year, same four months of runway.'},
+      {ev:'e9'}
+    ]},
+    'namewell.com/register':{bg:'#fdfdf8',blocks:[
+      {h:'NAMEWELL — domain registration',ink:'#1f4e79'},
+      {sub:'$9.95 per year · instant activation · WHOIS lookup below'},
+      {rule:true},
+      {listing:'shortclip.com',price:'$9.95',loc:'available',text:'Four syllables, no hyphen. Nobody has asked about this one.',act:'domain'},
+      {listing:'cloudrent.com',price:'$9.95',loc:'available',text:'Renting computers by the hour. The listing has sat here since 2006.',act:'domain'},
+      {listing:'socialgraph.net',price:'$9.95',loc:'available',text:'You have heard this phrase before. You cannot remember from where.',act:'domain'},
+      {rule:true},
+      {h:'WHOIS: aion-group.com',ink:'#22262b'},
+      {p:'Registered: 11 Dec 2008\nRegistrant: AION GROUP LLC\nAddress: 1140 SE MORRISON ST, PORTLAND OR\nNameservers: ns1.aion-group.com, ns2.aion-group.com'},
+      {ev:'e10'}
+    ]},
+    'columbia-register.com/business':{bg:'#fbfbf5',blocks:[
+      {h:this.state.shift>=2?'Local video startup folds before demo; founder unreachable':'Portland developer to demo plugin-free video at Ace Hotel',ink:'#1a1a1a'},
+      {sub:this.state.shift>=2?'The Columbia Register · Business · corrected 3 hours ago':'The Columbia Register · Business · 15 January 2009'},
+      {rule:true},
+      {p:this.state.shift>=2
+        ? 'A local software project that had been scheduled to demonstrate in-browser video this month has been withdrawn. The developer did not respond to messages. An earlier version of this article named a different company and described a different outcome. We regret the error.'
+        : 'A developer working out of an apartment in Southeast Portland says she has built a way to play short video clips in a web page without additional software. Industry observers were skeptical, noting that few users have expressed interest in watching video in a browser window.'},
+      {p:this.state.shift>=2?'You have read this page before. It did not say this.':'Business · Markets · Real Estate · Classifieds'}
+    ]}
+  });
+  searchIndex = () => [
+    {q:['phone','nokora','sell','flip','tradepost','classified','cash','money'],title:'TradePost — Portland classifieds — electronics',url:'tradepost.com/pdx/electronics',snip:'Free classified ads for the Portland metro area. Electronics posted today. Cash only, meet in public.',go:'tradepost.com/pdx/electronics'},
+    {q:['owen rask','rask','o. rask','who am i','my name','obituary','owen'],title:'Obituaries — December 2008 — The Columbia Register',url:'columbia-register.com/obits/rask',snip:'RASK, Owen T., 34, of Portland, died Friday, December 19, 2008, following a short illness…',go:'columbia-register.com/obits/rask'},
+    {q:['aion','aion group','quota','settlement'],title:'AION GROUP',url:'aion-group.com',snip:'Settlements · Recovery · Actuarial. No public information is available.',go:'aion-group.com'},
+    {q:['thirty days','30 days','woke up','lost week','time travel','not my apartment'],title:'nullcache › “anyone else lose a week?”',url:'nullcache.org/thread/3312',snip:'woke up tuesday and it was tuesday but the whole apartment was someone elses…',go:'nullcache.org/thread/3312'},
+    {q:['bitcoin','btc'],title:'P2P e-cash — mailing list archive',url:'metzdowd.archive/crypto/2009-01',snip:'Announcing the first release of a new electronic cash system that uses a peer-to-peer network…',go:null},
+    {q:['lea','voss','lea voss','cluster','video','startup'],title:'Cluster — lea.voss',url:'cluster.com/leavoss',snip:'someone has been parked outside my building for two nights. same car…',go:'cluster.com/leavoss'},
+    {q:['domain','domains','register','whois','namewell','buy a name'],title:'NAMEWELL — domain registration · $9.95/yr',url:'namewell.com/register',snip:'Instant activation. WHOIS lookup. Transfer in from any registrar.',go:'namewell.com/register'},
+    {q:['news','business','portland','headline','register','demo'],title:this.state.shift>=2?'Local video startup folds before demo — The Columbia Register':'Portland developer to demo plugin-free video — The Columbia Register',url:'columbia-register.com/business',snip:this.state.shift>=2?'A local software project scheduled to demonstrate this month has been withdrawn…':'A developer working out of an apartment in Southeast Portland says she has built…',go:'columbia-register.com/business'}
+  ];
+  doSearch = () => {
+    const q=(this.state.web.query||'').toLowerCase().trim();
+    if(!q) return;
+    const hits=this.searchIndex().filter(r=>r.q.some(k=>q.includes(k)||k.includes(q)&&q.length>3));
+    this.setState(s=>({web:{...s.web,view:'results',url:'corvid.com/search?q='+encodeURIComponent(q)},webResults:hits}));
+    this.tick(2);
+  };
+  goPage = (url) => {
+    if(!url) return;
+    this.setState(s=>({web:{...s.web,view:'page',url}}));
+    this.tick();
+  };
+  webBack = () => this.setState(s=>({web:{...s.web,view:s.web.view==='page'?'results':'home'}}));
+
+  buy = () => {
+    if(this.state.bought) return;
+    this.setState(s=>({bought:true,cash:s.cash-60}));
+    this.tick(45);
+  };
+  list = () => {
+    if(this.state.listed) return;
+    this.setState({listed:true});
+    this.tick(120);
+    setTimeout(()=>{ this.setState(s=>({sold:true,cash:s.cash+340,shift:s.shift+1,beats:{...s.beats,money:true}})); },2200);
+  };
+  regDomain = (name) => {
+    if(this.state.domains.includes(name)) return;
+    this.setState(s=>({domains:[...s.domains,name],cash:s.cash-9.95,shift:s.shift+1}));
+    this.tick(12);
+  };
+
+  // ---------- files ----------
+  fileText(){
+    const f=this.state.file;
+    if(f==='readme') return 'QUOTA 01\n\nAmount due: $10,000.00\nTerm: 30 calendar days\nDay: 01 of 30\n\nYou will remember things that have not happened. This is not a symptom. It is the only asset you have.\n\nDo not contact anyone about this file.\nDo not attempt to leave the city.\nDo not use the name on the account for anything you would not want traced.\n\nThe balance is $437.82. Begin.';
+    if(f==='contacts') return 'deleon, marc     503-555-0148\nvoss, lea        503-555-0072\nM                (no number)\nmeridian s&l     1-800-555-9910';
+    if(f==='enc') return this.state.decrypted
+      ? 'cibles.enc — decrypted\n\nSUBJECT LIST (partial)\n----------------------------------\nMORAN, J.     status: CLOSED    12/2008\nOKONKWO, A.   status: CLOSED    12/2008\nRASK, O.      status: ACTIVE    01/2009\nVOSS, L.      status: WATCH     01/2009\n----------------------------------\ncopied 14/01/2009 22:14 from host “deleon-pc”'
+      : '‹ binary ›\n\n1f 8b 08 00 4d 61 72 63 00 03 ed 5d 6b 73 db 46\n96 fd de 5f 41 c5 76 65 3b 8e 25 3f 92 65 4b 96\n…\n\nThis file is encrypted. Terminal:  decrypt cibles.enc --key ????';
+    return 'Empty.';
+  }
+
+  // ---------- terminal ----------
+  runTerm = (e) => {
+    if(e.key!=='Enter') return;
+    const cmd=(this.state.termIn||'').trim();
+    const out=[{text:'orask$ '+cmd,ink:'#6f9ab5'}];
+    const c=cmd.toLowerCase();
+    if(c==='help') out.push({text:'ls · cat <file> · whoami · date · decrypt <file> --key <key>',ink:'#c2cdd4'});
+    else if(c==='ls') out.push({text:'READ_ME.txt   contacts.txt   cibles.enc   Pictures/',ink:'#c2cdd4'});
+    else if(c==='whoami') out.push({text:'orask   (uid 501)   full name: Rask, Owen T.',ink:'#c2cdd4'});
+    else if(c==='date') out.push({text:'Thu Jan 15 '+this.clockStr(this.state.min)+':00 PST 2009',ink:'#c2cdd4'});
+    else if(c.startsWith('cat')) out.push({text:c.includes('read_me')?this.fileText():'cat: cannot display binary file',ink:'#c2cdd4'});
+    else if(c.startsWith('decrypt')){
+      if(c.includes('0412')){
+        out.push({text:'key accepted — 1 file recovered: cibles.enc',ink:'#7fd39a'});
+        this.setState({decrypted:true,file:'enc'});
+        this.pin('e7');
+      } else if(c.includes('--key')) out.push({text:'key rejected. 2 attempts remain before the file reports.',ink:'#e2887a'});
+      else out.push({text:'usage: decrypt <file> --key <key>',ink:'#8b949c'});
+    }
+    else if(c) out.push({text:cmd.split(' ')[0]+': command not found',ink:'#e2887a'});
+    this.setState(s=>({term:[...s.term,...out],termIn:''}));
+    this.tick();
+  };
+
+  // ---------- recall ----------
+  runRecall = () => {
+    const q=(this.state.recallQ||'').trim(); if(!q) return;
+    const lq=q.toLowerCase();
+    const hit=RECALL.find(r=>r.k.some(k=>lq.includes(k)));
+    const integ=Math.max(24,this.state.integrity-9);
+    let text, conf;
+    if(!hit){ text='No recollection. You may never have known this, or you may have spent it.'; conf='NONE'; }
+    else {
+      text=hit.t; conf=hit.c;
+      if(integ<78 && conf!=='NONE'){ text+='\n\nSomething about this has moved since you last checked it.'; conf=conf==='HIGH'?'MEDIUM':'LOW'; }
+      if(integ<52 && conf!=='NONE'){ text+=' You are holding two incompatible versions of this and both feel like yours.'; conf='FRACTURED'; }
+    }
+    this.setState(s=>({integrity:integ,shift:s.shift+1,recallQ:'',recalls:[{q:q.toUpperCase(),text,conf},...s.recalls],beats:{...s.beats,recall:true}}));
+    this.tick(4);
+  };
+
+  // ---------- phone ----------
+  smsScript=[
+    {who:'Marc',text:'you home? need to drop something off.',time:'14/01 21:58',choices:['(no reply sent)']},
+    {who:'Marc',text:'nvm. handled it',time:'14/01 22:31',choices:['Handled what?']},
+    {who:'Marc',text:'nothing. forget it. the kid was up late, thats all — 0412 if you need the safe',time:'14/01 22:33',choices:[]}
+  ];
+  pickSms = () => {
+    this.setState(s=>({smsStep:Math.min(s.smsStep+1,this.smsScript.length-1)}));
+    this.tick(2);
+  };
+
+  clockStr(m){ const h=7+Math.floor(m/60), mm=m%60; return String(h%24).padStart(2,'0')+':'+String(mm).padStart(2,'0'); }
+  money(v){ return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+  endDay = () => {
+    this.setState({watched:true,mailExtra:true,wins:[],phone:false,tray:false,board:false});
+    setTimeout(()=>this.setState({dayCard:true}),3400);
+  };
+
+  renderVals(){
+    const s=this.state;
+    const pinBtn='appearance:none;margin-top:12px;border:1px solid #b3b8bd;background:linear-gradient(180deg,#fff,#e9e9e6);color:#2a3138;font-size:10px;letter-spacing:.11em;padding:6px 11px;cursor:pointer;border-radius:2px';
+    const pinBtnSm='appearance:none;border:1px solid #b3b8bd;background:#fff;color:#2a3138;font-size:9px;letter-spacing:.1em;padding:4px 8px;cursor:pointer';
+    const pinned=id=>s.ev.includes(id);
+    const pinLabel=id=>pinned(id)?'PINNED':'PIN AS EVIDENCE';
+
+    // windows
+    const windows=s.wins.map(w=>{
+      const a=APPS[w.app];
+      const front=s.wins.every(v=>v.z<=w.z);
+      return {
+        app:w.app,title:a.title,
+        frame:{position:'absolute',left:w.x+'px',top:w.y+'px',width:a.w+'px',height:a.h+'px',zIndex:w.z},
+        barBg:front?'linear-gradient(180deg,#cfd4d9,#a8afb7)':'linear-gradient(180deg,#e0e0dc,#c6c6c2)',
+        barInk:front?'#1d2126':'#8a8f95',
+        drag:(e)=>this.startDrag(w.app,e), close:()=>this.close(w.app),
+        isMail:w.app==='mail',isMsg:w.app==='msg',isWeb:w.app==='web',isFiles:w.app==='files',
+        isBank:w.app==='bank',isMkt:w.app==='mkt',isNotes:w.app==='notes',isTerm:w.app==='term',isRecall:w.app==='recall'
+      };
+    });
+    const frontW=s.wins.reduce((a,b)=>!a||b.z>a.z?b:a,null);
+
+    // mail
+    const ml=this.mailData();
+    const om=ml.find(m=>m.id===s.mailOpen)||ml[0];
+    const mail=ml.map(m=>({
+      from:m.from,subj:m.subj,time:m.time,
+      weight:s.mailRead.includes(m.id)?'400':'700',
+      rowStyle:'padding:8px 9px;border-bottom:1px solid #e4e4de;cursor:pointer;background:'+(s.mailOpen===m.id?'#dfe7ee':'transparent'),
+      open:()=>this.setState(st=>({mailOpen:m.id,mailRead:[...new Set([...st.mailRead,m.id])]}))
+    }));
+    const openMail={subj:om.subj,meta:om.meta,body:om.body,hasEv:!!om.ev,
+      pinLabel:om.ev?pinLabel(om.ev):'',pin:()=>om.ev&&this.pin(om.ev)};
+
+    // messenger
+    const threads=[['unknown','unknown_'],['marc','Marc'],['lea','Lea']].map(([id,name])=>({
+      name,open:()=>{ this.setState({thread:id}); if(!s.chatLog[id].length) setTimeout(()=>this.pushChat(id),80); },
+      tab:'appearance:none;flex:1;border:none;border-right:1px solid #c6c6c0;padding:7px 0;font-size:11px;cursor:pointer;background:'+(s.thread===id?'#f7f7f4':'transparent')+';color:'+(s.thread===id?'#1d2126':'#767c83')+';font-weight:'+(s.thread===id?'600':'400')
+    }));
+    const chat=s.chatLog[s.thread].map(c=>({
+      who:c.me?'you':c.who,time:c.time,text:c.text,
+      wrap:'display:flex;flex-direction:column;gap:2px;align-items:'+(c.me?'flex-end':'flex-start'),
+      bubble:'max-width:88%;padding:7px 10px;border-radius:3px;font-size:11.5px;line-height:1.55;'+(c.me?'background:#dbe7f1;border:1px solid #b9cddd;color:#1d2932':'background:#fff;border:1px solid #d6d6d0;color:#22262b')
+    }));
+    const node=this.chatScript[s.thread][s.chatStep[s.thread]];
+    const chatChoices=(!s.chatWait&&node&&s.chatLog[s.thread].length)?node.choices.map(t=>({text:t,pick:()=>this.pickChat(t)})):[];
+
+    // web
+    const P=this.pages();
+    const pg=P[s.web.url];
+    const blocks=(pg?pg.blocks:[]).map(b=>{
+      const o={isH:!!b.h,isSub:!!b.sub,isP:!!b.p,isRule:!!b.rule,isListing:!!b.listing,isEv:!!b.ev,
+        text:b.h||b.sub||b.p||b.text||'',ink:b.ink||'#22262b'};
+      if(b.listing){
+        o.title=b.listing; o.price=b.price; o.loc=b.loc;
+        const isTarget=b.act==='buy', isDom=b.act==='domain';
+        const owned=isDom&&s.domains.includes(b.listing);
+        const label=isDom?(owned?'REGISTERED TO YOU':'REGISTER — 1 YEAR')
+          :(!isTarget?'CONTACT SELLER':(!s.bought?'BUY — MEET SELLER':(s.sold?'SOLD FOR $340.00':(s.listed?'LISTED — WAITING':'POST FOR RESALE'))));
+        const live=isTarget||(isDom&&!owned);
+        o.actLabel=label;
+        o.actStyle='appearance:none;border:1px solid '+(live?'#2a6a3a':'#b3b8bd')+';background:'+(live?'linear-gradient(180deg,#e6f2e6,#cfe4d0)':'linear-gradient(180deg,#fff,#ececea)')+';color:#22262b;font-size:10.5px;letter-spacing:.06em;padding:6px 11px;cursor:pointer';
+        o.act=isDom?(owned?()=>{}:()=>this.regDomain(b.listing))
+          :(!isTarget?(()=>{}):(!s.bought?this.buy:(!s.listed?this.list:()=>{})));
+      }
+      if(b.ev){ o.pinLabel=pinLabel(b.ev); o.pin=()=>this.pin(b.ev); }
+      return o;
+    });
+    const results=(s.webResults||[]).map(r=>({title:r.title,url:r.url,snip:r.snip,open:()=>this.goPage(r.go)}));
+    const web={
+      url:s.web.url,query:s.web.query,
+      isHome:s.web.view==='home',isResults:s.web.view==='results',isPage:s.web.view==='page',
+      results,empty:s.web.view==='results'&&!results.length,count:results.length,
+      blocks,pageStyle:'padding:20px 24px;min-height:100%;background:'+(pg?pg.bg:'#fff')+';font-family:Verdana,Geneva,sans-serif;color:'+((pg&&pg.bg==='#0f1216')?'#9fb4c4':'#2a2a2a')
+    };
+
+    // files
+    const fl=[
+      {id:'readme',name:'READ_ME.txt',meta:'1 KB'},
+      {id:'contacts',name:'contacts.txt',meta:'—'},
+      {id:'enc',name:'cibles.enc',meta:s.decrypted?'decrypted':'locked'},
+      {id:'pics',name:'Pictures',meta:'folder'}
+    ].map(f=>({name:f.name,meta:f.meta,
+      row:'display:flex;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid #eee;cursor:pointer;background:'+(s.file===f.id?'#dfe7ee':'transparent'),
+      open:()=>{ this.setState({file:f.id}); if(f.id==='readme') this.beat('readme'); }}));
+
+    // bank
+    const txns=[
+      {date:'14 Jan',label:'ATM WITHDRAWAL — SE MORRISON',amt:'-500.00',ink:'#a33a2a'},
+      {date:'12 Jan',label:'DEPOSIT — CASH',amt:'+900.00',ink:'#2a6a3a'},
+      {date:'09 Jan',label:'MERIDIAN WIRELESS — PREPAID',amt:'-37.18',ink:'#a33a2a'},
+      {date:'06 Jan',label:'ACCOUNT OPENED — INITIAL DEPOSIT',amt:'+75.00',ink:'#2a6a3a'}
+    ];
+    if(s.bought) txns.unshift({date:'15 Jan',label:'CASH WITHDRAWAL — TRADEPOST MEET',amt:'-60.00',ink:'#a33a2a'});
+    if(s.sold) txns.unshift({date:'15 Jan',label:'DEPOSIT — CASH (RESALE)',amt:'+340.00',ink:'#2a6a3a'});
+
+    const quotes=[
+      {sym:'AAPL',name:'Apple Inc.',px:'82.33',chg:'-1.74',ink:'#a33a2a'},
+      {sym:'AMZN',name:'Amazon.com Inc.',px:'49.75',chg:'+0.38',ink:'#2a6a3a'},
+      {sym:'GOOG',name:'Google Inc.',px:'306.50',chg:'-4.10',ink:'#a33a2a'},
+      {sym:'MSFT',name:'Microsoft Corp.',px:'19.24',chg:'-0.51',ink:'#a33a2a'},
+      {sym:'NFLX',name:'Netflix Inc.',px:'29.86',chg:'+0.44',ink:'#2a6a3a'},
+      {sym:'DJIA',name:'Dow Jones Industrial Average',px:'8,212',chg:'-248',ink:'#a33a2a'}
+    ];
+
+    // phone
+    const pr=this.phoneRect();
+    const smsList=this.smsScript.slice(0,s.smsStep+1).map(m=>({
+      who:m.who,time:m.time,text:m.text,wrap:'padding:9px 9px 0;display:flex;flex-direction:column;align-items:flex-start',
+      bubble:'max-width:90%;background:#fff;border:1px solid #c6c9cd;border-radius:2px;padding:6px 8px;font-size:10.5px;line-height:1.5;color:#22262b'
+    }));
+    const smsNode=this.smsScript[s.smsStep];
+    const smsChoices=(smsNode.choices||[]).map(t=>({text:t,pick:this.pickSms}));
+    const phoneTabs=[['sms','SMS'],['photos','Photos'],['contacts','Contacts']].map(([id,name])=>({
+      name,open:()=>this.setState({phoneApp:id}),
+      style:'appearance:none;flex:1;border:none;border-right:1px solid #b9bcc0;padding:6px 0;font-size:9.5px;letter-spacing:.06em;cursor:pointer;background:'+(s.phoneApp===id?'#e9eaec':'transparent')+';color:'+(s.phoneApp===id?'#22262b':'#767c83')
+    }));
+    const photos=[
+      {label:'IMG_0114 — 78 KB',meta:'14/01/2009 22:08 · flash on · geotag: 45.5231,-122.6412 (parking structure, SW 3rd)',hasEv:true,pinLabel:pinLabel('e6'),pin:()=>this.pin('e6')},
+      {label:'IMG_0113 — 61 KB',meta:'14/01/2009 19:40 · no flash · geotag: none',hasEv:false},
+      {label:'IMG_0098 — 44 KB',meta:'22/12/2008 11:02 · scan of a printed page, unreadable at this size',hasEv:false}
+    ];
+    const contacts=[{name:'Deleon, Marc',num:'503-555-0148'},{name:'Voss, Lea',num:'503-555-0072'},{name:'M',num:'—'},{name:'Meridian S&L',num:'1-800-555-9910'}];
+
+    // evidence / board
+    const evCards=s.ev.map(id=>({src:EV[id].src,text:EV[id].text}));
+    const boardEv=s.ev.map(id=>({src:EV[id].src,text:EV[id].text,toggle:()=>this.toggleSel(id),
+      style:'border:1px solid '+(s.sel.includes(id)?'#7fa6c4':'rgba(255,255,255,.13)')+';background:'+(s.sel.includes(id)?'rgba(127,166,196,.14)':'rgba(255,255,255,.045)')+';padding:9px 10px;cursor:pointer'}));
+    const claims=CLAIMS.map(c=>({text:c.text,pick:()=>this.setState({claim:c.id,verdict:null}),
+      style:'border:1px solid '+(s.claim===c.id?'#7fa6c4':'rgba(255,255,255,.13)')+';background:'+(s.claim===c.id?'rgba(127,166,196,.14)':'transparent')+';padding:10px 11px;font-size:11.5px;line-height:1.5;color:#cbd5dc;cursor:pointer'}));
+    const good=s.verdict&&s.verdict.startsWith('ACCEPTED');
+
+    const beats=s.beats;
+    const canEndDay=!!(beats.readme&&beats.marc&&beats.recall&&beats.money&&beats.claim)||!!this.props.alwaysAllowEndDay;
+
+    const TINT={mail:['#6f9ec9','#2f5d87'],msg:['#7cb98a','#2f6a44'],web:['#69a8c9','#2b5f80'],
+      files:['#d9b96a','#8a6a28'],bank:['#a3adb8','#5a6570'],mkt:['#c98f6a','#7d4a2c'],
+      notes:['#d6c77e','#8a7a34'],term:['#5c666f','#23292e'],recall:['#9a8cc4','#4c3f78'],phone:['#8a97a4','#4a545e']};
+    const dock=DOCK.concat(['phone']).map(id=>{
+      const isPhone=id==='phone';
+      const openNow=isPhone?s.phone:!!s.wins.find(w=>w.app===id);
+      const t=TINT[id];
+      return {
+        isMail:id==='mail',isMsg:id==='msg',isWeb:id==='web',isFiles:id==='files',isBank:id==='bank',
+        isMkt:id==='mkt',isNotes:id==='notes',isTerm:id==='term',isRecall:id==='recall',isPhone:isPhone,
+        icon:'width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.94);background:linear-gradient(180deg,'+t[0]+','+t[1]+');border:1px solid rgba(0,0,0,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -6px 10px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.5)',
+        dotStyle:'width:3px;height:3px;border-radius:50%;background:'+(openNow?'#9fc6e2':'transparent'),
+        open:isPhone?(()=>this.setState(st=>({phone:!st.phone}))):(()=>this.open(id))};
+    });
+
+    return {
+      isLanding:s.stage==='landing',isBoot:s.stage==='boot',isDesk:s.stage==='desk',
+      wake:this.wake, bootLines:BOOT.slice(0,s.boot),
+      clock:this.clockStr(s.min), cashText:this.money(s.cash),
+      frontTitle:frontW?APPS[frontW.app].title:'Finder',
+      deskIcons:s.icons.map(()=>({name:'READ_ME.txt',open:()=>{this.open('files');this.setState({file:'readme'});this.beat('readme');}})),
+      windows, mail, openMail, pinBtn, pinBtnSm,
+      threads, chat, chatChoices, chatWaiting:s.chatWait,
+      web, webBack:this.webBack,
+      webQChange:e=>this.setState(st=>({web:{...st.web,query:e.target.value}})),
+      webSearch:e=>{ if(e.key==='Enter') this.doSearch(); },
+      webSearchBtn:this.doSearch,
+      webUrlChange:e=>this.setState(st=>({web:{...st.web,url:e.target.value}})),
+      webUrlGo:e=>{ if(e.key==='Enter') this.goPage(s.web.url); },
+      files:fl, fileBody:this.fileText(),
+      fileHasEv:s.file==='readme'||(s.file==='enc'&&s.decrypted),
+      filePinLabel:pinLabel(s.file==='readme'?'e1':'e7'),
+      filePin:()=>this.pin(s.file==='readme'?'e1':'e7'),
+      txns, quotes, bankPinLabel:pinLabel('e4'), pinBank:()=>this.pin('e4'),
+      notes:s.notes, notesChange:e=>this.setState({notes:e.target.value}),
+      term:s.term, termIn:s.termIn, termChange:e=>this.setState({termIn:e.target.value}), termRun:this.runTerm,
+      recallQ:s.recallQ, recallChange:e=>this.setState({recallQ:e.target.value}),
+      recallRun:e=>{ if(e.key==='Enter') this.runRecall(); }, recallBtn:this.runRecall,
+      recalls:s.recalls.map(r=>({q:r.q,text:r.text,conf:r.conf,
+        ink:r.conf==='HIGH'?'#7fd39a':r.conf==='FRACTURED'?'#e2887a':r.conf==='NONE'?'#5c6a75':'#d8bd7a'})),
+      noRecalls:!s.recalls.length,
+      integrityText:s.integrity+'%',
+      integrityBar:'position:absolute;left:0;top:0;bottom:0;width:'+s.integrity+'%;background:'+(s.integrity>78?'#5f9e78':s.integrity>52?'#b8974a':'#a85a48'),
+      phoneOpen:s.phone, phoneDrag:this.startPhoneDrag, phoneClose:()=>this.setState({phone:false}),
+      phoneFrame:{position:'absolute',left:pr.x+'px',top:pr.y+'px',width:'296px',height:'552px',zIndex:8700},
+      phoneTabs, phoneIsSms:s.phoneApp==='sms', phoneIsPhotos:s.phoneApp==='photos', phoneIsContacts:s.phoneApp==='contacts',
+      smsList, smsChoices, photos, contacts,
+      trayOpen:s.tray, toggleTray:()=>this.setState(st=>({tray:!st.tray})),
+      evCards, noEv:!s.ev.length, evCountText:s.ev.length?'· '+s.ev.length:'',
+      openBoard:()=>this.setState({board:true}), closeBoard:()=>this.setState({board:false}), boardOpen:s.board,
+      boardEv, claims, assert:this.assert, verdict:s.verdict, hasVerdict:!!s.verdict,
+      verdictStyle:'margin-top:6px;border:1px solid '+(good?'#4a7a5a':'#7a4a42')+';background:'+(good?'rgba(74,122,90,.16)':'rgba(122,74,66,.16)')+';padding:10px 11px;font-size:11.5px;line-height:1.6;color:'+(good?'#bfe0c9':'#e8bfb7'),
+      hasLog:!!s.log.length, claimLog:s.log, claimCount:String(s.log.length),
+      dock, canEndDay, endDay:this.endDay, watched:s.watched, dayCard:s.dayCard,
+      hasHoldings:!!s.domains.length, holdings:s.domains.join(' · '), shifted:s.shift>=2
+    };
+  }
+}
+</script>
+</body>
+</html>

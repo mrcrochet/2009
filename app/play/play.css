@@ -1,0 +1,14 @@
+/* The game owns the whole viewport from the moment /play mounts. */
+html,
+body {
+  overflow: hidden;
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+/* Painted before the game bundle arrives so boot never flashes white. */
+.two009-preboot {
+  position: fixed;
+  inset: 0;
+  background: #050708;
+}

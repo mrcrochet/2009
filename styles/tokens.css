@@ -1,0 +1,220 @@
+/*
+ * Design tokens extracted from the Claude Design handoff (design/2009.dc.html).
+ * Every literal here appears in that file. Do not "modernise" these values.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --void: #07090b;
+  --boot-bg: #050708;
+  --ink-bright: #eceef0;
+  --ink: #c8ced3;
+  --ink-dim: #8b949c;
+  --ink-dimmer: #5e666e;
+  --ink-faint: #454c53;
+  --ink-muted: #6f7880;
+
+  /* HALCYON chrome */
+  --menubar-height: 23px;
+  --titlebar-height: 25px;
+  --menubar-bg: linear-gradient(180deg, rgba(30, 35, 40, 0.94), rgba(14, 17, 20, 0.94));
+  --menubar-ink: #c3cad0;
+  --menubar-accent: #7fa6c4;
+  --desktop-bg: radial-gradient(105% 80% at 26% 14%, #22323b 0%, #131c22 46%, #080b0e 100%);
+
+  /* Window */
+  --win-bg: #ecece8;
+  --win-border: #4b5055;
+  --win-shadow: 0 22px 48px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  --titlebar-front: linear-gradient(180deg, #cfd4d9, #a8afb7);
+  --titlebar-back: linear-gradient(180deg, #e0e0dc, #c6c6c2);
+  --titlebar-front-ink: #1d2126;
+  --titlebar-back-ink: #8a8f95;
+  --titlebar-rule: #7d838a;
+
+  /* Period widget palette */
+  --hairline: #c6c6c0;
+  --hairline-soft: #e4e4de;
+  --panel: #f4f4f0;
+  --panel-alt: #f7f7f4;
+  --paper: #fff;
+  --paper-warm: #fbfbf9;
+  --selected: #dfe7ee;
+  --label: #8b8b84;
+  --body-ink: #22262b;
+  --body-ink-soft: #4a5158;
+  --control-border: #b3b8bd;
+  --control-face: linear-gradient(180deg, #fff, #e9e9e6);
+  --control-focus: #5f8fb4;
+
+  /* Semantic ledger */
+  --debit: #a33a2a;
+  --credit: #2a6a3a;
+
+  /* Overlay chrome */
+  --overlay-panel: linear-gradient(180deg, rgba(18, 22, 26, 0.97), rgba(10, 13, 16, 0.97));
+  --overlay-border: rgba(255, 255, 255, 0.12);
+  --overlay-ink: #8fa0ac;
+  --overlay-ink-dim: #6d7c88;
+  --overlay-ink-body: #d4dce2;
+  --overlay-empty: #5c6a75;
+
+  /* Confidence / verdict */
+  --conf-high: #7fd39a;
+  --conf-mid: #d8bd7a;
+  --conf-fractured: #e2887a;
+  --conf-none: #5c6a75;
+  --integrity-good: #5f9e78;
+  --integrity-fair: #b8974a;
+  --integrity-bad: #a85a48;
+
+  /* Typography */
+  --font-os: 'Lucida Grande', Tahoma, Geneva, Verdana, sans-serif;
+  --font-display: var(--font-archivo), 'Archivo', system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --font-terminal: Monaco, 'Courier New', monospace;
+  --font-web: Verdana, Geneva, sans-serif;
+
+  /* Layers — matches the handoff exactly */
+  --z-desktop-icons: 10;
+  --z-tray-tab: 8000;
+  --z-tray: 8100;
+  --z-board: 8500;
+  --z-phone: 8700;
+  --z-dock: 8800;
+  --z-menubar: 9000;
+  --z-watched: 9500;
+  --z-daycard: 9700;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--void);
+}
+
+body {
+  font-family: var(--font-os);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: #2b5f96;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #8a3b2c;
+}
+
+button {
+  font: inherit;
+}
+
+textarea,
+input {
+  font: inherit;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes riseup {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes glowpulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+@keyframes iconpop {
+  from { opacity: 0; transform: scale(0.86); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Period scrollbars. */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: #dcdcd8;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b6bac0, #8d939a);
+  border: 1px solid #74797f;
+  border-radius: 6px;
+}
+
+/* A 2009 machine did not animate much, but a 2026 player may need it to stop. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Focus is visible, but it is a 2009 focus ring: a hard 1px halo, not a modern glow. */
+:focus-visible {
+  outline: 1px solid var(--menubar-accent);
+  outline-offset: 1px;
+}
+
+/* Shared call-to-action, used by the day-end card and the account surface. */
+.hal-cta {
+  appearance: none;
+  border: 1px solid #d8dcdf;
+  background: var(--ink-bright);
+  color: #0a0c0e;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  padding: 13px 24px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  font-family: var(--font-display);
+}
+
+.hal-cta:hover {
+  background: #fff;
+  color: #0a0c0e;
+}
+
+.hal-cta--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: #a9b2b9;
+  font-weight: 400;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  padding: 13px 20px;
+}
+
+.hal-cta--ghost:hover {
+  color: #fff;
+  border-color: #fff;
+  background: transparent;
+}
+

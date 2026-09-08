@@ -1,0 +1,129 @@
+/* The landing is the only surface that looks like a product. After WAKE UP it never returns. */
+
+.root {
+  position: relative;
+  width: 100%;
+  min-height: 100dvh;
+  background: radial-gradient(120% 90% at 50% 8%, #15181c 0%, #0a0c0e 55%, #07090b 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 38px 46px;
+  font-family: var(--font-display);
+  overflow: hidden;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: var(--ink-dimmer);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.middle {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  max-width: 900px;
+  animation: riseup 0.9s ease both;
+  padding: 48px 0;
+}
+
+.headline {
+  margin: 0;
+  color: var(--ink-bright);
+  font-weight: 800;
+  font-size: clamp(38px, 6.4vw, 88px);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.headline span {
+  color: var(--ink-muted);
+}
+
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  letter-spacing: 0.02em;
+}
+
+.facts .last {
+  color: var(--ink);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.wake {
+  appearance: none;
+  border: 1px solid #d8dcdf;
+  background: var(--ink-bright);
+  color: #0a0c0e;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  padding: 15px 34px;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    transform 0.18s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.wake:hover {
+  background: #fff;
+  color: #0a0c0e;
+  transform: translateY(-1px);
+}
+
+.note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dimmer);
+}
+
+.foot {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+.resume {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-dim);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.resume:hover {
+  color: var(--ink-bright);
+}
+
+@media (max-width: 640px) {
+  .root {
+    padding: 22px 20px;
+  }
+}
