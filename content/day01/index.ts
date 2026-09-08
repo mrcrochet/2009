@@ -16,7 +16,7 @@ export const boot = [
   'HALCYON 4.1  (build 4.1.882)',
   '',
   'Memory check ........ 2048 MB OK',
-  'Volume “Macintosh HD” ... mounted',
+  'Volume “HALCYON HD” ... mounted',
   'Network interface en0 ... 10.0.1.14',
   'Last login: Wed Jan 14 22:14:03 on console',
   '',

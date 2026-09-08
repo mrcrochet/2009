@@ -85,7 +85,7 @@ test.describe('Day 01', () => {
     const phone = page.getByTestId('phone-overlay')
     await expect(phone).toBeVisible()
     await phone.getByRole('tab', { name: 'Photos' }).click()
-    await expect(phone).toContainText('parking structure, SW 3rd')
+    await expect(phone).toContainText('SW 3rd & Ash, parking structure')
     await phone.locator('[data-evidence="e6"]').click()
     await phone.getByRole('tab', { name: 'SMS' }).click()
     await phone.locator('[data-evidence="e5"]').click()
@@ -121,7 +121,9 @@ test.describe('Day 01', () => {
     await web.getByRole('button', { name: 'Search' }).click()
     await web.getByRole('button', { name: /P2P e-cash/ }).click()
     await expect(web).toContainText('Bitcoin v0.1 released')
-    await expect(web).toContainText('there is nowhere to buy it')
+    // The archive shows what it is, and refuses the player without saying so: nine days old,
+    // free, and with nowhere to buy it.
+    await expect(web).toContainText('There is no exchange rate because there is no exchange.')
 
     // A dead address gets a period error page, not a crash.
     await web.getByLabel('Address').fill('google.com')

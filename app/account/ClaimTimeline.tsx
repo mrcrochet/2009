@@ -68,7 +68,6 @@ export function ClaimTimeline({ timelineId }: { timelineId: string | null }) {
           ? 'That timeline is not in this browser. Open it on the device you played it on.'
           : null}
         {status === 'error' ? `Could not save: ${message}` : null}
-        {status === 'idle' ? 'Nothing to claim.' : null}
       </div>
       {status === 'error' ? (
         <div className={styles.row}>

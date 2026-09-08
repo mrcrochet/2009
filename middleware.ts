@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
 import { CSP_HEADER, contentSecurityPolicy } from '@/lib/security/headers'
 import { updateSession } from '@/lib/supabase/middleware'
 

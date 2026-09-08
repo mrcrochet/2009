@@ -27,7 +27,8 @@ export const mail: MailInput[] = [
     meta: 'From no-reply@meridiansavings.com · Tue 06 Jan 2009, 09:14',
     body: [
       'Welcome, Mr. Rask.',
-      'Your checking account ····4471 was opened on 06 January 2009 at our SE Morrison branch. Your available balance is $437.82.',
+      'Your checking account ····4471 was opened on 06 January 2009 at our SE Morrison branch. Your opening balance is $75.00.',
+      'Your account was opened in person. Thank you for bringing two forms of identification.',
       'Please retain this message for your records.',
     ],
     evidenceId: 'e4',
@@ -35,7 +36,7 @@ export const mail: MailInput[] = [
   {
     id: 'm3',
     from: 'Marc Deleon',
-    subject: 'sat night',
+    subject: 'tonight',
     time: 'Wed',
     meta: 'From m.deleon@fastwebmail.net · Wed 14 Jan 2009, 23:51',
     body: [
@@ -60,7 +61,7 @@ export const unknownMail: z.input<typeof UnknownMailSchema> = {
   heatLines: [
     {
       minHeat: 40,
-      text: 'You were loud today. The file reported at 09:14. Twenty-nine days left, and you are already easy to find.',
+      text: 'You were loud today. The file reported within the hour. Twenty-nine days left, and you are already easy to find.',
     },
     { minHeat: 20, text: 'The encrypted file reported you. We were going to tell you tomorrow.' },
   ],

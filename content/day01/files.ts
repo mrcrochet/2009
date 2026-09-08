@@ -43,7 +43,7 @@ export const files: FileInput[] = [
     meta: '—',
     metaWhenDecrypted: null,
     body: [
-      'deleon, marc     503-555-0148',
+      'deleon, marc     503-555-0148   1822 se 39th ave',
       'voss, lea        503-555-0072',
       'M                (no number)',
       'meridian s&l     1-800-555-9910',

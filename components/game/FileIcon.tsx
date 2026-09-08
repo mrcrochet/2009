@@ -47,14 +47,19 @@ export function FileIcon({ kind, size = 54 }: { kind: FileIconKind; size?: numbe
 function Page({ kind }: { kind: Exclude<FileIconKind, 'folder'> }) {
   return (
     <g>
-      <path
-        d="M0.5 0.5H28.5L43.5 15.5V53.5H0.5Z"
+      {/* An intact sheet with a 2px radius — the handoff's page is not notched. */}
+      <rect
+        x="0.5"
+        y="0.5"
+        width="43"
+        height="53"
+        rx="2"
         fill={`url(#${PAPER_ID})`}
         stroke="#9a9a92"
         strokeWidth="1"
       />
-      {/* The folded corner, shaded as if the sheet turns back on itself. */}
-      <path d="M28.5 0.5L43.5 15.5H28.5Z" fill="#b9b9b0" stroke="#9a9a92" strokeWidth="1" />
+      {/* The fold is drawn over the corner, as a 15×15 shaded triangle. */}
+      <path d="M29 1L43 15H29Z" fill="#b9b9b0" />
       {kind === 'document' ? <TextLines /> : null}
       {kind === 'image' ? <Photograph /> : null}
       {kind === 'encrypted' ? <Sealed /> : null}
@@ -62,14 +67,13 @@ function Page({ kind }: { kind: Exclude<FileIconKind, 'folder'> }) {
   )
 }
 
+/** Three rules at 11 / 15.5 / 20, the last at 70% — the handoff's exact geometry. */
 function TextLines() {
   return (
     <g fill="#a8a8a0">
-      <rect x="7" y="21" width="30" height="1.5" />
-      <rect x="7" y="25.5" width="30" height="1.5" />
-      <rect x="7" y="30" width="21" height="1.5" />
-      <rect x="7" y="34.5" width="30" height="1.5" />
-      <rect x="7" y="39" width="26" height="1.5" />
+      <rect x="7" y="11" width="30" height="1.5" />
+      <rect x="7" y="15.5" width="30" height="1.5" />
+      <rect x="7" y="20" width="21" height="1.5" />
     </g>
   )
 }
@@ -78,7 +82,7 @@ function TextLines() {
 function Photograph() {
   return (
     <g>
-      <rect x="7" y="22" width="30" height="21" fill="#e8eaea" stroke="#a8a8a0" strokeWidth="1" />
+      <rect x="7" y="26" width="30" height="21" fill="#e8eaea" stroke="#a8a8a0" strokeWidth="1" />
       <rect x="8" y="23" width="28" height="12" fill="#b9cbd6" />
       <circle cx="30" cy="28" r="3" fill="#e6d8a8" />
       <path d="M8 35L16 26L22 32L28 27L36 35V42H8Z" fill="#8fa08a" />
@@ -101,7 +105,7 @@ function Sealed() {
           96 fd de 5f
         </text>
       </g>
-      <g transform="translate(15 33)">
+      <g transform="translate(15 30)">
         <path
           d="M3.4 5.2V3.6a3.1 3.1 0 0 1 6.2 0v1.6"
           fill="none"

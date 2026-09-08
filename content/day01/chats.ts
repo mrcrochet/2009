@@ -47,8 +47,7 @@ export const threads: ThreadInput[] = [
         choices: [
           {
             text: 'What kind of thing?',
-            reply:
-              'nothing that needs a name. you drive, you hand over cash, you sell it on. thats the whole job',
+            reply: 'nothing that needs a name. you drive, you hand over cash, thats it',
           },
           {
             // Offered only once the photograph is pinned — you cannot accuse a man of lying
@@ -110,7 +109,7 @@ export const threads: ThreadInput[] = [
       },
       {
         who: 'Lea',
-        text: 'also the car is back. third night. i already put something on cluster about it at four this morning like an idiot',
+        text: 'also the car is still there this morning. i already put something on cluster about it at four like an idiot',
         choices: [
           {
             text: 'Post about it again. Get the plate.',

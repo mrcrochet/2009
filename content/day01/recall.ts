@@ -51,7 +51,7 @@ export const memories: MemoryInput[] = [
   {
     id: 'mem-bitcoin',
     keys: ['bitcoin', 'btc', 'crypto', 'satoshi', 'e-cash'],
-    text: 'A currency with no issuer. It exists already — nine days old, worth nothing, traded by almost no one. You remember a number that ends in a lot of zeros and a story about a hard drive in a landfill.',
+    text: 'A currency with no issuer. It exists already — seven days old, worth nothing, traded by almost no one. You remember a number that ends in a lot of zeros and a story about a hard drive in a landfill.',
     confidence: 'HIGH',
   },
   {
@@ -147,7 +147,7 @@ export const memories: MemoryInput[] = [
   {
     id: 'mem-self',
     keys: ['2026', 'future', 'me', 'myself', 'who am i', 'home'],
-    text: 'You remember a room, a screen, a date twenty-six years out, and the sensation of standing up. Nothing before it.',
+    text: 'You remember a room, a screen, a date seventeen years out, and the sensation of standing up. Nothing before it.',
     confidence: 'LOW',
   },
 ]

@@ -24,7 +24,7 @@ export const phone: z.input<typeof PhoneConfigSchema> = {
     {
       id: 'IMG_0114',
       label: 'IMG_0114 — 78 KB',
-      meta: '14/01/2009 22:08 · flash on · geotag: 45.5231,-122.6412 (parking structure, SW 3rd)',
+      meta: '14/01/2009 22:08 · flash on · cell: PDX-CENTRAL-04 (SW 3rd & Ash, parking structure)',
       subject: 'parking-structure',
       evidenceId: 'e6',
     },

@@ -19,7 +19,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
   directoryLabel: 'Browse the Corvid Directory',
   notFoundTitle: 'The page cannot be displayed',
   notFoundBody:
-    'The site you are looking for could not be found. It may be down, or it may not exist yet.\n\nCheck the address, search from the Corvid home page, or browse the directory.',
+    'The site you are looking for could not be found. It may be down. It may not exist yet.\n\nCheck the address, search from the Corvid home page, or browse the directory.',
   bookmarks: [
     { label: 'Corvid', url: 'corvid.com' },
     { label: 'Directory', url: 'corvid.com/directory' },
@@ -92,7 +92,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'TradePost is run by two people and a server in a closet. Do not wire money to anyone. Do not meet at their house. If a deal seems too good, it is because someone does not know what they have.',
+          text: 'TradePost is run by two people and a server in a closet. Do not wire money to anyone. Do not meet at their house. If a deal seems too good, somebody has not looked closely enough.',
         },
       ],
       variants: [],
@@ -192,11 +192,11 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'WAREHOUSE, SWING SHIFT — $9.25/hr, no experience. Apply in person.\n\nDATA ENTRY, TEMP — three weeks, $11/hr. Must type 50wpm.\n\nRECOVERY AGENT — discreet. Own vehicle. Flexible hours, generous per-file rate. Enquiries to settlements@aion-group.com.',
+          text: 'WAREHOUSE, SWING SHIFT — $9.25/hr, no experience. Apply in person.\n\nDATA ENTRY, TEMP — three weeks, $11/hr. Must type 50wpm.\n\nRECOVERY AGENT — discreet. Own vehicle. Flexible hours, generous per-file rate. Inquiries to settlements@aion-group.com.',
         },
         {
           kind: 'p',
-          text: 'Nobody is hiring this month. There were forty of these in October.',
+          text: 'Showing 3 of 3. Archive: October 2008 — 41 posts.',
         },
       ],
       variants: [],
@@ -207,7 +207,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       dark: false,
       blocks: [
         { kind: 'heading', text: 'TradePost — Portland / housing', ink: '#7a0f0f' },
-        { kind: 'sub', text: '61 posts · rent is falling' },
+        { kind: 'sub', text: '61 posts · 19 marked bank owned' },
         { kind: 'nav', items: [{ label: 'all of portland', url: 'tradepost.com' }] },
         { kind: 'rule' },
         {
@@ -237,7 +237,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'STATE JOBLESS RATE REACHES 9.9 PERCENT — the highest since 1983. The governor called the figure "a floor we have not found yet."',
+          text: 'STATE JOBLESS RATE REACHES 9.9 PERCENT — the highest since 1983. The governor called the figure “a floor we have not found yet.”',
         },
         { kind: 'rule' },
         {
@@ -274,7 +274,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
             { kind: 'rule' },
             {
               kind: 'p',
-              text: 'STATE JOBLESS RATE REACHES 9.9 PERCENT — the highest since 1983. The governor called the figure "a floor we have not found yet."',
+              text: 'STATE JOBLESS RATE REACHES 9.9 PERCENT — the highest since 1983. The governor called the figure “a floor we have not found yet.”',
             },
             { kind: 'rule' },
             {
@@ -336,7 +336,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'Three notices this month were filed by the same funeral home. None list a service.',
+          text: 'Three notices this month were filed by the same funeral home. None list a service, and none list a survivor.',
         },
       ],
       variants: [],
@@ -445,7 +445,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'heading', text: 'Cluster', ink: '#2b5f96' },
         { kind: 'sub', text: 'stay in touch with the people you already know · 41 million people' },
         { kind: 'rule' },
-        { kind: 'p', text: 'Find someone by name. Everyone here uses their real one.' },
+        { kind: 'p', text: 'Find someone by name. Real names only — that is what makes it work.' },
         {
           kind: 'link',
           label: 'lea.voss — Portland, OR',
@@ -508,7 +508,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
             { kind: 'rule' },
             {
               kind: 'p',
-              text: '09:26 — oregon plate, starts with 4. grey sedan, no front plate. third night. someone told me to write down more than i want to.',
+              text: '09:26 — oregon plate, starts with 4. grey sedan, no front plate. second morning i have seen it in daylight. someone told me to write down more than i want to.',
             },
             {
               kind: 'p',
@@ -544,7 +544,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
             { kind: 'p', text: '02 Jan — new year, same four months of runway.' },
             {
               kind: 'p',
-              text: 'There is nothing on this page about a car. You read it before there was.',
+              text: 'You read this page before there was nothing on it about a car.',
             },
           ],
         },
@@ -569,7 +569,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'p', text: '02 Dec — anybody know somebody hiring' },
         {
           kind: 'p',
-          text: 'Friends: lea.voss · o.rask · (1 private)',
+          text: 'Friends: lea.voss · o.rask · (1 private, added 11 Dec)',
         },
       ],
       variants: [],
@@ -618,7 +618,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           kind: 'nav',
           items: [
             { label: 'board index', url: 'nullcache.org' },
-            { label: 'next thread', url: 'nullcache.org/thread/3290' },
+            { label: 'previous thread', url: 'nullcache.org/thread/3290' },
           ],
         },
         { kind: 'rule' },
@@ -652,7 +652,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           kind: 'nav',
           items: [
             { label: 'board index', url: 'nullcache.org' },
-            { label: 'previous thread', url: 'nullcache.org/thread/3312' },
+            { label: 'next thread', url: 'nullcache.org/thread/3312' },
           ],
         },
         { kind: 'rule' },
@@ -691,7 +691,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'BRANCHES\n\n1140 SE Morrison St, Portland — Mon–Fri 9:00–17:00\n2200 NE Sandy Blvd, Portland — Mon–Fri 9:00–17:00\n8814 SW Barbur Blvd, Portland — Mon–Fri 9:00–16:00\n404 Main St, Gresham — Mon–Thu 9:00–16:00',
+          text: 'BRANCHES\n\n1140 SE Morrison St, Portland — Mon–Fri 9:00 a.m. – 5:00 p.m.\n2200 NE Sandy Blvd, Portland — Mon–Fri 9:00 a.m. – 5:00 p.m.\n8814 SW Barbur Blvd, Portland — Mon–Fri 9:00 a.m. – 4:00 p.m.\n404 Main St, Gresham — Mon–Thu 9:00 a.m. – 4:00 p.m.',
         },
         {
           kind: 'p',
@@ -719,7 +719,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         },
         {
           kind: 'p',
-          text: 'A name costs less than a pizza and lasts a year. Most of them will never be worth anything. A few of them will be worth more than the company that eventually buys them.',
+          text: 'Nine dollars and ninety-five cents a year. Most of these will never be worth anything. A few of them will be worth more than the company that eventually buys them.',
         },
       ],
       variants: [],
@@ -756,7 +756,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           title: 'socialgraph.net',
           price: '$9.95',
           location: 'available',
-          text: 'You have heard this phrase before. You cannot remember from where.',
+          text: 'Two words, both of them ordinary. Nobody has looked at this one since it was listed.',
           action: 'domain',
           itemId: 'socialgraph.net',
         },
@@ -791,7 +791,10 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           kind: 'p',
           text: 'This domain is registered and in use. No public information is available.',
         },
-        { kind: 'p', text: 'Correspondence is outbound only.' },
+        {
+          kind: 'p',
+          text: 'Correspondence is outbound only. There is no address for replies and no telephone number, and both of those are deliberate.',
+        },
       ],
       variants: [],
     },
@@ -816,7 +819,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'Two replies. One asks about scaling. One says it will never work because nothing without a government behind it ever has.\n\nYou know exactly what this becomes. You cannot buy it: there is nowhere to buy it, no one to buy it from, and no price. It is nine days old and it is free, and that is the problem.',
+          text: '>> Re: Bitcoin v0.1 released\nFri, 09 Jan 2009 08:02:14 -0500\n\nHow does this scale if every node keeps every transaction?\n\n>> Re: Bitcoin v0.1 released\nFri, 09 Jan 2009 11:40:55 -0800\n\nNothing without a government behind it has ever held value. This will not either.',
         },
       ],
       variants: [],

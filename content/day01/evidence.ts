@@ -48,7 +48,7 @@ export const evidence: EvidenceInput[] = [
     id: 'e6',
     source: 'PHOTO — 14 JAN 22:08',
     sourceKind: 'phone',
-    text: 'Frame taken 22:08 in a parking structure, not at Marc’s address.',
+    text: 'Frame taken 22:08 in a parking structure downtown. Marc’s car, and Marc, four miles from 39th Ave.',
     tags: ['marc', 'location', 'timing'],
     reliability: 'documentary',
   },

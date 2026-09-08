@@ -25,7 +25,7 @@ export default function RouteError({
     <main className={styles.root}>
       <div className={styles.inner}>
         <div className={styles.eyebrow}>2009 · fault</div>
-        <h1 className={styles.title}>Something broke on our side.</h1>
+        <h1 className={styles.title}>This page stopped.</h1>
         <p className={styles.body}>
           Your timeline is saved in this browser and was not affected. Try again, and if it keeps
           happening the reference below will tell us where to look.

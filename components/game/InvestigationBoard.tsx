@@ -78,7 +78,10 @@ export function InvestigationBoard() {
                 </button>
               ))}
               {cards.length === 0 ? (
-                <div className="hal-tray__empty">Pin something first.</div>
+                <div className="hal-tray__empty">
+                  Pin something first. A claim is only as good as what you are prepared to name
+                  behind it.
+                </div>
               ) : null}
             </div>
           </div>

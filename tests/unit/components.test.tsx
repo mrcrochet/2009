@@ -37,7 +37,7 @@ describe('Recall app', () => {
     await user.type(screen.getByLabelText('What do you remember?'), 'bitcoin')
     await user.click(screen.getByRole('button', { name: 'Recall' }))
 
-    expect(screen.getByText(/nine days old, worth nothing/)).toBeInTheDocument()
+    expect(screen.getByText(/seven days old, worth nothing/)).toBeInTheDocument()
     expect(screen.getByText('CONFIDENCE: HIGH')).toBeInTheDocument()
     expect(api.getState().timeline.memoryIntegrity).toBe(91)
   })

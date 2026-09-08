@@ -727,6 +727,8 @@
 .hal-web__searchrow {
   display: flex;
   gap: 6px;
+  /* The directory link belongs to the search box, not to the row below it. */
+  margin-bottom: -12px;
 }
 
 .hal-web__q {
@@ -920,10 +922,6 @@
 .hal-web__homelink {
   font-family: var(--font-web);
   font-size: 11.5px;
-}
-
-.hal-web__homelink {
-  margin-top: -6px;
 }
 
 .hal-web__navlink:hover,
@@ -1565,7 +1563,8 @@
   height: 100%;
   background: linear-gradient(175deg, #2c3035, #14171a);
   border-radius: 22px;
-  border: 1px solid #050708;
+  /* #05070800 in the handoff — eight digits, alpha 00. The ring is meant to be invisible. */
+  border: 1px solid transparent;
   box-shadow:
     0 26px 60px rgba(0, 0, 0, 0.7),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
@@ -2025,10 +2024,9 @@
   background: rgba(127, 166, 196, 0.14);
 }
 
-.hal-evcard__check {
+.hal-evcard__check:not(:empty) {
   display: block;
   margin-top: 5px;
-  min-height: 12px;
   font-size: 9px;
   letter-spacing: 0.12em;
   color: var(--menubar-accent);

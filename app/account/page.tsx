@@ -53,7 +53,7 @@ export default async function AccountPage({ searchParams }: Props) {
             <div className={styles.cardTitle}>Save this timeline — free</div>
             <p className={styles.body}>
               Day 01 lives in this browser only. Create an account and the version of 2009 you made
-              moves with you — and Day 02 becomes available to unlock.
+              moves with you — and Day 02 opens.
             </p>
             <div className={styles.row}>
               <Link
@@ -63,7 +63,7 @@ export default async function AccountPage({ searchParams }: Props) {
                 CREATE AN ACCOUNT
               </Link>
               <Link className="hal-cta hal-cta--ghost" href="/play">
-                Start a new timeline instead
+                Abandon this one and start again
               </Link>
             </div>
             {!isSupabaseConfigured() ? (
@@ -81,7 +81,12 @@ export default async function AccountPage({ searchParams }: Props) {
               <div className={styles.cardTitle}>Subscription</div>
               <div className={styles.mono}>
                 Status:{' '}
-                {entitlement.active ? `active (${entitlement.status})` : 'no active subscription'}
+                {/* `active (active)` reads like a bug. Only say the raw status when it differs. */}
+                {entitlement.active
+                  ? entitlement.status === 'active'
+                    ? 'active'
+                    : `active (${entitlement.status})`
+                  : 'no active subscription'}
                 {entitlement.currentPeriodEnd
                   ? ` · renews ${new Date(entitlement.currentPeriodEnd).toLocaleDateString('en-US')}`
                   : ''}
