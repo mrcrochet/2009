@@ -1,8 +1,19 @@
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { CSP_HEADER, contentSecurityPolicy } from '@/lib/security/headers'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-  return updateSession(request)
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
+  const csp = contentSecurityPolicy(nonce, process.env.NODE_ENV === 'development')
+
+  // Both of these are what the App Router reads to stamp the nonce onto its own scripts. They
+  // are set even while the policy is Report-Only, so enforcing it later is a one-line change.
+  request.headers.set('x-nonce', nonce)
+  request.headers.set('content-security-policy', csp)
+
+  const response = await updateSession(request)
+  response.headers.set(CSP_HEADER, csp)
+  return response
 }
 
 export const config = {

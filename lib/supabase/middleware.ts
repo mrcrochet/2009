@@ -4,6 +4,7 @@ import { SUPABASE_ANON_KEY, SUPABASE_URL, isSupabaseConfigured } from './config'
 
 /** Refreshes the auth cookie on every request so Server Components see a live session. */
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  // Passing `request` forward carries the headers middleware set on it — the CSP nonce included.
   let response = NextResponse.next({ request })
   if (!isSupabaseConfigured()) return response
 
