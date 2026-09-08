@@ -34,11 +34,15 @@ export async function getServerEntitlement(userId: string | null): Promise<Entit
   const supabase = await createServerSupabase()
   if (!supabase) return INACTIVE
 
+  // Filter to entitling statuses before ordering. Postgres sorts NULLS FIRST on a descending
+  // order, and a cancelled row with a null period end would otherwise outrank a live one —
+  // denying access to someone who is paying.
   const { data, error } = await supabase
     .from('subscriptions')
     .select('status, price_id, current_period_end')
     .eq('user_id', userId)
-    .order('current_period_end', { ascending: false })
+    .in('status', [...ENTITLING])
+    .order('current_period_end', { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle<{ status: string; price_id: string | null; current_period_end: string | null }>()
 

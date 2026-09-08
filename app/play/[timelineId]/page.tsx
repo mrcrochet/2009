@@ -3,7 +3,7 @@ import { DAY_01, contentForDay, hasContentForDay } from '@/content'
 import { GameLoader } from '@/components/game/GameLoader'
 import { getServerEntitlement } from '@/lib/billing/entitlement'
 import { getCurrentUser } from '@/lib/supabase/server'
-import { loadServerTimeline } from '@/lib/supabase/timelines'
+import { loadServerTimelineDay } from '@/lib/supabase/timelines'
 
 interface Props {
   params: Promise<{ timelineId: string }>
@@ -19,8 +19,8 @@ export default async function ResumePage({ params, searchParams }: Props) {
   const { day } = await searchParams
 
   const user = await getCurrentUser()
-  const cloud = user ? await loadServerTimeline(timelineId, user.id) : null
-  const requestedDay = Number(day ?? cloud?.day ?? 1) || 1
+  const storedDay = user ? await loadServerTimelineDay(timelineId, user.id) : null
+  const requestedDay = Number(day ?? storedDay ?? 1) || 1
 
   if (requestedDay > 1) {
     const entitlement = await getServerEntitlement(user?.id ?? null)

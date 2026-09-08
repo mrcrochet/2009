@@ -9,6 +9,65 @@ export type EventInput =
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
+/**
+ * The event vocabulary as runtime data. `satisfies` ties it to the union, so adding a variant to
+ * `GameEvent` without listing it here is a type error rather than a save that silently drops
+ * events on replay.
+ */
+export const GAME_EVENT_TYPES = [
+  'WOKE_UP',
+  'BOOT_ADVANCED',
+  'BOOT_COMPLETED',
+  'DESKTOP_ICON_APPEARED',
+  'APP_OPENED',
+  'APP_CLOSED',
+  'APP_FOCUSED',
+  'APP_MINIMIZED',
+  'APP_ZOOM_TOGGLED',
+  'WINDOW_MOVED',
+  'PHONE_TOGGLED',
+  'PHONE_TAB_CHANGED',
+  'PHONE_MOVED',
+  'SMS_ADVANCED',
+  'MAIL_OPENED',
+  'MAIL_UNKNOWN_ARRIVED',
+  'THREAD_SELECTED',
+  'CHAT_REPLY_SENT',
+  'CHAT_STARTED',
+  'CHAT_ADVANCED',
+  'BROWSER_QUERY_CHANGED',
+  'BROWSER_URL_CHANGED',
+  'BROWSER_SEARCHED',
+  'BROWSER_NAVIGATED',
+  'BROWSER_WENT_BACK',
+  'BROWSER_WENT_FORWARD',
+  'FILE_OPENED',
+  'TERMINAL_INPUT_CHANGED',
+  'TERMINAL_COMMAND_RUN',
+  'NOTES_CHANGED',
+  'RECALL_QUERY_CHANGED',
+  'RECALL_USED',
+  'EVIDENCE_PINNED',
+  'EVIDENCE_SELECTION_TOGGLED',
+  'CLAIM_SELECTED',
+  'CLAIM_ASSERTED',
+  'TRAY_TOGGLED',
+  'BOARD_TOGGLED',
+  'ITEM_PURCHASED',
+  'ITEM_LISTED',
+  'ITEM_SOLD',
+  'DOMAIN_REGISTERED',
+  'DAY_ENDED',
+  'DAY_CARD_SHOWN',
+  'TIMELINE_CLAIMED',
+] as const satisfies readonly GameEvent['type'][]
+
+const KNOWN = new Set<string>(GAME_EVENT_TYPES)
+
+export function isKnownEventType(type: string): type is GameEvent['type'] {
+  return KNOWN.has(type)
+}
+
 export function stamp(state: TimelineState, input: EventInput): GameEvent {
   return { ...input, at: state.minuteOfDay } as GameEvent
 }

@@ -7,6 +7,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)',
+    // The Stripe webhook has no session to refresh and is retry-sensitive, so it is excluded
+    // rather than made to wait on an auth round-trip per delivery.
+    '/((?!_next/static|_next/image|favicon.ico|api/billing/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp|woff2?)$).*)',
   ],
 }

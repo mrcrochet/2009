@@ -50,16 +50,24 @@ export async function POST(request: Request) {
   }
 }
 
+/**
+ * Resolves the Stripe customer for this user, creating one only if there is none.
+ *
+ * The mapping has to be persisted here, not left to the webhook: without it every abandoned
+ * checkout creates another customer, which sprays duplicates across the Stripe dashboard and
+ * defeats per-customer promotion and trial limits (`allow_promotion_codes` is on).
+ */
 async function ensureCustomer(userId: string, email: string | null): Promise<string | null> {
   const supabase = await createServerSupabase()
   const stripe = getStripe()
   if (!supabase || !stripe) return null
 
-  const { data } = await supabase
+  const { data, error: readError } = await supabase
     .from('billing_customers')
     .select('stripe_customer_id')
     .eq('user_id', userId)
     .maybeSingle<{ stripe_customer_id: string }>()
+  if (readError) throw readError
 
   if (data?.stripe_customer_id) return data.stripe_customer_id
 
@@ -67,8 +75,14 @@ async function ensureCustomer(userId: string, email: string | null): Promise<str
     email: email ?? undefined,
     metadata: { userId },
   })
-  await supabase
+
+  const { error: writeError } = await supabase
     .from('billing_customers')
-    .upsert({ user_id: userId, stripe_customer_id: customer.id }, { onConflict: 'user_id' })
+    .insert({ user_id: userId, stripe_customer_id: customer.id })
+  if (writeError) {
+    // A race with the webhook is fine — it wrote the same mapping. Anything else is not, and
+    // silently swallowing it is what produced duplicate customers.
+    if (writeError.code !== '23505') throw writeError
+  }
   return customer.id
 }

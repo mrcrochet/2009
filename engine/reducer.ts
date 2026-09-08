@@ -616,13 +616,20 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return { ...state, ownerId: event.ownerId }
 
     default: {
-      const exhaustive: never = event
-      return exhaustive
+      // Compile-time exhaustiveness without the runtime hazard: an event type this build does
+      // not know — from a forged upload or a save written by a newer client — leaves the
+      // timeline exactly as it was.
+      assertNever(event)
+      return state
     }
   }
 }
 
 // ---------------------------------------------------------------------------
+
+function assertNever(_event: never): void {
+  /* the type checker does the work; this exists so the runtime does not */
+}
 
 function minuteLabel(minuteOfDay: number): string {
   const m = ((minuteOfDay % 1440) + 1440) % 1440

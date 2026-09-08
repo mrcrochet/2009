@@ -23,6 +23,24 @@ function rowToStored(row: TimelineRow): StoredTimeline | null {
   }
 }
 
+/** Just the day, for the entitlement gate. Fetching and migrating a whole snapshot to read one
+ * integer is what turns a large save into a per-request cost. */
+export async function loadServerTimelineDay(
+  timelineId: string,
+  userId: string,
+): Promise<number | null> {
+  const supabase = await createServerSupabase()
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('timelines')
+    .select('day')
+    .eq('id', timelineId)
+    .eq('user_id', userId)
+    .maybeSingle<{ day: number }>()
+  if (error || !data) return null
+  return data.day
+}
+
 export async function loadServerTimeline(
   timelineId: string,
   userId: string,

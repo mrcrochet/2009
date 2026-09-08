@@ -1,3 +1,5 @@
+import 'server-only'
+
 /**
  * Prices come from configuration, never from a component string. An unconfigured build still
  * renders the paywall copy; it simply cannot start a checkout.
