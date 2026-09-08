@@ -21,14 +21,14 @@ export function FilesApp() {
         <div className="hal-files__place">Pictures</div>
         <div className="hal-files__place hal-files__place--off">Network</div>
       </div>
-      <div className="hal-files__list" role="list" aria-label="Desktop">
+      <div className="hal-files__list" role="listbox" aria-label="Desktop">
         {files.map((f) => (
           <button
             key={f.id}
             type="button"
-            role="listitem"
+            role="option"
             className="hal-files__row"
-            aria-current={f.selected}
+            aria-selected={f.selected}
             onClick={() => dispatch({ type: 'FILE_OPENED', fileId: f.id })}
           >
             <span className="hal-files__label">

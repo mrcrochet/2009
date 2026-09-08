@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { selectEvidenceCards } from '@/engine/selectors'
 import { useContent, useDispatch, useTimeline } from './GameContext'
+import { useFocusTrap } from './useFocusTrap'
 
 const VERDICT_LABEL = {
   accepted: 'ACCEPTED',
@@ -23,6 +24,8 @@ export function InvestigationBoard() {
   const selectedEvidence = useTimeline((s) => s.selectedEvidenceIds)
   const verdict = useTimeline((s) => s.lastVerdict)
   const log = useTimeline((s) => s.claimLog)
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, open)
 
   useEffect(() => {
     if (!open) return
@@ -36,8 +39,15 @@ export function InvestigationBoard() {
   if (!open) return null
 
   return (
-    <div className="hal-board" role="dialog" aria-modal="true" aria-label="Investigation board">
-      <div className="hal-board__panel">
+    <div className="hal-board">
+      <div
+        className="hal-board__panel"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Investigation board"
+        tabIndex={-1}
+      >
         <div className="hal-board__head">
           <span className="hal-board__title">INVESTIGATION — BUILD A CLAIM</span>
           <button

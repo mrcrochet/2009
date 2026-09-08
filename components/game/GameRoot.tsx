@@ -12,6 +12,9 @@ import { BootSequence } from './BootSequence'
 import { GameErrorBoundary } from './GameErrorBoundary'
 import { GameProvider } from './GameContext'
 import { HalcyonDesktop } from './HalcyonDesktop'
+import { useAudioUnlock, playEventCue } from './useGameSound'
+import { useDesktopKeys } from './useDesktopKeys'
+import { pace, useReducedMotion } from './useReducedMotion'
 import '@/styles/halcyon.css'
 
 interface Props {
@@ -30,12 +33,19 @@ export function GameRoot({ content, timelineId, mode }: Props) {
     createGameStore({
       content,
       timeline: createTimeline(content, { id: timelineId, now: new Date().toISOString() }),
-      onEvent: (event, next) => trackEvent(event, next, content),
+      onEvent: (event, next, prev) => {
+        trackEvent(event, next, content)
+        playEventCue(event, next, prev)
+      },
     }),
   )
   const [ready, setReady] = useState(mode === 'new')
   const autosave = useMemo(() => createAutosave(600), [])
   const bootStartedAt = useRef<number>(0)
+  const reducedMotion = useReducedMotion()
+
+  useAudioUnlock()
+  useDesktopKeys(api)
 
   // --- hydrate -------------------------------------------------------------
   useEffect(() => {
@@ -99,11 +109,11 @@ export function GameRoot({ content, timelineId, mode }: Props) {
           hold = setTimeout(() => {
             api.getState().dispatch({ type: 'BOOT_COMPLETED' })
             track('boot_completed', { durationMs: Date.now() - bootStartedAt.current })
-          }, content.bootHoldMs)
+          }, pace(content.bootHoldMs, reducedMotion))
           return
         }
         state.dispatch({ type: 'BOOT_ADVANCED' })
-      }, content.bootIntervalMs)
+      }, pace(content.bootIntervalMs, reducedMotion))
     }
 
     return () => {
@@ -111,7 +121,7 @@ export function GameRoot({ content, timelineId, mode }: Props) {
       if (interval) clearInterval(interval)
       if (hold) clearTimeout(hold)
     }
-  }, [api, content])
+  }, [api, content, reducedMotion])
 
   // --- opening beats -------------------------------------------------------
   useEffect(() => {
@@ -126,10 +136,10 @@ export function GameRoot({ content, timelineId, mode }: Props) {
         dispatch({ type: 'THREAD_SELECTED', thread: 'unknown' })
         dispatch({ type: 'CHAT_STARTED', thread: 'unknown' })
         track('first_message_seen', {})
-      }, content.messengerOpensAtMs)
+      }, pace(content.messengerOpensAtMs, reducedMotion))
       icon = setTimeout(() => {
         api.getState().dispatch({ type: 'DESKTOP_ICON_APPEARED', iconId: 'readme' })
-      }, content.desktopIconAtMs)
+      }, pace(content.desktopIconAtMs, reducedMotion))
     }
 
     const unsub = api.subscribe((s, prev) => {
@@ -140,7 +150,7 @@ export function GameRoot({ content, timelineId, mode }: Props) {
       if (msg) clearTimeout(msg)
       if (icon) clearTimeout(icon)
     }
-  }, [api, content])
+  }, [api, content, reducedMotion])
 
   // --- messenger reply delay ----------------------------------------------
   useEffect(() => {
@@ -150,14 +160,14 @@ export function GameRoot({ content, timelineId, mode }: Props) {
         const thread = s.timeline.chat.thread
         timer = setTimeout(() => {
           api.getState().dispatch({ type: 'CHAT_ADVANCED', thread })
-        }, content.chatReplyDelayMs)
+        }, pace(content.chatReplyDelayMs, reducedMotion))
       }
     })
     return () => {
       unsub()
       if (timer) clearTimeout(timer)
     }
-  }, [api, content])
+  }, [api, content, reducedMotion])
 
   // --- resale settlement ---------------------------------------------------
   useEffect(() => {
@@ -173,7 +183,7 @@ export function GameRoot({ content, timelineId, mode }: Props) {
         const timer = setTimeout(() => {
           api.getState().dispatch({ type: 'ITEM_SOLD', itemId: item.id, amountCents: opp.sellCents })
           track('money_action_completed', { itemId: item.id, amountCents: opp.sellCents })
-        }, opp.settleMs)
+        }, pace(opp.settleMs, reducedMotion))
         timers.add(timer)
       }
     })
@@ -181,7 +191,7 @@ export function GameRoot({ content, timelineId, mode }: Props) {
       unsub()
       for (const t of timers) clearTimeout(t)
     }
-  }, [api, content])
+  }, [api, content, reducedMotion])
 
   // --- day 01 gate ---------------------------------------------------------
   useEffect(() => {
@@ -207,8 +217,11 @@ export function GameRoot({ content, timelineId, mode }: Props) {
       claimsOnRecord: summary.claimCount,
       shifted: summary.shifted,
     })
-    setTimeout(() => api.getState().dispatch({ type: 'DAY_CARD_SHOWN' }), content.dayEnd.surveillanceDelayMs)
-  }, [api, content])
+    setTimeout(
+      () => api.getState().dispatch({ type: 'DAY_CARD_SHOWN' }),
+      pace(content.dayEnd.surveillanceDelayMs, reducedMotion),
+    )
+  }, [api, content, reducedMotion])
 
   const stage = useStage(api)
 

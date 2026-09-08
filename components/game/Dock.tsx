@@ -27,8 +27,9 @@ export function Dock() {
             className="hal-dockitem"
             data-open={isOpen}
             data-dock={id}
-            aria-label={label}
-            aria-pressed={isOpen}
+            aria-label={isPhone ? label : isOpen ? `${label}, open` : label}
+            // Only the phone is a real toggle. Clicking an open app focuses it; it does not close it.
+            {...(isPhone ? { 'aria-pressed': isOpen } : {})}
             title={label}
             onClick={() => {
               if (isPhone) dispatch({ type: 'PHONE_TOGGLED' })

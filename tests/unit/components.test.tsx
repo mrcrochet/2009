@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ReactNode } from 'react'
 import { GameProvider } from '@/components/game/GameContext'
 import { InvestigationBoard } from '@/components/game/InvestigationBoard'
+import { MailApp } from '@/components/game/apps/MailApp'
+import { MessengerApp } from '@/components/game/apps/MessengerApp'
+import { BankApp } from '@/components/game/apps/BankApp'
+import { MenuBar } from '@/components/game/MenuBar'
+import { SurveillanceOverlay } from '@/components/game/SurveillanceOverlay'
 import { RecallApp } from '@/components/game/apps/RecallApp'
 import { EvidenceTray } from '@/components/game/EvidenceTray'
 import { Dock } from '@/components/game/Dock'
@@ -122,5 +127,112 @@ describe('the browser is the computer', () => {
     // Icons are hand-drawn SVG, never emoji.
     expect(within(dock).getAllByRole('button')[0]?.querySelector('svg')).toBeTruthy()
     expect(/\p{Emoji_Presentation}|\uFE0F/u.test(dock.textContent ?? '')).toBe(false)
+  })
+})
+
+describe('accessibility', () => {
+  it('the inbox is a single-select list, not a list of list-items', () => {
+    mount(<MailApp />)
+    const inbox = screen.getByRole('listbox', { name: 'Inbox' })
+    const options = within(inbox).getAllByRole('option')
+    expect(options).toHaveLength(3)
+    expect(options[0]).toHaveAttribute('aria-selected', 'true')
+    expect(options[1]).toHaveAttribute('aria-selected', 'false')
+  })
+
+  it('pinning keeps focus on the control that did it', async () => {
+    const user = userEvent.setup()
+    mount(<MailApp />)
+    const pin = screen.getByRole('button', { name: 'PIN AS EVIDENCE' })
+    pin.focus()
+    await user.click(pin)
+    expect(screen.getByRole('button', { name: 'PINNED' })).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'PINNED' })).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('pinning twice is still idempotent through the UI', async () => {
+    const user = userEvent.setup()
+    const { api } = mount(<MailApp />)
+    const pin = screen.getByRole('button', { name: 'PIN AS EVIDENCE' })
+    await user.click(pin)
+    await user.click(screen.getByRole('button', { name: 'PINNED' }))
+    expect(api.getState().timeline.evidence).toHaveLength(1)
+  })
+
+  it('the messenger tabs are a real tab widget', async () => {
+    const user = userEvent.setup()
+    mount(<MessengerApp />, [{ type: 'CHAT_STARTED', thread: 'unknown' }])
+
+    const tabs = screen.getAllByRole('tab')
+    expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
+    expect(tabs[0]).toHaveAttribute('tabindex', '0')
+    expect(tabs[1]).toHaveAttribute('tabindex', '-1')
+
+    const panel = screen.getByRole('tabpanel')
+    expect(panel).toHaveAttribute('aria-labelledby', tabs[0]!.id)
+    expect(tabs[0]).toHaveAttribute('aria-controls', panel.id)
+
+    tabs[0]!.focus()
+    await user.keyboard('{ArrowRight}')
+    expect(screen.getAllByRole('tab')[1]).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('the board traps focus and hands it back when it closes', async () => {
+    const user = userEvent.setup()
+    const opener = document.createElement('button')
+    document.body.appendChild(opener)
+    opener.focus()
+
+    const { unmount } = mount(<InvestigationBoard />, [
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
+      { type: 'BOARD_TOGGLED', open: true },
+    ])
+
+    const panel = screen.getByRole('dialog', { name: 'Investigation board' })
+    expect(panel).toHaveAttribute('aria-modal', 'true')
+    // Focus moved inside the trap rather than being merely asserted to be there.
+    await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
+    unmount()
+    await waitFor(() => expect(document.activeElement).toBe(opener))
+    opener.remove()
+    void user
+  })
+
+  it('the surveillance beat is announced, not only lit', () => {
+    mount(<SurveillanceOverlay />, [{ type: 'DAY_ENDED' }])
+    const status = screen.getByRole('status')
+    expect(status).toHaveTextContent('Someone was watching the last four hours of this.')
+    expect(screen.getByTestId('surveillance')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('the menu bar promises no keyboard widget it does not implement', () => {
+    mount(<MenuBar onEndDay={() => {}} />)
+    expect(screen.queryByRole('menubar')).toBeNull()
+    expect(screen.queryAllByRole('menuitem')).toHaveLength(0)
+    expect(screen.getByRole('group', { name: /menu bar/ })).toBeInTheDocument()
+    // The gate control is honest about being clickable.
+    const gate = screen.getByRole('button', { name: /5 things left/ })
+    expect(gate).not.toHaveAttribute('aria-disabled')
+  })
+
+  it('sound can be turned off from the menu bar and says which state it is in', async () => {
+    const user = userEvent.setup()
+    mount(<MenuBar onEndDay={() => {}} />)
+    const control = screen.getByRole('button', { name: /Sound is on/ })
+    await user.click(control)
+    expect(screen.getByRole('button', { name: /Sound is off/ })).toHaveAttribute('aria-pressed', 'true')
+    await user.click(screen.getByRole('button', { name: /Sound is off/ }))
+    expect(screen.getByRole('button', { name: /Sound is on/ })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('the ledger and the quote board are tables', () => {
+    mount(<BankApp />)
+    expect(screen.getByRole('table', { name: 'RECENT ACTIVITY' })).toBeInTheDocument()
+    expect(screen.getAllByRole('columnheader').map((c) => c.textContent)).toEqual([
+      'Date',
+      'Description',
+      'Amount',
+    ])
   })
 })

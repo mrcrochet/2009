@@ -25,17 +25,33 @@ export function BankApp() {
         <PinButton evidenceId="e4" via="bank" />
       </div>
       <div className="hal-bank__activity">
-        <div className="hal-bank__label">RECENT ACTIVITY</div>
-        {ledger.map((t) => (
-          <div key={t.id} className="hal-bank__txn">
-            <span className="hal-bank__date">{t.date}</span>
-            <span className="hal-bank__desc">{t.label}</span>
-            {t.evidenceId ? <PinButton evidenceId={t.evidenceId} via="bank" size="row" /> : null}
-            <span className={`hal-bank__amt${t.credit ? ' hal-bank__amt--credit' : ''}`}>
-              {t.amount}
-            </span>
+        <div className="hal-bank__label" id="hal-bank-activity">
+          RECENT ACTIVITY
+        </div>
+        <div role="table" aria-labelledby="hal-bank-activity">
+          <div className="hal-sr-only" role="row">
+            <span role="columnheader">Date</span>
+            <span role="columnheader">Description</span>
+            <span role="columnheader">Amount</span>
           </div>
-        ))}
+          {ledger.map((t) => (
+            <div key={t.id} className="hal-bank__txn" role="row">
+              <span className="hal-bank__date" role="cell">
+                {t.date}
+              </span>
+              <span className="hal-bank__desc" role="cell">
+                {t.label}
+                {t.evidenceId ? <PinButton evidenceId={t.evidenceId} via="bank" size="row" /> : null}
+              </span>
+              <span
+                className={`hal-bank__amt${t.credit ? ' hal-bank__amt--credit' : ''}`}
+                role="cell"
+              >
+                {t.amount}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

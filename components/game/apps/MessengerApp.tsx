@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { selectChoices } from '@/engine/selectors'
 import type { ThreadId } from '@/engine/types'
 import { useContent, useDispatch, useTimeline } from '../GameContext'
+import { useTabList } from '../useTabList'
 
 export function MessengerApp() {
   const content = useContent()
@@ -13,6 +14,17 @@ export function MessengerApp() {
   const waiting = useTimeline((s) => s.chat.waiting)
   const choices = useTimeline((s) => selectChoices(s, content))
   const logRef = useRef<HTMLDivElement>(null)
+
+  const threadIds = content.threads.map((t) => t.id as ThreadId)
+  const { tabProps, panelProps } = useTabList<ThreadId>(
+    threadIds,
+    thread,
+    (id) => {
+      dispatch({ type: 'THREAD_SELECTED', thread: id })
+      dispatch({ type: 'CHAT_STARTED', thread: id })
+    },
+    'ember',
+  )
 
   useEffect(() => {
     const node = logRef.current
@@ -26,9 +38,8 @@ export function MessengerApp() {
           <button
             key={t.id}
             type="button"
-            role="tab"
             className="hal-msg__tab"
-            aria-selected={thread === t.id}
+            {...tabProps(t.id as ThreadId)}
             onClick={() => {
               dispatch({ type: 'THREAD_SELECTED', thread: t.id as ThreadId })
               dispatch({ type: 'CHAT_STARTED', thread: t.id as ThreadId })
@@ -38,28 +49,31 @@ export function MessengerApp() {
           </button>
         ))}
       </div>
-      <div className="hal-msg__log" ref={logRef} role="log" aria-live="polite">
-        {lines.map((line, i) => (
-          <div key={i} className={`hal-msg__line${line.mine ? ' hal-msg__line--mine' : ''}`}>
-            <span className="hal-msg__who">
-              {line.who} · {line.time}
-            </span>
-            <div className="hal-msg__bubble">{line.text}</div>
-          </div>
-        ))}
-      </div>
-      <div className="hal-msg__composer">
-        {choices.map((text) => (
-          <button
-            key={text}
-            type="button"
-            className="hal-msg__choice"
-            onClick={() => dispatch({ type: 'CHAT_REPLY_SENT', thread, text })}
-          >
-            {text}
-          </button>
-        ))}
-        {waiting ? <span className="hal-msg__typing">typing…</span> : null}
+      <div className="hal-msg__panel" {...panelProps}>
+        <div className="hal-msg__log" ref={logRef} role="log" aria-live="polite">
+          {lines.map((line, i) => (
+            <div key={i} className={`hal-msg__line${line.mine ? ' hal-msg__line--mine' : ''}`}>
+              <span className="hal-msg__who">
+                {line.who} · {line.time}
+              </span>
+              <div className="hal-msg__bubble">{line.text}</div>
+            </div>
+          ))}
+          {/* Inside the live region, so the pause before a reply is announced too. */}
+          {waiting ? <div className="hal-msg__typing">typing…</div> : null}
+        </div>
+        <div className="hal-msg__composer">
+          {choices.map((text) => (
+            <button
+              key={text}
+              type="button"
+              className="hal-msg__choice"
+              onClick={() => dispatch({ type: 'CHAT_REPLY_SENT', thread, text })}
+            >
+              {text}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   )

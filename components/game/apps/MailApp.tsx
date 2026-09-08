@@ -12,15 +12,15 @@ export function MailApp() {
 
   return (
     <>
-      <div className="hal-mail__list" role="list" aria-label="Inbox">
+      <div className="hal-mail__list" role="listbox" aria-label="Inbox">
         <div className="hal-mail__listhead">INBOX — CORVID MAIL</div>
         {list.map((m) => (
           <button
             key={m.id}
             type="button"
-            role="listitem"
+            role="option"
             className={`hal-mail__row${m.unread ? ' hal-mail__row--unread' : ''}`}
-            aria-current={m.selected}
+            aria-selected={m.selected}
             onClick={() => dispatch({ type: 'MAIL_OPENED', mailId: m.id })}
           >
             <span className="hal-mail__rowtop">

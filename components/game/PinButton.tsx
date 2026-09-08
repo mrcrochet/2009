@@ -6,7 +6,10 @@ import { useDispatch, useTimeline } from './GameContext'
 
 /**
  * Pinning is the single verb that moves something from the world into the investigation.
- * The pinned state is announced in text, never by colour alone.
+ *
+ * The pinned state is announced in text, never by colour alone — and the control stays focusable
+ * once used. A real `disabled` here would drop keyboard focus to `<body>` on every pin, which
+ * costs a keyboard player their place in the document every time they find something.
  */
 export function PinButton({
   evidenceId,
@@ -27,8 +30,11 @@ export function PinButton({
       className={cls}
       data-evidence={evidenceId}
       data-pinned={pinned}
-      disabled={pinned}
-      onClick={() => dispatch({ type: 'EVIDENCE_PINNED', evidenceId, via })}
+      aria-disabled={pinned}
+      onClick={() => {
+        if (pinned) return
+        dispatch({ type: 'EVIDENCE_PINNED', evidenceId, via })
+      }}
     >
       {pinned ? 'PINNED' : 'PIN AS EVIDENCE'}
     </button>

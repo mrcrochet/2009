@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { track } from '@/lib/analytics'
 import { selectDaySummary } from '@/engine/selectors'
 import { useContent, useTimeline } from './GameContext'
+import { useFocusTrap } from './useFocusTrap'
 
 /**
  * The commercial boundary lives here, and only here. Nothing before this point has asked the
@@ -16,6 +17,8 @@ export function DayEndCard() {
   const show = useTimeline((s) => s.ui.dayCard)
   const timelineId = useTimeline((s) => s.id)
   const summary = useTimeline((s) => selectDaySummary(s, content))
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(panelRef, show)
 
   useEffect(() => {
     if (show) track('save_prompt_viewed', {})
@@ -26,11 +29,18 @@ export function DayEndCard() {
   const next = `/account?claim=${encodeURIComponent(timelineId)}&day=${content.day + 1}`
 
   return (
-    <div className="hal-daycard" role="dialog" aria-modal="true" aria-label="Day 01 complete" data-testid="day-card">
-      <div className="hal-daycard__inner">
+    <div className="hal-daycard" data-testid="day-card">
+      <div
+        className="hal-daycard__inner"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Day ${String(content.day).padStart(2, '0')} complete`}
+        tabIndex={-1}
+      >
         <div className="hal-daycard__ts">{summary.timestamp}</div>
         <h1 className="hal-daycard__title">{content.dayEnd.title}</h1>
-        <div className="hal-daycard__stats">
+        <div className="hal-daycard__stats" role="status">
           <span>
             Balance: {summary.balance} · Quota {String(content.day).padStart(2, '0')}: {summary.quota} ·{' '}
             {summary.daysLeft} days left

@@ -28,7 +28,7 @@ test.describe('Day 01', () => {
 
     // --- desktop ---------------------------------------------------------
     await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByRole('menubar')).toContainText('HALCYON')
+    await expect(page.getByRole('group', { name: /menu bar/ })).toContainText('HALCYON')
     await expect(page.getByRole('navigation', { name: 'Dock' })).toBeVisible()
 
     // No SaaS shell anywhere in the playing surface.
@@ -238,6 +238,6 @@ test.describe('Day 01', () => {
     await page.goto('/play')
     await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByRole('button', { name: 'End day 01' })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /Day 01 · \d left/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Day 01 — \d things left/ })).toBeVisible()
   })
 })

@@ -1,7 +1,13 @@
 'use client'
 
 import { useContent, useDispatch, useTimeline } from './GameContext'
-import { selectCanEndDay, selectFrontTitle, selectMenuBarClock, selectOutstandingBeats } from '@/engine/selectors'
+import { SoundControl } from './SoundControl'
+import {
+  selectCanEndDay,
+  selectFrontTitle,
+  selectMenuBarClock,
+  selectOutstandingBeats,
+} from '@/engine/selectors'
 
 const BEAT_HINT: Record<string, string> = {
   readme: 'read the file on the desktop',
@@ -11,6 +17,11 @@ const BEAT_HINT: Record<string, string> = {
   claim: 'put a claim on the record',
 }
 
+/**
+ * Not a `menubar` widget: File / Edit / View are period scenery with no menus behind them, and
+ * claiming the role would promise arrow-key navigation into menus that do not exist. It is a
+ * labelled group of real buttons.
+ */
 export function MenuBar({ onEndDay }: { onEndDay: () => void }) {
   const content = useContent()
   const dispatch = useDispatch()
@@ -19,38 +30,40 @@ export function MenuBar({ onEndDay }: { onEndDay: () => void }) {
   const canEnd = useTimeline((s) => selectCanEndDay(s, content))
   const outstanding = useTimeline((s) => selectOutstandingBeats(s, content))
   const trayOpen = useTimeline((s) => s.ui.trayOpen)
+  const day = String(content.day).padStart(2, '0')
 
   return (
-    <div className="hal-menubar" role="menubar" aria-label={`${content.osName} menu bar`}>
+    <div className="hal-menubar" role="group" aria-label={`${content.osName} menu bar`}>
       <span className="hal-menubar__brand">
         <span className="hal-menubar__mark" aria-hidden="true" />
         HALCYON
       </span>
       <span className="hal-menubar__front">{frontTitle}</span>
-      <button type="button" className="hal-menubar__menu" role="menuitem" tabIndex={-1}>
+      <span className="hal-menubar__menu" aria-hidden="true">
         File
-      </button>
-      <button type="button" className="hal-menubar__menu" role="menuitem" tabIndex={-1}>
+      </span>
+      <span className="hal-menubar__menu" aria-hidden="true">
         Edit
-      </button>
-      <button type="button" className="hal-menubar__menu" role="menuitem" tabIndex={-1}>
+      </span>
+      <span className="hal-menubar__menu" aria-hidden="true">
         View
-      </button>
+      </span>
       <span className="hal-menubar__spacer" />
+      <SoundControl />
       {canEnd ? (
         <button type="button" className="hal-menubar__action" onClick={onEndDay}>
-          End day {String(content.day).padStart(2, '0')}
+          End day {day}
         </button>
       ) : (
         <button
           type="button"
-          className="hal-menubar__action"
-          style={{ opacity: 0.45, cursor: 'default' }}
-          aria-disabled="true"
-          title={`Still to do: ${outstanding.map((b) => BEAT_HINT[b] ?? b).join(', ')}`}
+          className="hal-menubar__action hal-menubar__action--pending"
+          aria-label={`Day ${day} — ${outstanding.length} things left: ${outstanding
+            .map((b) => BEAT_HINT[b] ?? b)
+            .join(', ')}. Show the evidence tray.`}
           onClick={() => dispatch({ type: 'TRAY_TOGGLED', open: !trayOpen })}
         >
-          Day {String(content.day).padStart(2, '0')} · {outstanding.length} left
+          Day {day} · {outstanding.length} left
         </button>
       )}
       <span className="hal-menubar__clock">{clock}</span>

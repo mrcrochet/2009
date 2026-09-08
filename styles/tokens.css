@@ -60,6 +60,8 @@
   --overlay-ink-dim: #6d7c88;
   --overlay-ink-body: #d4dce2;
   --overlay-empty: #5c6a75;
+  /* The same family, lifted to stay readable where it carries prose rather than chrome. */
+  --overlay-prose: #7b8792;
 
   /* Confidence / verdict */
   --conf-high: #7fd39a;

@@ -22,7 +22,6 @@ export function DesktopIcons() {
             type="button"
             className="hal-icon"
             data-file={iconId}
-            onDoubleClick={() => open(iconId)}
             onClick={() => open(iconId)}
           >
             <span className="hal-icon__art">

@@ -39,9 +39,12 @@ export function WindowFrame({ def, win, front, children }: Props) {
       style={{ ...geometry, zIndex: win.z }}
       data-app={def.id}
       data-front={front}
-      role="dialog"
+      role="region"
       aria-label={def.title}
       onPointerDownCapture={focus}
+      // Tabbing into a buried window has to raise it, or a keyboard player types into
+      // something they cannot see.
+      onFocusCapture={focus}
     >
       <div className="hal-window__chrome">
         <div

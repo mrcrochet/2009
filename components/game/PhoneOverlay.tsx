@@ -8,6 +8,7 @@ import { useContent, useDispatch, useGame, useTimeline } from './GameContext'
 import { PhotoFrame } from './PhotoFrame'
 import { PinButton } from './PinButton'
 import { useDragMove, useIsCompact } from './useDragMove'
+import { useTabList } from './useTabList'
 
 const TABS: readonly { id: PhoneTab; label: string }[] = [
   { id: 'sms', label: 'SMS' },
@@ -29,6 +30,13 @@ export function PhoneOverlay() {
   const x = phone.x ?? fallback.x
   const y = phone.y ?? fallback.y
 
+  const { tabProps, panelProps } = useTabList<PhoneTab>(
+    TABS.map((t) => t.id),
+    phone.tab,
+    (tab) => dispatch({ type: 'PHONE_TAB_CHANGED', tab }),
+    'phone',
+  )
+
   const origin = useCallback(() => ({ x, y }), [x, y])
   const onCommit = useCallback((nx: number, ny: number) => dispatch({ type: 'PHONE_MOVED', x: nx, y: ny }), [dispatch])
   const drag = useDragMove(ref, { origin, onCommit, disabled: compact })
@@ -49,16 +57,15 @@ export function PhoneOverlay() {
               <button
                 key={t.id}
                 type="button"
-                role="tab"
                 className="hal-phone__tab"
-                aria-selected={phone.tab === t.id}
+                {...tabProps(t.id)}
                 onClick={() => dispatch({ type: 'PHONE_TAB_CHANGED', tab: t.id })}
               >
                 {t.label}
               </button>
             ))}
           </div>
-          <div className="hal-phone__view">
+          <div className="hal-phone__view" {...panelProps}>
             {phone.tab === 'sms' ? <Sms /> : null}
             {phone.tab === 'photos' ? <Photos /> : null}
             {phone.tab === 'contacts' ? <Contacts /> : null}
