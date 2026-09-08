@@ -11,6 +11,7 @@ import { files } from './files'
 import { terminal } from './terminal'
 import { economy } from './economy'
 import { phone } from './phone'
+import { wayup } from './wayup'
 
 export const boot = [
   'HALCYON 4.1  (build 4.1.882)',
@@ -51,6 +52,7 @@ export const day01: z.input<typeof DayContentSchema> = {
   browser,
   files,
   terminal,
+  wayup,
   economy,
   phone,
   dayEnd: {

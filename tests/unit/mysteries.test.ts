@@ -163,13 +163,13 @@ describe('unlocking', () => {
 describe('signal', () => {
   it('a page already read costs nothing to read again', () => {
     let state = dispatch(fresh(), { type: 'WAYUP_UNLOCKED', via: 'terminal' })
-    const before = signalRemaining(state)
+    const before = signalRemaining(state, content)
 
     state = dispatch(state, { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
-    expect(signalRemaining(state)).toBe(before - 6)
+    expect(signalRemaining(state, content)).toBe(before - 6)
 
     state = dispatch(state, { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
-    expect(signalRemaining(state)).toBe(before - 6)
+    expect(signalRemaining(state, content)).toBe(before - 6)
     expect(state.wayup.observed).toEqual(['wu_a'])
   })
 
@@ -187,7 +187,7 @@ describe('signal', () => {
       { type: 'WAYUP_UNLOCKED', via: 'terminal' },
       { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 9 },
     ])
-    expect(signalRemaining(state)).toBeLessThan(24)
+    expect(signalRemaining(state, content)).toBeLessThan(24)
 
     state = dispatch(state, {
       type: 'DAY_ADVANCED',
@@ -200,7 +200,7 @@ describe('signal', () => {
       browserHome: 'corvid.com',
       terminalBanner: content.terminal.banner,
     })
-    expect(signalRemaining(state)).toBe(24)
+    expect(signalRemaining(state, content)).toBe(24)
     expect(state.wayup.observed).toEqual(['wu_a'])
     expect(state.wayup.unlocked).toBe(true)
   })

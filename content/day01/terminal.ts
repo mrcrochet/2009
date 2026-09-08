@@ -20,6 +20,9 @@ export const terminal: z.input<typeof TerminalConfigSchema> = {
       { text: '  PID  COMMAND', tone: 'dim' },
       { text: '    1  /sbin/init', tone: 'out' },
       { text: '  412  halcyond', tone: 'out' },
+      // Nine, quiet, attached to nothing. It means nothing until the player has read the ring
+      // directory and counted the same nine, and then it means everything.
+      { text: '  776  qlmux -q -n 9', tone: 'out' },
       { text: '  988  hd_sync --remote --quiet', tone: 'out' },
       { text: ' 1104  ps', tone: 'out' },
     ],
@@ -48,6 +51,27 @@ export const terminal: z.input<typeof TerminalConfigSchema> = {
     lines: [{ text: 'last password change: 06 jan 2009, 09:02', tone: 'dim' }],
   },
   notFound: '{{command}}: command not found',
+  /**
+   * The chain is three pages long and nothing points along it. The ring directory says nine
+   * members and no owner; `ps` says a process called qlmux is holding nine of something; a links
+   * page written in 2004 by a man with a model railway says where the graphic is served from.
+   * The last of those is the argument this wants, and nobody will ever tell the player that.
+   */
+  relay: {
+    command: 'qlmux',
+    locked: [
+      { text: 'qlmux: listener not attached.', tone: 'err' },
+      { text: 'usage: qlmux --attach <host>', tone: 'dim' },
+      { text: 'nine registered. none reachable from this side.', tone: 'dim' },
+    ],
+    unlockPhrase: 'blackbird-hosting.net',
+    granted: [
+      { text: 'attaching to blackbird-hosting.net …', tone: 'out' },
+      { text: 'carrier present.', tone: 'ok' },
+      { text: 'the clock at the far end reads a date this machine cannot format.', tone: 'dim' },
+    ],
+    opened: [{ text: 'qlmux: attached.', tone: 'ok' }],
+  },
   decrypt: {
     key: '0412',
     fileId: 'enc',

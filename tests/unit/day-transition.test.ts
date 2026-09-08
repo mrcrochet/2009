@@ -100,7 +100,13 @@ describe('the night', () => {
 
     expect(after.windows).toEqual([])
     expect(after.desktopIcons).toEqual([])
-    expect(after.ui).toEqual({ trayOpen: false, boardOpen: false, watched: false, dayCard: false })
+    expect(after.ui).toEqual({
+      trayOpen: false,
+      boardOpen: false,
+      watched: false,
+      dayCard: false,
+      wayupOpen: false,
+    })
     expect(after.mail.unknownArrived).toBe(false)
     expect(after.chat.log.lea).toEqual([])
     expect(after.chat.step.lea).toBe(0)

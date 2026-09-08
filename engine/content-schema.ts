@@ -257,6 +257,25 @@ export const TerminalConfigSchema = z.object({
   /** The machine only contradicts itself once the player can see the contradiction. */
   whoamiAfterEvidence: z.object({ evidenceId: id, lines: z.array(TerminalLineSchema) }),
   notFound: z.string(),
+  /**
+   * The command that reaches the relay, and what the machine says before and after it works.
+   *
+   * Authored rather than built in, because whether this day has a way forward at all is a story
+   * decision. `null` means the process is not on this machine today.
+   */
+  relay: z
+    .object({
+      command: z.string().min(1),
+      /** Run without the phrase, before the player has found it. */
+      locked: z.array(TerminalLineSchema),
+      /** Matched case-insensitively as a substring of the whole line. */
+      unlockPhrase: z.string().min(1),
+      granted: z.array(TerminalLineSchema),
+      /** Run again, once it is known. */
+      opened: z.array(TerminalLineSchema),
+    })
+    .nullable()
+    .default(null),
   decrypt: z.object({
     key: z.string().min(1),
     fileId: id,
@@ -267,6 +286,41 @@ export const TerminalConfigSchema = z.object({
     maxAttempts: z.number().int().positive(),
     lockout: z.string(),
   }),
+})
+
+/**
+ * The Way Up Machine, as this day can afford it.
+ *
+ * Every word the relay says is authored here. The console is a 2009 machine describing something
+ * it has no vocabulary for, and that voice is the whole reason the mechanic does not read as a
+ * browser tab — so none of it is hard-coded in a component.
+ */
+export const WayUpConfigSchema = z.object({
+  /** How far forward this day can reach. Refilled by `DAY_ADVANCED`. */
+  signalBudget: z.number().int().nonnegative(),
+  /** What it costs to ask, and what it costs to open one of the answers. */
+  searchCost: z.number().int().nonnegative().default(1),
+  openCost: z.number().int().nonnegative().default(2),
+  title: z.string().min(1),
+  subtitle: z.string(),
+  /** The prompt above the field. Not "Search" — this machine does not think it is searching. */
+  queryLabel: z.string().min(1),
+  submitLabel: z.string().min(1),
+  /** Shown when no relay is configured on this deployment. */
+  offlineTitle: z.string().min(1),
+  offlineBody: z.string().min(1),
+  /** Shown when the day's signal is gone. */
+  exhausted: z.string().min(1),
+  emptyResults: z.string().min(1),
+  /** How the console reports each way a request can be refused, keyed by `WayUpRefusal`. */
+  refusals: z.record(z.string().max(64), z.string()),
+  fallbackRefusal: z.string().min(1),
+  /** The control that keeps an excerpt, and the tray heading it lands under. */
+  pinLabel: z.string().min(1),
+  pinnedLabel: z.string().min(1),
+  /** The line under a snapshot that says when the other side answered. */
+  capturedTemplate: z.string().min(1),
+  signalTemplate: z.string().min(1),
 })
 
 // --- Economy ---------------------------------------------------------------
@@ -453,6 +507,8 @@ export const DayContentSchema = z.object({
   browser: BrowserConfigSchema,
   files: z.array(FileDocSchema).min(1),
   terminal: TerminalConfigSchema,
+  /** `null` on a day with no way forward. */
+  wayup: WayUpConfigSchema.nullable().default(null),
   economy: EconomySchema,
   phone: PhoneConfigSchema,
   dayEnd: DayEndSchema,

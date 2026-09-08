@@ -101,7 +101,7 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       signalSpent: 0,
     },
 
-    ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false },
+    ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false, wayupOpen: false },
 
     beats: {},
     flags: {},

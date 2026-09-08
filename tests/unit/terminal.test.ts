@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { reduce } from '@/engine/reducer'
+import { stamp } from '@/engine/events'
 import { content, dispatch, fresh, run } from './helpers'
 
 const last = (state: ReturnType<typeof fresh>) => state.terminal.lines.at(-1)
@@ -151,6 +153,53 @@ describe('the lockout locks', () => {
     for (const line of content.terminal.whoamiAfterEvidence.lines) {
       expect(loud).toContain(line.text)
     }
+  })
+
+  /**
+   * Three pages that never mention each other: a ring directory saying nine members and no
+   * owner, a process list holding nine of something, and a links page from 2004 naming the host
+   * the graphic has always come from. Nothing points along the chain and nothing ever will.
+   */
+  it('refuses the relay until the player supplies the host, then stops refusing', () => {
+    const relay = content.terminal.relay!
+
+    const cold = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: relay.command })
+    expect(cold.wayup.unlocked).toBe(false)
+    expect(cold.ui.wayupOpen).toBe(false)
+    expect(cold.terminal.lines.map((l) => l.text).join('\n')).toContain('listener not attached')
+
+    // A near miss is still a miss.
+    const wrong = dispatch(fresh(), {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: `${relay.command} --attach geohost.com`,
+    })
+    expect(wrong.wayup.unlocked).toBe(false)
+
+    const open = dispatch(fresh(), {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: `${relay.command} --attach ${relay.unlockPhrase.toUpperCase()}`,
+    })
+    expect(open.wayup.unlocked).toBe(true)
+    expect(open.ui.wayupOpen).toBe(true)
+
+    // And once it is known, running it just opens it.
+    const again = dispatch(
+      { ...open, ui: { ...open.ui, wayupOpen: false } },
+      { type: 'TERMINAL_COMMAND_RUN', command: relay.command },
+    )
+    expect(again.ui.wayupOpen).toBe(true)
+  })
+
+  it('the relay is a day’s decision, not a build-time one', () => {
+    // A day with no `relay` block has no such command, and the machine says so in its own words.
+    const without = { ...content, terminal: { ...content.terminal, relay: null } }
+    const state = reduce(
+      fresh(),
+      stamp(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'qlmux' }),
+      without,
+    )
+    expect(state.wayup.unlocked).toBe(false)
+    expect(state.terminal.lines.at(-1)?.text).toContain('command not found')
   })
 
   it('a flag on a known command is still that command', () => {

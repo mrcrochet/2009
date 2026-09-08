@@ -405,6 +405,8 @@ export interface TimelineState {
     readonly boardOpen: boolean
     readonly watched: boolean
     readonly dayCard: boolean
+    /** The relay console, which takes the screen the way the board does. */
+    readonly wayupOpen: boolean
   }
 
   /** Cleared when a day advances; a day's gate is about that day. */
@@ -502,6 +504,7 @@ export type GameEvent =
     })
   | (Base & { type: 'TIMELINE_CLAIMED'; ownerId: string })
   | (Base & { type: 'WAYUP_UNLOCKED'; via: string })
+  | (Base & { type: 'WAYUP_TOGGLED'; open?: boolean })
   /**
    * A capture, not a fetch. The network happened outside the engine; what the log records is the
    * immutable snapshot the player saw, so a replay shows the bytes they read rather than

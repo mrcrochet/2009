@@ -183,6 +183,12 @@ const STEPS: readonly MigrationStep[] = [
       }
       snapshot.files = files
 
+      // The relay console is a screen the timeline can be sitting on, so it needs a place in
+      // the saved shape. A save from before it existed was never on it.
+      const ui = { ...((snapshot.ui as AnyRecord) ?? {}) }
+      if (typeof ui.wayupOpen !== 'boolean') ui.wayupOpen = false
+      snapshot.ui = ui
+
       // And an item now records the day it was bought, so the card printed on the twentieth is
       // about the twentieth. Everything already held was bought on the day the save is on.
       const day = typeof snapshot.day === 'number' ? snapshot.day : 1

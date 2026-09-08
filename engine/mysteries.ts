@@ -1,3 +1,4 @@
+import type { DayContent } from './content-schema'
 import type { Mystery, UnlockCondition } from './mystery-schema'
 import type { TimelineState } from './types'
 import { qualifyEvidenceId } from './types'
@@ -73,19 +74,24 @@ export function unlockedMysteries(
  * Signal is a narrative budget, not a network quota. It is spent on looking into 2026 and it
  * does not come back within a day — which is what makes a player choose what they most need to
  * know rather than looking up everything.
+ *
+ * How much of it a day has is the day's decision, like its waking hours and the cost of a
+ * memory. A day with no `wayup` block has none, and the console is not on that machine.
  */
-export const SIGNAL_PER_DAY = 24
+export function signalBudget(content: DayContent): number {
+  return content.wayup?.signalBudget ?? 0
+}
 
 export function signalSpent(state: TimelineState): number {
   return state.wayup.signalSpent
 }
 
-export function signalRemaining(state: TimelineState): number {
-  return Math.max(0, SIGNAL_PER_DAY - state.wayup.signalSpent)
+export function signalRemaining(state: TimelineState, content: DayContent): number {
+  return Math.max(0, signalBudget(content) - state.wayup.signalSpent)
 }
 
-export function canAfford(state: TimelineState, cost: number): boolean {
-  return signalRemaining(state) >= cost
+export function canAfford(state: TimelineState, content: DayContent, cost: number): boolean {
+  return signalRemaining(state, content) >= cost
 }
 
 function assertNever(_condition: never): void {

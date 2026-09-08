@@ -208,6 +208,7 @@ export const TimelineStateSchema = z.object({
   ui: z.object({
     trayOpen: z.boolean(),
     boardOpen: z.boolean(),
+    wayupOpen: z.boolean().default(false),
     watched: z.boolean(),
     dayCard: z.boolean(),
   }),

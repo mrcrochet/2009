@@ -758,7 +758,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         minuteOfDay: content.endMinute ?? DEFAULT_END_MINUTE,
         windows: [],
         phone: { ...state.phone, open: false },
-        ui: { trayOpen: false, boardOpen: false, watched: true, dayCard: false },
+        ui: { trayOpen: false, boardOpen: false, watched: true, dayCard: false, wayupOpen: false },
         mail: { ...state.mail, unknownArrived: true, openId: content.unknownMail.id },
       }
     }
@@ -832,7 +832,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         recallQuery: '',
         // The relay stays open and every page read stays read; only the day's supply refills.
         wayup: { ...state.wayup, signalSpent: 0 },
-        ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false },
+        ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false, wayupOpen: false },
         // The gate is about *this* day. Sharing them opened a later day's gate before it began.
         beats: {},
       }
@@ -844,6 +844,14 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return { ...state, wayup: { ...state.wayup, unlocked: true } }
     }
 
+    case 'WAYUP_TOGGLED': {
+      // Nothing to open until the machine has admitted the process exists.
+      if (!state.wayup.unlocked) return state
+      const open = event.open ?? !state.ui.wayupOpen
+      if (open === state.ui.wayupOpen) return state
+      return { ...state, ui: { ...state.ui, wayupOpen: open } }
+    }
+
     /**
      * The network happened outside the engine. What lands here is the id of an immutable
      * snapshot and what the look cost, so a replay shows the bytes the player read rather than
@@ -852,6 +860,10 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'WAYUP_SNAPSHOT_OBSERVED': {
       if (!state.wayup.unlocked) return state
       const seen = state.wayup.observed.includes(event.snapshotId)
+      // The budget is the mechanic. Without this the cost is a number the console prints and
+      // the player can ignore, and a metered look at the future is not metered at all.
+      const budget = content.wayup?.signalBudget ?? 0
+      if (!seen && state.wayup.signalSpent + event.signalCost > budget) return state
       return {
         ...state,
         wayup: {
@@ -979,6 +991,23 @@ function runTerminal(
     const fileId = cfg.catTargets[arg]
     const doc = fileId ? content.files.find((f) => f.id === fileId) : undefined
     out.push(doc ? { text: doc.body, tone: 'out' } : { text: cfg.catBinary, tone: 'out' })
+  } else if (cfg.relay && verb === cfg.relay.command) {
+    const relay = cfg.relay
+    if (state.wayup.unlocked) {
+      out.push(...relay.opened)
+      nextState = { ...nextState, ui: { ...nextState.ui, wayupOpen: true } }
+    } else if (lower.includes(relay.unlockPhrase.toLowerCase())) {
+      // The player worked out the argument from three pages that never mention each other.
+      // Nothing announces it; the machine simply stops refusing.
+      out.push(...relay.granted)
+      nextState = {
+        ...nextState,
+        wayup: { ...nextState.wayup, unlocked: true },
+        ui: { ...nextState.ui, wayupOpen: true },
+      }
+    } else {
+      out.push(...relay.locked)
+    }
   } else if (verb === 'decrypt') {
     const d = cfg.decrypt
     const attemptsSoFar = state.files.decryptAttempts[d.fileId] ?? 0
