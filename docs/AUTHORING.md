@@ -77,30 +77,48 @@ the player, so only those are reported in the summary — `isPageAltered` delibe
 flag variants, because a page the player asked to change is not the same thing as a page
 rewriting itself behind their back.
 
-## What is still missing for a second day
+## What a second day cost
 
-An agent authored a real, playable Day 02 in an isolated worktree to test the claim above. It
-held: **one file outside `content/day02/`**, and the reducer needed no changes at all. Three
-things it found are fixed — beats are named per day rather than shared (a finished Day 01 was
-opening Day 02's gate before it started), the day-end deeds are authored rather than derived in
-the engine, and the content invariants now run against every registered day rather than only the
-first.
+Day 02 exists. It is 2,463 lines under `content/day02/` and **one line** outside it — the
+registration in `content/index.ts` — and it needed no engine or component change to author. That
+is the claim above, cashed.
 
-These are not, and are the known cost of the next day:
+Authoring it found nine things, and seven were fixed rather than worked around:
 
-- **There is no transition.** `stage` runs `landing → boot → playing → day-end` and stops.
-  Nothing carries a timeline into the 16th, so a second day is currently a separate new game
-  that happens to be set later. It needs a `DAY_ADVANCED` event that resets the per-day surfaces
-  (windows, mail, chat, browser, terminal, `minuteOfDay`, beats) while preserving the ledger of
-  who the player has become — cash, evidence, claims on record, heat, flags, domains, watchlist,
-  and above all `memoryIntegrity`, which currently returns to 100 overnight in a game whose
-  premise is that spent coherence does not come back.
-- **Thread ids are still a closed union** (`unknown | marc | lea`), so a day cannot introduce a
-  correspondent.
-- **`WAKE_MINUTE` and `DAY_END_MINUTE` are module constants**, so every day starts and ends at
-  the same hour.
-- **Evidence ids are one flat namespace.** Reusing a page from an earlier day brings its evidence
-  with it, and a player can pin something they never encountered.
+- **Cross-day claims were invisible to the invariant suite.** `carriedEvidence` was never
+  consulted, so every claim resting on an earlier day failed a test the engine was already
+  handling correctly.
+- **A claim trusted the event.** `evaluateClaim` was given the selected ids without checking the
+  player held them, so "needs what you found yesterday" was a fact about the tray rather than
+  about the engine.
+- **Decryption was one boolean for the whole machine.** Thursday's key opened Friday's different
+  file, and three wrong guesses on Thursday locked a player out of a document they had not seen.
+  It is per file now, and running `decrypt` on a file opened last night still hands over the
+  evidence rather than saying it worked and giving nothing.
+- **`whoami` had a dead branch.** It compared an authored `e1` against a held `1:e1` and had done
+  since evidence ids were namespaced, so the machine had quietly stopped saying the one thing it
+  knows about the man whose name is on it.
+- **The second morning had no opening.** `DAY_ADVANCED` went straight to `playing`, and every
+  scripted beat — the boot console, the messenger that opens itself, the icon that appears —
+  hangs off `boot → playing`. Day two arrived on a bare desktop in silence, and threw away the
+  login banner, which on the sixteenth is the day's whole premise.
+- **`BankApp` named `e4` in the component.** Every day for the next twenty-eight would have had
+  to author an `e4` and make it the bank fact. It reads `economy.accountEvidenceId` now.
+- **A purchase there was no money for did nothing, silently.** The button stayed lit and the
+  reducer refused, which reads as a broken page rather than as an empty account.
+
+Two remain, and are the known cost of the next day:
+
+- **A day cannot post an overnight transaction.** `openingCashCents` and `openingLedger` are read
+  only by `createTimeline`; `DAY_ADVANCED` preserves `cashCents` and `ledger` untouched. A day
+  whose plot is money moving without the player has nowhere to say so. Day 02 expressed it
+  through `accountLabel` instead, which is arguably better, but the gap is real.
+- **A day cannot re-serve an address an earlier day owns.** Every browser page is projected into
+  the world graph at its own URL, and two documents may not share an address. So a day needs its
+  own URL space — `tradepost.com/pdx/phones` rather than `tradepost.com` again — and
+  `directoryUrl`, every bookmark, and every `nav`/`link` target must be day-local. Yesterday's
+  addresses still resolve, as flattened corpus pages. In practice this is a constraint that
+  improves the fiction: somebody edited the bookmarks bar overnight, and that is content.
 
 ## Mysteries
 

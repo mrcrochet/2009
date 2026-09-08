@@ -618,7 +618,14 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       // A claim may rest on an earlier day's evidence by naming it outright ("1:e3"); anything
       // unqualified means today's.
       const need = claim.need.map((id) => qualifyEvidenceId(content.day, id))
-      const selected = event.evidenceIds.map((id) => qualifyEvidenceId(state.day, id))
+      // Only what the player actually holds counts. The tray offers nothing else, so in play
+      // this changes nothing — but it is what makes "this claim needs what you found yesterday"
+      // a fact about the engine rather than a fact about the user interface, and it is the
+      // difference between a save that can be edited into an accepted claim and one that cannot.
+      const held = new Set(state.evidence.map((e) => e.id))
+      const selected = event.evidenceIds
+        .map((id) => qualifyEvidenceId(state.day, id))
+        .filter((id) => held.has(id))
       const outcome = evaluateClaim({ ...claim, need }, selected)
       const attempt = {
         claimId: claim.id,
@@ -663,6 +670,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       if (state.cashCents < opp.buyCents) return state
       const item: InventoryItem = {
         id: opp.id,
+        day: state.day,
         label: opp.label,
         acquiredFor: opp.buyCents,
         state: 'held',
@@ -778,7 +786,16 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
 
         day: event.day,
         dateISO: event.dateISO,
-        stage: 'playing',
+        /*
+         * The second morning starts the machine, exactly as the first one did.
+         *
+         * Going straight to `playing` skipped every scripted opening — the boot console, the
+         * messenger that opens itself, the icon that appears on the desktop all fire on
+         * boot → playing — so day two arrived on a bare desktop in silence. It also threw away
+         * the one line the day most needed the player to read: the login banner, which on the
+         * sixteenth says somebody used this machine at 04:03 from another address.
+         */
+        stage: 'boot',
 
         // Reset: the surface of a day.
         minuteOfDay: event.wakeMinute,
@@ -943,7 +960,11 @@ function runTerminal(
   if (verb === 'whoami') {
     out.push(...cfg.whoami)
     const contradiction = cfg.whoamiAfterEvidence
-    if (state.evidence.some((e) => e.id === contradiction.evidenceId)) {
+    // Authored unqualified, held qualified. Comparing them raw made this branch unreachable the
+    // day evidence ids were namespaced, and nothing failed — the machine simply stopped saying
+    // the one thing it knows about the man whose name is on it.
+    const held = qualifyEvidenceId(content.day, contradiction.evidenceId)
+    if (state.evidence.some((e) => e.id === held)) {
       out.push(...contradiction.lines)
     }
   } else if (staticOut) {
@@ -960,9 +981,13 @@ function runTerminal(
     out.push(doc ? { text: doc.body, tone: 'out' } : { text: cfg.catBinary, tone: 'out' })
   } else if (verb === 'decrypt') {
     const d = cfg.decrypt
-    if (state.files.decrypted) {
+    const attemptsSoFar = state.files.decryptAttempts[d.fileId] ?? 0
+    if (state.files.decrypted[d.fileId]) {
       out.push({ text: d.success, tone: 'ok' })
-    } else if (state.files.decryptAttempts >= d.maxAttempts) {
+      // Running it again on a file already open still hands over the evidence. Otherwise a
+      // player who decrypted last night is told it worked and given nothing to pin.
+      nextState = pinEvidence(nextState, d.evidenceId, 'terminal', at)
+    } else if (attemptsSoFar >= d.maxAttempts) {
       // The lockout said "the file has reported". It has to mean it — otherwise the fourth
       // attempt with the right key simply works, and heat accrues without limit.
       out.push({ text: d.lockout, tone: 'err' })
@@ -970,18 +995,23 @@ function runTerminal(
       out.push({ text: d.success, tone: 'ok' })
       nextState = {
         ...nextState,
-        files: { ...nextState.files, decrypted: true, openId: d.fileId },
+        files: {
+          ...nextState.files,
+          decrypted: { ...nextState.files.decrypted, [d.fileId]: true },
+          openId: d.fileId,
+        },
         heat: nextState.heat + 5,
       }
       nextState = pinEvidence(nextState, d.evidenceId, 'terminal', at)
     } else if (lower.includes('--key')) {
-      const attempts = state.files.decryptAttempts + 1
+      const attempts = attemptsSoFar + 1
+      const counted = { ...nextState.files.decryptAttempts, [d.fileId]: attempts }
       const remaining = Math.max(0, d.maxAttempts - attempts)
       if (remaining <= 0) {
         out.push({ text: d.lockout, tone: 'err' })
         nextState = {
           ...nextState,
-          files: { ...nextState.files, decryptAttempts: attempts },
+          files: { ...nextState.files, decryptAttempts: counted },
           heat: nextState.heat + 20,
           flags: { ...nextState.flags, decryptReported: true },
         }
@@ -989,7 +1019,7 @@ function runTerminal(
         out.push({ text: d.wrongKey.replace('{{remaining}}', String(remaining)), tone: 'err' })
         nextState = {
           ...nextState,
-          files: { ...nextState.files, decryptAttempts: attempts },
+          files: { ...nextState.files, decryptAttempts: counted },
           heat: nextState.heat + 5,
         }
       }

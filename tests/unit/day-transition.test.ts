@@ -83,7 +83,7 @@ describe('the night', () => {
     // Evidence, decisions, and the notebook.
     expect(after.evidence).toEqual(before.evidence)
     expect(after.flags.leaPostRemoved).toBe(true)
-    expect(after.files.decrypted).toBe(true)
+    expect(after.files.decrypted.enc).toBe(true)
     expect(after.notes).toBe('he died on the 19th')
   })
 
@@ -92,7 +92,10 @@ describe('the night', () => {
 
     expect(after.day).toBe(2)
     expect(after.dateISO).toBe('2009-01-16')
-    expect(after.stage).toBe('playing')
+    // The second morning starts the machine, so every scripted opening the shell hangs off
+    // boot → playing happens again — including the login banner, which is the day's first beat.
+    expect(after.stage).toBe('boot')
+    expect(after.bootLine).toBe(0)
     expect(after.minuteOfDay).toBe(6 * 60 + 40)
 
     expect(after.windows).toEqual([])

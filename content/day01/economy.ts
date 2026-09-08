@@ -9,6 +9,7 @@ export const economy: z.input<typeof EconomySchema> = {
   bankName: 'MERIDIAN SAVINGS & LOAN',
   accountLabel: 'CHECKING ····4471 — RASK, O.',
   accountOpened: 'Available balance · Account opened 06 Jan 2009',
+  accountEvidenceId: 'e4',
   brokerageNotice:
     'Brokerage account required to place orders. Minimum opening deposit: $2,000.00.',
   brokerageMinimum: 'You have no brokerage account. You may keep a watchlist.',

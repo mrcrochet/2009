@@ -38,19 +38,39 @@ describe('day 01 content', () => {
   })
 
   it.each(Object.entries(BY_DAY))('day %s references only evidence that exists', (_day, day) => {
-    const ids = new Set(day.evidence.map((e) => e.id))
+    // A claim may rest on an earlier day's evidence by naming it outright, which is the whole
+    // point of `carriedEvidence` — so the set a claim is checked against is both.
+    const ids = new Set([...day.evidence, ...day.carriedEvidence].map((e) => e.id))
     for (const claim of day.claims) {
       for (const need of claim.need) expect(ids.has(need), `${claim.id} → ${need}`).toBe(true)
     }
+    // A page, a decrypt or a pin can only ever offer today's, because that is what pinning does.
+    const today = new Set(day.evidence.map((e) => e.id))
     for (const page of day.browser.pages) {
       for (const shift of [0, 9]) {
         for (const block of resolveBlocks(page, shift)) {
-          if (block.kind === 'evidence') expect(ids.has(block.evidenceId)).toBe(true)
+          if (block.kind === 'evidence') expect(today.has(block.evidenceId)).toBe(true)
         }
       }
     }
-    expect(ids.has(day.terminal.decrypt.evidenceId)).toBe(true)
+    expect(today.has(day.terminal.decrypt.evidenceId)).toBe(true)
   })
+
+  /**
+   * An unqualified id in `carriedEvidence` means "today's", which is exactly what it is not.
+   * Nothing would throw: the claim would simply never be satisfiable, because the id the player
+   * holds is `1:e3` and the id the claim wants is `2:e3`.
+   */
+  it.each(Object.entries(BY_DAY))(
+    'day %s names carried evidence by the day it came from',
+    (_day, day) => {
+      for (const carried of day.carriedEvidence) {
+        const [from] = carried.id.split(':')
+        expect(carried.id, `${carried.id} is not qualified`).toContain(':')
+        expect(Number(from), `${carried.id} is not from an earlier day`).toBeLessThan(day.day)
+      }
+    },
+  )
 
   it.each(Object.entries(BY_DAY))('day %s promises no page it does not have', (_day, day) => {
     const urls = new Set(day.browser.pages.map((p) => p.url))

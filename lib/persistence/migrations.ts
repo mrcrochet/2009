@@ -161,6 +161,40 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 11,
+    to: 12,
+    describe: 'decryption is remembered per file, not once for the whole machine',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const files = { ...((snapshot.files as AnyRecord) ?? {}) }
+      // The only encrypted file that existed under the old shape was Day 01's. A save that had
+      // it open keeps it open, and one that burned attempts keeps having burned them — against
+      // that file, and no longer against every file authored since.
+      if (typeof files.decrypted === 'boolean') {
+        files.decrypted = files.decrypted ? { enc: true } : {}
+      }
+      if (typeof files.decryptAttempts === 'number') {
+        files.decryptAttempts = files.decryptAttempts > 0 ? { enc: files.decryptAttempts } : {}
+      }
+      if (typeof files.decrypted !== 'object' || files.decrypted === null) files.decrypted = {}
+      if (typeof files.decryptAttempts !== 'object' || files.decryptAttempts === null) {
+        files.decryptAttempts = {}
+      }
+      snapshot.files = files
+
+      // And an item now records the day it was bought, so the card printed on the twentieth is
+      // about the twentieth. Everything already held was bought on the day the save is on.
+      const day = typeof snapshot.day === 'number' ? snapshot.day : 1
+      const inventory = Array.isArray(snapshot.inventory) ? (snapshot.inventory as AnyRecord[]) : []
+      snapshot.inventory = inventory.map((i) => ({
+        ...i,
+        day: typeof i.day === 'number' ? i.day : day,
+      }))
+
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

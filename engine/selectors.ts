@@ -225,7 +225,7 @@ export const selectFiles: (state: TimelineState, content: DayContent) => readonl
         id: f.id,
         name: f.name,
         icon: f.icon,
-        meta: state.files.decrypted && f.metaWhenDecrypted ? f.metaWhenDecrypted : f.meta,
+        meta: state.files.decrypted[f.id] && f.metaWhenDecrypted ? f.metaWhenDecrypted : f.meta,
         selected: state.files.openId === f.id,
       }))
     },
@@ -233,14 +233,14 @@ export const selectFiles: (state: TimelineState, content: DayContent) => readonl
 export function selectFileBody(state: TimelineState, content: DayContent): string {
   const doc = content.files.find((f) => f.id === state.files.openId)
   if (!doc) return ''
-  if (state.files.decrypted && doc.bodyWhenDecrypted) return doc.bodyWhenDecrypted
+  if (state.files.decrypted[doc.id] && doc.bodyWhenDecrypted) return doc.bodyWhenDecrypted
   return doc.body
 }
 
 export function selectFileEvidenceId(state: TimelineState, content: DayContent): string | null {
   const doc = content.files.find((f) => f.id === state.files.openId)
   if (!doc || !doc.evidenceId) return null
-  if (doc.evidenceRequiresDecryption && !state.files.decrypted) return null
+  if (doc.evidenceRequiresDecryption && !state.files.decrypted[doc.id]) return null
   return doc.evidenceId
 }
 
@@ -373,7 +373,18 @@ function selectDeeds(state: TimelineState, content: DayContent): readonly string
   const t = content.dayEnd.deeds
   const deeds: string[] = []
 
-  for (const item of state.inventory) {
+  /*
+   * Today's trades, in full. Everything older in one line.
+   *
+   * Domains, the watchlist and the notebook stay standing — those are facts about the player
+   * that remain true every night and are meant to be read again. A box of laptop parts bought
+   * nine days ago is not; it is a receipt, and thirty receipts is a filing cabinet rather than
+   * a reckoning.
+   */
+  const today = state.inventory.filter((i) => i.day === state.day)
+  const earlier = state.inventory.filter((i) => i.day !== state.day)
+
+  for (const item of today) {
     const label = item.label.toLowerCase()
     if (item.state === 'sold' && item.soldFor !== null) {
       const template = item.soldFor >= item.acquiredFor ? t.sold : t.lost
@@ -388,8 +399,19 @@ function selectDeeds(state: TimelineState, content: DayContent): readonly string
     }
   }
 
-  // `decrypted` is state rather than a flag, so it is offered to the authored list as one.
-  const flags: Record<string, boolean> = { ...state.flags, decrypted: state.files.decrypted }
+  if (earlier.length > 0 && t.earlier) {
+    const net = earlier.reduce((sum, i) => sum + ((i.soldFor ?? i.acquiredFor) - i.acquiredFor), 0)
+    deeds.push(
+      t.earlier.replace('{{count}}', String(earlier.length)).replace('{{net}}', formatSigned(net)),
+    )
+  }
+
+  // `decrypted` is state rather than a flag, so it is offered to the authored list as one —
+  // true when anything at all was opened, which is what the day-end line is about.
+  const flags: Record<string, boolean> = {
+    ...state.flags,
+    decrypted: Object.values(state.files.decrypted).some(Boolean),
+  }
   for (const line of t.flagged) {
     if (flags[line.whenFlag]) deeds.push(line.text)
   }

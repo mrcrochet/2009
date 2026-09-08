@@ -65,6 +65,36 @@ describe('claims', () => {
   })
 })
 
+describe('a claim rests on what the player holds', () => {
+  /**
+   * The tray offers nothing the player has not pinned, so in play this changes nothing. It is
+   * what makes "this claim needs what you found" a fact about the engine rather than a fact
+   * about the user interface — and it is the difference between a save that can be edited into
+   * an accepted claim and one that cannot.
+   */
+  it('ignores evidence that was never found', () => {
+    const state = run(fresh(), [
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
+      { type: 'CLAIM_SELECTED', claimId: 'c2' },
+      // c2 needs e3 and e4. Only e3 has been pinned.
+      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e3', 'e4'] },
+    ])
+    expect(state.lastVerdict?.verdict).toBe('insufficient')
+    // And the record says what was actually put on it, not what was claimed.
+    expect(state.lastVerdict?.evidenceIds).toEqual(['1:e3'])
+  })
+
+  it('accepts the same claim once both are in the tray', () => {
+    const state = run(fresh(), [
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e4', via: 'bank' },
+      { type: 'CLAIM_SELECTED', claimId: 'c2' },
+      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e3', 'e4'] },
+    ])
+    expect(state.lastVerdict?.verdict).toBe('accepted')
+  })
+})
+
 describe('choices that answer themselves', () => {
   function ask(threadId: 'marc' | 'lea', text: string, extra: Record<string, unknown> = {}) {
     let state = run(fresh(), [

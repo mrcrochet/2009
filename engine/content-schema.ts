@@ -307,6 +307,15 @@ export const EconomySchema = z.object({
   quotaDays: z.number().int().positive(),
   accountLabel: z.string(),
   accountOpened: z.string(),
+  /**
+   * What pinning the balance panel puts in the tray, or null when this day's account is not
+   * itself evidence of anything.
+   *
+   * Authored rather than hardcoded in `BankApp`, which named `e4` outright — so every day for
+   * the next twenty-eight would have had to author an `e4` and make it the bank fact, or the
+   * balance panel would offer a pin to something absurd.
+   */
+  accountEvidenceId: id.nullable().default(null),
   bankName: z.string(),
   brokerageNotice: z.string(),
   brokerageMinimum: z.string(),
@@ -381,6 +390,14 @@ export const DeedsSchema = z.object({
   domain: z.string(),
   watchlist: z.string(),
   recalls: z.string(),
+  /**
+   * Everything bought on an earlier day, in one line. `{{count}}` items, `{{net}}` the running
+   * profit or loss on them.
+   *
+   * Without it the card reprints every trade of the season every night, and by day ten a page
+   * about what the player did today is thirty lines about what they did a week ago.
+   */
+  earlier: z.string().default(''),
   recallsOne: z.string(),
   recallsMany: z.string(),
   /** A line for each flag the day cares about, in the order it should be read. */

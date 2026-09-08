@@ -3,6 +3,7 @@ import { buildWorldIndex, worldAsOf, type WorldIndex } from '@/engine/world'
 import type { World } from '@/engine/world/schema'
 import { projectDay } from '@/engine/world/project'
 import { day01 as day01Raw } from './day01'
+import { day02 as day02Raw } from './day02'
 import { WORLD } from './world'
 
 /**
@@ -27,10 +28,11 @@ const PROJECTION_NAMES: readonly string[] = Object.keys(ENTITY_BY_NAME)
  * than a player's session.
  */
 export const DAY_01: DayContent = DayContentSchema.parse(day01Raw)
+export const DAY_02: DayContent = DayContentSchema.parse(day02Raw)
 
 /** Every authored day. The invariant suite iterates this, so a new day is validated the moment
  * it is registered rather than shipping on Zod alone. */
-export const BY_DAY: Readonly<Record<number, DayContent>> = { 1: DAY_01 }
+export const BY_DAY: Readonly<Record<number, DayContent>> = { 1: DAY_01, 2: DAY_02 }
 
 export function contentForDay(day: number): DayContent {
   const found = BY_DAY[day]

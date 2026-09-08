@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 11
+export const SCHEMA_VERSION = 12
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -217,6 +217,8 @@ export interface TerminalLine {
 
 export interface InventoryItem {
   readonly id: string
+  /** The day it was bought, so a card printed on the twentieth is about the twentieth. */
+  readonly day: number
   readonly label: string
   readonly acquiredFor: Cents
   readonly state: 'held' | 'listed' | 'sold'
@@ -384,8 +386,16 @@ export interface TimelineState {
   readonly browser: BrowserState
   readonly files: {
     readonly openId: string
-    readonly decrypted: boolean
-    readonly decryptAttempts: number
+    /**
+     * Which files have been opened, by id.
+     *
+     * Per file, not one flag. What was decrypted stays decrypted across the night — but a single
+     * boolean meant Thursday's key silently opened Friday's different file, and three wrong
+     * guesses on Thursday locked a player out of a document they had not seen yet. Two players
+     * got materially different days for a reason that was a bug rather than a decision.
+     */
+    readonly decrypted: Readonly<Record<string, boolean>>
+    readonly decryptAttempts: Readonly<Record<string, number>>
   }
   readonly terminal: { readonly lines: readonly TerminalLine[]; readonly input: string }
   readonly recallQuery: string

@@ -75,7 +75,7 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       history: [],
       forward: [],
     },
-    files: { openId: content.files[0]?.id ?? 'readme', decrypted: false, decryptAttempts: 0 },
+    files: { openId: content.files[0]?.id ?? 'readme', decrypted: {}, decryptAttempts: {} },
     terminal: { lines: [content.terminal.banner], input: '' },
     notes: '',
     recalls: [],

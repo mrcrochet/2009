@@ -402,6 +402,7 @@ function Listing({ block }: { block: Extract<Block, { kind: 'listing' }> }) {
   const dispatch = useDispatch()
   const domains = useTimeline((s) => s.domains)
   const inventory = useTimeline((s) => s.inventory)
+  const cashCents = useTimeline((s) => s.cashCents)
 
   const opportunity = block.itemId
     ? content.economy.opportunities.find((o) => o.id === block.itemId)
@@ -414,27 +415,41 @@ function Listing({ block }: { block: Extract<Block, { kind: 'listing' }> }) {
   let onClick: (() => void) | null = null
 
   if (block.action === 'domain' && block.itemId) {
-    label = owned ? 'REGISTERED TO YOU' : 'REGISTER — 1 YEAR'
-    live = !owned
-    onClick = owned
-      ? null
-      : () =>
-          dispatch({
-            type: 'DOMAIN_REGISTERED',
-            domain: block.itemId as string,
-            amountCents: content.economy.domainPriceCents,
-          })
+    const affordable = cashCents >= content.economy.domainPriceCents
+    label = owned
+      ? 'REGISTERED TO YOU'
+      : affordable
+        ? 'REGISTER — 1 YEAR'
+        : 'NOT ENOUGH IN THE ACCOUNT'
+    live = !owned && affordable
+    onClick =
+      owned || !affordable
+        ? null
+        : () =>
+            dispatch({
+              type: 'DOMAIN_REGISTERED',
+              domain: block.itemId as string,
+              amountCents: content.economy.domainPriceCents,
+            })
   } else if (block.action === 'buy' && opportunity) {
     live = true
     if (!held) {
-      label = 'BUY — MEET SELLER'
-      onClick = () =>
-        dispatch({
-          type: 'ITEM_PURCHASED',
-          itemId: opportunity.id,
-          amountCents: opportunity.buyCents,
-          label: opportunity.label,
-        })
+      // The reducer refuses a purchase there is no money for, and used to refuse it in silence:
+      // the button stayed lit and did nothing, which reads as a broken page rather than as an
+      // empty account. Say which it is.
+      if (cashCents < opportunity.buyCents) {
+        label = 'NOT ENOUGH IN THE ACCOUNT'
+        live = false
+      } else {
+        label = 'BUY — MEET SELLER'
+        onClick = () =>
+          dispatch({
+            type: 'ITEM_PURCHASED',
+            itemId: opportunity.id,
+            amountCents: opportunity.buyCents,
+            label: opportunity.label,
+          })
+      }
     } else if (held.state === 'held') {
       label = 'POST FOR RESALE'
       onClick = () => dispatch({ type: 'ITEM_LISTED', itemId: opportunity.id })

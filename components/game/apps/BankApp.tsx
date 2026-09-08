@@ -22,7 +22,9 @@ export function BankApp() {
           {cash}
         </div>
         <div className="hal-bank__sub">{content.economy.accountOpened}</div>
-        <PinButton evidenceId="e4" via="bank" />
+        {content.economy.accountEvidenceId ? (
+          <PinButton evidenceId={content.economy.accountEvidenceId} via="bank" />
+        ) : null}
       </div>
       <div className="hal-bank__activity">
         <div className="hal-bank__label" id="hal-bank-activity">

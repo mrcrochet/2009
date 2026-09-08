@@ -143,8 +143,8 @@ export const TimelineStateSchema = z.object({
   }),
   files: z.object({
     openId: z.string().max(64),
-    decrypted: z.boolean(),
-    decryptAttempts: z.number().int().min(0).max(64),
+    decrypted: z.record(z.string().max(64), z.boolean()),
+    decryptAttempts: z.record(z.string().max(64), z.number().int().min(0).max(64)),
   }),
   terminal: z.object({
     lines: z
@@ -166,6 +166,7 @@ export const TimelineStateSchema = z.object({
     .array(
       z.object({
         id: z.string().max(64),
+        day: z.number().int().min(1).max(60),
         label: z.string().max(256),
         acquiredFor: cents,
         state: z.enum(['held', 'listed', 'sold']),

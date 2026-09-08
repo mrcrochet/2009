@@ -26,7 +26,7 @@ describe('terminal', () => {
       type: 'TERMINAL_COMMAND_RUN',
       command: 'decrypt cibles.enc --key 0412',
     })
-    expect(state.files.decrypted).toBe(true)
+    expect(state.files.decrypted).toEqual({ enc: true })
     expect(state.files.openId).toBe('enc')
     expect(state.evidence.map((e) => e.id)).toContain('1:e7')
     expect(state.heat).toBe(5)
@@ -85,10 +85,72 @@ describe('the lockout locks', () => {
       type: 'TERMINAL_COMMAND_RUN',
       command: 'decrypt cibles.enc --key 0412',
     })
-    expect(state.files.decrypted).toBe(false)
+    expect(state.files.decrypted.enc).toBeUndefined()
     expect(last(state)?.text).toBe(content.terminal.decrypt.lockout)
     // And heat stops accruing, so the loudest ending cannot be farmed.
     expect(state.heat).toBe(before)
+  })
+
+  /**
+   * A single boolean meant Thursday's key opened Friday's different file, and three wrong
+   * guesses on Thursday locked a player out of a document they had not seen. Two players got
+   * materially different days for a reason that was a bug rather than a decision.
+   */
+  it('opens the file it was given the key to, and no other', () => {
+    const state = dispatch(fresh(), {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: 'decrypt cibles.enc --key 0412',
+    })
+    expect(state.files.decrypted.enc).toBe(true)
+    expect(state.files.decrypted.route).toBeUndefined()
+    expect(state.files.decrypted.readme).toBeUndefined()
+  })
+
+  it('counts wrong keys against the file they were tried on', () => {
+    const state = run(fresh(), [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 1111' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 2222' },
+    ])
+    expect(state.files.decryptAttempts).toEqual({ enc: 2 })
+  })
+
+  it('still hands over the evidence when the file was opened last night', () => {
+    // The night carries `decrypted`; without this the terminal says it worked and gives nothing.
+    const opened = dispatch(fresh(), {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: 'decrypt cibles.enc --key 0412',
+    })
+    const forgot = { ...opened, evidence: [] }
+    const again = dispatch(forgot, {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: 'decrypt cibles.enc --key 0412',
+    })
+    expect(again.evidence.map((e) => e.id)).toContain('1:e7')
+  })
+
+  /**
+   * Authored unqualified, held qualified. Comparing them raw made this unreachable the day
+   * evidence ids were namespaced, and nothing failed — the machine simply stopped saying the one
+   * thing it knows about the man whose name is on it.
+   */
+  it('says whose machine this is, once the player can prove it is not theirs', () => {
+    const before = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'whoami' })
+    const quiet = before.terminal.lines.map((l) => l.text).join('\n')
+
+    const after = run(fresh(), [
+      {
+        type: 'EVIDENCE_PINNED',
+        evidenceId: content.terminal.whoamiAfterEvidence.evidenceId,
+        via: 'files',
+      },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'whoami' },
+    ])
+    const loud = after.terminal.lines.map((l) => l.text).join('\n')
+
+    expect(loud.length).toBeGreaterThan(quiet.length)
+    for (const line of content.terminal.whoamiAfterEvidence.lines) {
+      expect(loud).toContain(line.text)
+    }
   })
 
   it('a flag on a known command is still that command', () => {
