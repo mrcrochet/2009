@@ -41,7 +41,9 @@ export function BankApp() {
               </span>
               <span className="hal-bank__desc" role="cell">
                 {t.label}
-                {t.evidenceId ? <PinButton evidenceId={t.evidenceId} via="bank" size="row" /> : null}
+                {t.evidenceId ? (
+                  <PinButton evidenceId={t.evidenceId} via="bank" size="row" />
+                ) : null}
               </span>
               <span
                 className={`hal-bank__amt${t.credit ? ' hal-bank__amt--credit' : ''}`}

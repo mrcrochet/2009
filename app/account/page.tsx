@@ -9,7 +9,13 @@ import { BillingActions } from './BillingActions'
 import styles from './account.module.css'
 
 interface Props {
-  searchParams: Promise<{ claim?: string; day?: string; upgrade?: string; checkout?: string; soon?: string }>
+  searchParams: Promise<{
+    claim?: string
+    day?: string
+    upgrade?: string
+    checkout?: string
+    soon?: string
+  }>
 }
 
 export const dynamic = 'force-dynamic'
@@ -30,16 +36,15 @@ export default async function AccountPage({ searchParams }: Props) {
     <main className={styles.root}>
       <div className={styles.inner}>
         <div className={styles.eyebrow}>2009 · account</div>
-        <h1 className={styles.title}>
-          {user ? 'Your timelines' : 'Keep the 2009 you just made'}
-        </h1>
+        <h1 className={styles.title}>{user ? 'Your timelines' : 'Keep the 2009 you just made'}</h1>
 
         {checkout === 'cancelled' ? (
           <div className={styles.notice}>Checkout was cancelled. Nothing was charged.</div>
         ) : null}
         {soon ? (
           <div className={styles.notice}>
-            Day {String(nextDay).padStart(2, '0')} is not written yet. Your timeline is safe where it is.
+            Day {String(nextDay).padStart(2, '0')} is not written yet. Your timeline is safe where
+            it is.
           </div>
         ) : null}
 
@@ -47,8 +52,8 @@ export default async function AccountPage({ searchParams }: Props) {
           <section className={styles.card}>
             <div className={styles.cardTitle}>Save this timeline — free</div>
             <p className={styles.body}>
-              Day 01 lives in this browser only. Create an account and the version of 2009 you
-              made moves with you — and Day 02 becomes available to unlock.
+              Day 01 lives in this browser only. Create an account and the version of 2009 you made
+              moves with you — and Day 02 becomes available to unlock.
             </p>
             <div className={styles.row}>
               <Link
@@ -75,18 +80,26 @@ export default async function AccountPage({ searchParams }: Props) {
             <section className={styles.card}>
               <div className={styles.cardTitle}>Subscription</div>
               <div className={styles.mono}>
-                Status: {entitlement.active ? `active (${entitlement.status})` : 'no active subscription'}
+                Status:{' '}
+                {entitlement.active ? `active (${entitlement.status})` : 'no active subscription'}
                 {entitlement.currentPeriodEnd
                   ? ` · renews ${new Date(entitlement.currentPeriodEnd).toLocaleDateString('en-US')}`
                   : ''}
               </div>
               {upgrade && !entitlement.active ? (
                 <div className={styles.notice}>
-                  Day {String(nextDay).padStart(2, '0')} needs full access. Day 01 stays free, always.
+                  Day {String(nextDay).padStart(2, '0')} needs full access. Day 01 stays free,
+                  always.
                 </div>
               ) : null}
               <BillingActions
-                plans={plans.map((p) => ({ id: p.id, name: p.name, blurb: p.blurb, displayPrice: p.displayPrice, purchasable: Boolean(p.priceId) }))}
+                plans={plans.map((p) => ({
+                  id: p.id,
+                  name: p.name,
+                  blurb: p.blurb,
+                  displayPrice: p.displayPrice,
+                  purchasable: Boolean(p.priceId),
+                }))}
                 entitled={entitlement.active}
                 configured={isBillingConfigured()}
                 timelineId={claim ?? null}
@@ -100,7 +113,11 @@ export default async function AccountPage({ searchParams }: Props) {
               ) : (
                 <div className={styles.timelines}>
                   {timelines.map((t) => (
-                    <Link key={t.id} className={styles.timeline} href={`/play/${t.id}?day=${t.day}`}>
+                    <Link
+                      key={t.id}
+                      className={styles.timeline}
+                      href={`/play/${t.id}?day=${t.day}`}
+                    >
                       <span>Day {String(t.day).padStart(2, '0')}</span>
                       <span>{new Date(t.updatedAt).toLocaleString('en-US')}</span>
                     </Link>

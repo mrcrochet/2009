@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { applyEvents } from '@/engine/reducer'
 import { withoutDraftInput } from '@/engine/events'
 import { createTimeline } from '@/engine/initial-state'
+import { createGameStore } from '@/state/store'
+import { toStored } from '@/lib/persistence/types'
 import { content, fresh, run } from './helpers'
 
 /**
@@ -68,5 +70,38 @@ describe('replay', () => {
     expect(state.recallQuery).toBe('bitcoin')
     expect(state.eventLog.filter((e) => e.type === 'RECALL_QUERY_CHANGED')).toHaveLength(0)
     expect(state.eventLog.filter((e) => e.type === 'NOTES_CHANGED')).toHaveLength(1)
+  })
+})
+
+describe('save size', () => {
+  it('typing a long note does not make the log grow with the square of it', () => {
+    const api = createGameStore({ content, timeline: fresh() })
+    const note = 'the account was opened on the 6th, eighteen days after he died. '
+    for (let i = 1; i <= 200; i += 1) {
+      api.getState().dispatch({ type: 'NOTES_CHANGED', value: note.repeat(i) })
+    }
+    const state = api.getState().timeline
+
+    // One entry for the whole run, carrying the final text.
+    expect(state.eventLog.filter((e) => e.type === 'NOTES_CHANGED')).toHaveLength(1)
+    expect(state.notes).toBe(note.repeat(200))
+
+    const bytes = JSON.stringify(toStored(state)).length
+    expect(bytes).toBeLessThan(60_000)
+
+    // And the coalesced log still replays to the same state.
+    const base = createTimeline(content, { id: state.id, now: state.createdAt })
+    expect(applyEvents(base, state.eventLog, content).notes).toBe(state.notes)
+  })
+
+  it('an interleaved event breaks the run, so history is not lost', () => {
+    const api = createGameStore({ content, timeline: fresh() })
+    api.getState().dispatch({ type: 'NOTES_CHANGED', value: 'first' })
+    api.getState().dispatch({ type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'files' })
+    api.getState().dispatch({ type: 'NOTES_CHANGED', value: 'second' })
+
+    const log = api.getState().timeline.eventLog
+    expect(log.filter((e) => e.type === 'NOTES_CHANGED')).toHaveLength(2)
+    expect(log.map((e) => e.type)).toEqual(['NOTES_CHANGED', 'EVIDENCE_PINNED', 'NOTES_CHANGED'])
   })
 })

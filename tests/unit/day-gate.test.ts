@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { selectCanEndDay, selectDaySummary, selectMail, selectOutstandingBeats } from '@/engine/selectors'
+import {
+  selectCanEndDay,
+  selectDaySummary,
+  selectMail,
+  selectOutstandingBeats,
+} from '@/engine/selectors'
 import { DAY_END_MINUTE } from '@/engine/clock'
 import { content, dispatch, fresh, run } from './helpers'
 
@@ -27,7 +32,13 @@ describe('day 01 gate', () => {
   it('stays shut until every beat has fired', () => {
     let state = fresh()
     expect(selectCanEndDay(state, content)).toBe(false)
-    expect(selectOutstandingBeats(state, content)).toEqual(['readme', 'marc', 'recall', 'money', 'claim'])
+    expect(selectOutstandingBeats(state, content)).toEqual([
+      'readme',
+      'marc',
+      'recall',
+      'money',
+      'claim',
+    ])
 
     state = dispatch(state, { type: 'FILE_OPENED', fileId: 'readme' })
     expect(state.beats.readme).toBe(true)
@@ -37,7 +48,13 @@ describe('day 01 gate', () => {
 
   it('opens once all five have', () => {
     const state = playThroughRequirements()
-    expect(state.beats).toMatchObject({ readme: true, marc: true, recall: true, money: true, claim: true })
+    expect(state.beats).toMatchObject({
+      readme: true,
+      marc: true,
+      recall: true,
+      money: true,
+      claim: true,
+    })
     expect(selectCanEndDay(state, content)).toBe(true)
     expect(state.cashCents).toBe(71782)
   })

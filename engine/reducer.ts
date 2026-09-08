@@ -59,8 +59,10 @@ export function reduce(state: TimelineState, event: GameEvent, content: DayConte
 
   return {
     ...next,
-    minuteOfDay: next.minuteOfDay === state.minuteOfDay ? state.minuteOfDay + tick : next.minuteOfDay,
-    divergence: next.divergence === state.divergence ? state.divergence + divergence : next.divergence,
+    minuteOfDay:
+      next.minuteOfDay === state.minuteOfDay ? state.minuteOfDay + tick : next.minuteOfDay,
+    divergence:
+      next.divergence === state.divergence ? state.divergence + divergence : next.divergence,
   }
 }
 
@@ -144,7 +146,20 @@ function ledgerEntry(id: string, date: string, label: string, amount: number): L
 
 function dayDateLabel(content: DayContent): string {
   const d = new Date(`${content.dateISO}T00:00:00Z`)
-  const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()]
+  const month = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ][d.getUTCMonth()]
   return `${d.getUTCDate()} ${month}`
 }
 
@@ -219,7 +234,10 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       const def = appDef(content, event.app)
       const { x, y } = clampWindow(event.x, event.y, def.width, def.height, DEFAULT_VIEWPORT)
       if (w.x === x && w.y === y) return state
-      return { ...state, windows: state.windows.map((v) => (v.app === event.app ? { ...v, x, y } : v)) }
+      return {
+        ...state,
+        windows: state.windows.map((v) => (v.app === event.app ? { ...v, x, y } : v)),
+      }
     }
 
     // --- phone -------------------------------------------------------------
@@ -239,12 +257,16 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'SMS_ADVANCED': {
       const last = content.phone.sms.length - 1
       if (state.phone.smsStep >= last) return state
-      return { ...state, phone: { ...state.phone, smsStep: Math.min(state.phone.smsStep + 1, last) } }
+      return {
+        ...state,
+        phone: { ...state.phone, smsStep: Math.min(state.phone.smsStep + 1, last) },
+      }
     }
 
     // --- mail --------------------------------------------------------------
     case 'MAIL_OPENED': {
-      if (state.mail.openId === event.mailId && state.mail.readIds.includes(event.mailId)) return state
+      if (state.mail.openId === event.mailId && state.mail.readIds.includes(event.mailId))
+        return state
       return {
         ...state,
         mail: {
@@ -278,7 +300,9 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           ...state.chat,
           log: {
             ...state.chat.log,
-            [event.thread]: [{ who: node.who, text: node.text, mine: false, time: minuteLabel(state.minuteOfDay) }],
+            [event.thread]: [
+              { who: node.who, text: node.text, mine: false, time: minuteLabel(state.minuteOfDay) },
+            ],
           },
         },
       }
@@ -528,7 +552,9 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return {
         ...state,
         minuteOfDay: state.minuteOfDay + opp.listMinutes,
-        inventory: state.inventory.map((i) => (i.id === event.itemId ? { ...i, state: 'listed' } : i)),
+        inventory: state.inventory.map((i) =>
+          i.id === event.itemId ? { ...i, state: 'listed' } : i,
+        ),
       }
     }
 
@@ -544,7 +570,12 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           i.id === event.itemId ? { ...i, state: 'sold', soldFor: opp.sellCents } : i,
         ),
         ledger: [
-          ledgerEntry(`l-sell-${opp.id}`, dayDateLabel(content), opp.sellLedgerLabel, opp.sellCents),
+          ledgerEntry(
+            `l-sell-${opp.id}`,
+            dayDateLabel(content),
+            opp.sellLedgerLabel,
+            opp.sellCents,
+          ),
           ...state.ledger,
         ],
       }
@@ -623,7 +654,10 @@ function runTerminal(
   if (staticOut) {
     out.push(...staticOut)
   } else if (lower === 'date') {
-    out.push({ text: cfg.dateTemplate.replace('{{clock}}', minuteLabel(state.minuteOfDay)), tone: 'out' })
+    out.push({
+      text: cfg.dateTemplate.replace('{{clock}}', minuteLabel(state.minuteOfDay)),
+      tone: 'out',
+    })
   } else if (lower.startsWith('cat')) {
     const arg = lower.slice(3).trim()
     const fileId = cfg.catTargets[arg]
@@ -654,13 +688,20 @@ function runTerminal(
         }
       } else {
         out.push({ text: d.wrongKey.replace('{{remaining}}', String(remaining)), tone: 'err' })
-        nextState = { ...nextState, files: { ...nextState.files, decryptAttempts: attempts }, heat: nextState.heat + 5 }
+        nextState = {
+          ...nextState,
+          files: { ...nextState.files, decryptAttempts: attempts },
+          heat: nextState.heat + 5,
+        }
       }
     } else {
       out.push({ text: d.usage, tone: 'dim' })
     }
   } else {
-    out.push({ text: cfg.notFound.replace('{{command}}', command.split(' ')[0] ?? command), tone: 'err' })
+    out.push({
+      text: cfg.notFound.replace('{{command}}', command.split(' ')[0] ?? command),
+      tone: 'err',
+    })
   }
 
   return { ...nextState, terminal: { lines: [...state.terminal.lines, ...out], input: '' } }

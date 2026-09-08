@@ -50,7 +50,10 @@ export async function POST(request: Request) {
         if (userId && typeof session.customer === 'string') {
           await admin
             .from('billing_customers')
-            .upsert({ user_id: userId, stripe_customer_id: session.customer }, { onConflict: 'user_id' })
+            .upsert(
+              { user_id: userId, stripe_customer_id: session.customer },
+              { onConflict: 'user_id' },
+            )
         }
         break
       }

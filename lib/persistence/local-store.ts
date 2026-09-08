@@ -11,7 +11,7 @@ import { fromStored, toStored, type StoredTimeline } from './types'
  */
 
 export async function saveTimeline(state: TimelineState): Promise<boolean> {
-  const db = getDb()
+  const db = await getDb()
   if (!db) return false
   try {
     await db.timelines.put(toStored(state))
@@ -24,7 +24,7 @@ export async function saveTimeline(state: TimelineState): Promise<boolean> {
 }
 
 export async function loadTimeline(id: string): Promise<TimelineState | null> {
-  const db = getDb()
+  const db = await getDb()
   if (!db) return null
   try {
     const raw = await db.timelines.get(id)
@@ -41,7 +41,7 @@ export async function loadTimeline(id: string): Promise<TimelineState | null> {
 }
 
 export async function listTimelines(): Promise<StoredTimeline[]> {
-  const db = getDb()
+  const db = await getDb()
   if (!db) return []
   try {
     const rows = await db.timelines.orderBy('updatedAt').reverse().toArray()
@@ -59,7 +59,7 @@ export async function listTimelines(): Promise<StoredTimeline[]> {
 }
 
 export async function deleteTimeline(id: string): Promise<void> {
-  const db = getDb()
+  const db = await getDb()
   if (!db) return
   try {
     await db.timelines.delete(id)
@@ -69,7 +69,7 @@ export async function deleteTimeline(id: string): Promise<void> {
 }
 
 async function quarantine(id: string, error: MigrationError): Promise<void> {
-  const db = getDb()
+  const db = await getDb()
   if (!db) return
   try {
     const raw = await db.timelines.get(id)

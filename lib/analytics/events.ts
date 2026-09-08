@@ -15,7 +15,12 @@ export interface AnalyticsEvents {
   money_action_started: { itemId: string }
   money_action_completed: { itemId: string; amountCents: number }
   day01_requirements_completed: { minuteOfDay: number }
-  day01_completed: { cashCents: number; integrity: number; claimsOnRecord: number; shifted: boolean }
+  day01_completed: {
+    cashCents: number
+    integrity: number
+    claimsOnRecord: number
+    shifted: boolean
+  }
   save_prompt_viewed: Record<string, never>
   signup_completed: { claimedTimeline: boolean }
   paywall_viewed: { day: number }

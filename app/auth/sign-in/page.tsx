@@ -22,8 +22,8 @@ export default async function SignInPage({
         <div className={styles.eyebrow}>2009 · save your timeline</div>
         <h1 className={styles.title}>One link, no password.</h1>
         <p className={styles.body}>
-          We send a sign-in link. Nothing about your Day 01 leaves this browser until you follow
-          it — and Day 01 stays free whether you sign in or not.
+          We send a sign-in link. Nothing about your Day 01 leaves this browser until you follow it
+          — and Day 01 stays free whether you sign in or not.
         </p>
         {isSupabaseConfigured() ? (
           <SignInForm claim={claim ?? null} />
@@ -31,8 +31,8 @@ export default async function SignInPage({
           <section className={styles.card}>
             <div className={styles.cardTitle}>Accounts are not configured here</div>
             <div className={styles.mono}>
-              Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable cloud
-              saves. Your timeline is already saved in this browser.
+              Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable cloud saves.
+              Your timeline is already saved in this browser.
             </div>
           </section>
         )}

@@ -27,7 +27,13 @@ export function SoundControl() {
       <svg viewBox="0 0 14 12" width="13" height="12" aria-hidden="true" focusable="false">
         <path d="M1 4.6h2.4L6.4 2v8L3.4 7.4H1z" fill="currentColor" />
         {muted ? (
-          <path d="M8.6 4.2l3.2 3.6M11.8 4.2l-3.2 3.6" stroke="currentColor" strokeWidth="1.1" fill="none" strokeLinecap="round" />
+          <path
+            d="M8.6 4.2l3.2 3.6M11.8 4.2l-3.2 3.6"
+            stroke="currentColor"
+            strokeWidth="1.1"
+            fill="none"
+            strokeLinecap="round"
+          />
         ) : (
           <g fill="none" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round">
             <path d="M8.6 4.4a2.6 2.6 0 0 1 0 3.2" />

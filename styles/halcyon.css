@@ -234,6 +234,12 @@
 
 .hal-window {
   position: absolute;
+}
+
+/* A layer per window costs GPU memory for the whole session, so it is promoted only while it
+   is actually moving. */
+.hal-window.is-dragging,
+.hal-phone.is-dragging {
   will-change: transform;
 }
 
@@ -613,7 +619,7 @@
   height: 20px;
   border: 1px solid #93938c;
   border-radius: 3px;
-  background: linear-gradient(180deg, #fbfbf9, #dedeD8);
+  background: linear-gradient(180deg, #fbfbf9, #deded8);
   cursor: pointer;
   color: var(--body-ink-soft);
   font-size: 11px;
@@ -1328,11 +1334,21 @@
   white-space: pre-wrap;
 }
 
-.hal-term__line--prompt { color: #6f9ab5; }
-.hal-term__line--out { color: #c2cdd4; }
-.hal-term__line--ok { color: var(--conf-high); }
-.hal-term__line--err { color: var(--conf-fractured); }
-.hal-term__line--dim { color: var(--ink-dim); }
+.hal-term__line--prompt {
+  color: #6f9ab5;
+}
+.hal-term__line--out {
+  color: #c2cdd4;
+}
+.hal-term__line--ok {
+  color: var(--conf-high);
+}
+.hal-term__line--err {
+  color: var(--conf-fractured);
+}
+.hal-term__line--dim {
+  color: var(--ink-dim);
+}
 
 .hal-term__inputrow {
   flex: none;
@@ -1439,8 +1455,12 @@
   background: var(--integrity-good);
 }
 
-.hal-recall__fill--fair { background: var(--integrity-fair); }
-.hal-recall__fill--bad { background: var(--integrity-bad); }
+.hal-recall__fill--fair {
+  background: var(--integrity-fair);
+}
+.hal-recall__fill--bad {
+  background: var(--integrity-bad);
+}
 
 .hal-recall__cohvalue {
   font-size: 10px;
@@ -1463,9 +1483,15 @@
   padding-left: 11px;
 }
 
-.hal-recall__item--good { border-left-color: var(--conf-high); }
-.hal-recall__item--fair { border-left-color: var(--conf-mid); }
-.hal-recall__item--bad { border-left-color: var(--conf-fractured); }
+.hal-recall__item--good {
+  border-left-color: var(--conf-high);
+}
+.hal-recall__item--fair {
+  border-left-color: var(--conf-mid);
+}
+.hal-recall__item--bad {
+  border-left-color: var(--conf-fractured);
+}
 
 .hal-recall__q {
   font-size: 10px;
@@ -1487,9 +1513,15 @@
   color: var(--conf-none);
 }
 
-.hal-recall__item--good .hal-recall__conf { color: var(--conf-high); }
-.hal-recall__item--fair .hal-recall__conf { color: var(--conf-mid); }
-.hal-recall__item--bad .hal-recall__conf { color: var(--conf-fractured); }
+.hal-recall__item--good .hal-recall__conf {
+  color: var(--conf-high);
+}
+.hal-recall__item--fair .hal-recall__conf {
+  color: var(--conf-mid);
+}
+.hal-recall__item--bad .hal-recall__conf {
+  color: var(--conf-fractured);
+}
 
 .hal-recall__empty {
   font-size: 12px;
@@ -1504,7 +1536,6 @@
   width: 296px;
   height: 552px;
   z-index: var(--z-phone);
-  will-change: transform;
 }
 
 .hal-phone__body {
@@ -1512,7 +1543,9 @@
   background: linear-gradient(175deg, #2c3035, #14171a);
   border-radius: 22px;
   border: 1px solid #050708;
-  box-shadow: 0 26px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 26px 60px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
   padding: 26px 12px 34px;
   display: flex;
   flex-direction: column;

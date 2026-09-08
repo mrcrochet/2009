@@ -22,9 +22,7 @@ export default async function BillingSuccess({
     <main className={styles.root}>
       <div className={styles.inner}>
         <div className={styles.eyebrow}>2009 · billing</div>
-        <h1 className={styles.title}>
-          {entitlement.active ? 'Day 02 is open.' : 'Almost there.'}
-        </h1>
+        <h1 className={styles.title}>{entitlement.active ? 'Day 02 is open.' : 'Almost there.'}</h1>
         <p className={styles.body}>
           {entitlement.active
             ? 'Your subscription is active. The 16th of January 2009 is waiting.'

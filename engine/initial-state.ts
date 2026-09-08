@@ -42,7 +42,11 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
     lastVerdict: null,
     claimLog: [],
 
-    mail: { openId: content.mail[0]?.id ?? '', readIds: content.mail[0] ? [content.mail[0].id] : [], unknownArrived: false },
+    mail: {
+      openId: content.mail[0]?.id ?? '',
+      readIds: content.mail[0] ? [content.mail[0].id] : [],
+      unknownArrived: false,
+    },
     chat: {
       thread: 'unknown',
       log: { unknown: [], marc: [], lea: [] },

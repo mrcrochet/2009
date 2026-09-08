@@ -33,16 +33,16 @@ npm run test:e2e -- --project=chromium   # the full Day 01 golden path
 
 ## What is where
 
-| Path | What it holds |
-| --- | --- |
-| `engine/` | The pure game engine — types, events, reducer, rules, selectors, temporal logic. No framework, no I/O. |
-| `content/` | Every authored word: mail, dialogue, browser pages, evidence, claims, memories, economy. Validated by Zod at load. |
-| `components/game/` | HALCYON: menu bar, desktop, dock, window manager, phone, evidence tray, investigation board, the nine apps. |
-| `state/` | The Zustand store that wraps the reducer. |
-| `lib/` | Adapters: IndexedDB persistence + migrations, Supabase, Stripe, analytics, errors. |
-| `app/` | Next.js routes — a light landing, the game, account, auth, billing. |
-| `supabase/migrations/` | Schema and row-level security. |
-| `design/` | The Claude Design handoff. Reference only; never built or shipped. |
+| Path                   | What it holds                                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `engine/`              | The pure game engine — types, events, reducer, rules, selectors, temporal logic. No framework, no I/O.             |
+| `content/`             | Every authored word: mail, dialogue, browser pages, evidence, claims, memories, economy. Validated by Zod at load. |
+| `components/game/`     | HALCYON: menu bar, desktop, dock, window manager, phone, evidence tray, investigation board, the nine apps.        |
+| `state/`               | The Zustand store that wraps the reducer.                                                                          |
+| `lib/`                 | Adapters: IndexedDB persistence + migrations, Supabase, Stripe, analytics, errors.                                 |
+| `app/`                 | Next.js routes — a light landing, the game, account, auth, billing.                                                |
+| `supabase/migrations/` | Schema and row-level security.                                                                                     |
+| `design/`              | The Claude Design handoff. Reference only; never built or shipped.                                                 |
 
 The dependency arrow points one way: `content → engine → lib → components → app`. `engine/` and
 `content/` import nothing from a framework, a network client or a platform SDK, and

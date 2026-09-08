@@ -67,6 +67,8 @@ describe('day 01 content', () => {
   it('the resale is worth doing and the quota is not reachable in one day', () => {
     const opp = content.economy.opportunities[0]!
     expect(opp.sellCents).toBeGreaterThan(opp.buyCents)
-    expect(content.economy.openingCashCents + opp.sellCents).toBeLessThan(content.economy.quotaCents)
+    expect(content.economy.openingCashCents + opp.sellCents).toBeLessThan(
+      content.economy.quotaCents,
+    )
   })
 })

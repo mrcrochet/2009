@@ -91,9 +91,15 @@ function Sealed() {
   return (
     <g>
       <g fill="#b3b3aa" fontFamily="Monaco, 'Courier New', monospace" fontSize="4.6">
-        <text x="7" y="24">1f 8b 08 00</text>
-        <text x="7" y="30">4d 61 72 63</text>
-        <text x="7" y="36">96 fd de 5f</text>
+        <text x="7" y="24">
+          1f 8b 08 00
+        </text>
+        <text x="7" y="30">
+          4d 61 72 63
+        </text>
+        <text x="7" y="36">
+          96 fd de 5f
+        </text>
       </g>
       <g transform="translate(15 33)">
         <path
@@ -102,7 +108,16 @@ function Sealed() {
           stroke="#3d454e"
           strokeWidth="1.6"
         />
-        <rect x="0.5" y="5.2" width="12" height="9.4" rx="1.4" fill={`url(#${SEAL_ID})`} stroke="#2b3239" strokeWidth="1" />
+        <rect
+          x="0.5"
+          y="5.2"
+          width="12"
+          height="9.4"
+          rx="1.4"
+          fill={`url(#${SEAL_ID})`}
+          stroke="#2b3239"
+          strokeWidth="1"
+        />
         <circle cx="6.5" cy="9.4" r="1.5" fill="#cdd5db" />
         <rect x="5.8" y="9.4" width="1.4" height="3.2" fill="#cdd5db" />
       </g>

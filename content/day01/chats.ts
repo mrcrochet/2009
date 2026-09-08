@@ -9,7 +9,11 @@ export const threads: ThreadInput[] = [
     label: 'unknown_',
     beat: null,
     script: [
-      { who: 'unknown_', text: 'You have 30 days.', choices: ['Who is this?', 'What happens after 30 days?'] },
+      {
+        who: 'unknown_',
+        text: 'You have 30 days.',
+        choices: ['Who is this?', 'What happens after 30 days?'],
+      },
       {
         who: 'unknown_',
         text: 'A file will appear on your desktop. Read it. Then stop asking me things I will not answer.',
@@ -56,7 +60,11 @@ export const threads: ThreadInput[] = [
         text: 'nine thousand and four months. i have neither. also i think there is a car outside my building again. probably nothing',
         choices: ['Post about the car somewhere public.', 'Say nothing about the car.'],
       },
-      { who: 'Lea', text: 'ok. posted it to cluster. if i vanish at least it is written down somewhere', choices: [] },
+      {
+        who: 'Lea',
+        text: 'ok. posted it to cluster. if i vanish at least it is written down somewhere',
+        choices: [],
+      },
     ],
   },
 ]

@@ -15,8 +15,18 @@ export function menuBarClock(minuteOfDay: number, dateISO: string): string {
   const d = new Date(`${dateISO}T00:00:00Z`)
   const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()]
   const month = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ][d.getUTCMonth()]
   return `${weekday} ${d.getUTCDate()} ${month} ${clockString(minuteOfDay)}`
 }

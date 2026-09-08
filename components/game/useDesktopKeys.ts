@@ -20,9 +20,7 @@ export function useDesktopKeys(api: GameStoreApi): void {
         if (open.length < 2) return
         event.preventDefault()
         const front = open.reduce((a, b) => (b.z > a.z ? b : a))
-        const behind = open
-          .filter((w) => w.app !== front.app)
-          .reduce((a, b) => (b.z > a.z ? b : a))
+        const behind = open.filter((w) => w.app !== front.app).reduce((a, b) => (b.z > a.z ? b : a))
         dispatch({ type: 'APP_FOCUSED', app: behind.app })
         requestAnimationFrame(() => {
           document.querySelector<HTMLElement>(`.hal-window[data-app="${behind.app}"]`)?.focus()

@@ -29,7 +29,10 @@ describe('Recall app', () => {
     const { api } = mount(<RecallApp />)
 
     expect(screen.getByText(/Nothing retrieved yet/)).toBeInTheDocument()
-    expect(screen.getByRole('meter', { name: 'Memory coherence' })).toHaveAttribute('aria-valuenow', '100')
+    expect(screen.getByRole('meter', { name: 'Memory coherence' })).toHaveAttribute(
+      'aria-valuenow',
+      '100',
+    )
 
     await user.type(screen.getByLabelText('What do you remember?'), 'bitcoin')
     await user.click(screen.getByRole('button', { name: 'Recall' }))
@@ -42,7 +45,10 @@ describe('Recall app', () => {
   it('says it has no recollection instead of inventing one', async () => {
     const user = userEvent.setup()
     mount(<RecallApp />)
-    await user.type(screen.getByLabelText('What do you remember?'), 'who wins the 2014 world cup{Enter}')
+    await user.type(
+      screen.getByLabelText('What do you remember?'),
+      'who wins the 2014 world cup{Enter}',
+    )
     expect(screen.getByText(/No recollection/)).toBeInTheDocument()
     expect(screen.getByText('CONFIDENCE: NONE')).toBeInTheDocument()
   })
@@ -221,9 +227,15 @@ describe('accessibility', () => {
     mount(<MenuBar onEndDay={() => {}} />)
     const control = screen.getByRole('button', { name: /Sound is on/ })
     await user.click(control)
-    expect(screen.getByRole('button', { name: /Sound is off/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Sound is off/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await user.click(screen.getByRole('button', { name: /Sound is off/ }))
-    expect(screen.getByRole('button', { name: /Sound is on/ })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /Sound is on/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
   })
 
   it('the ledger and the quote board are tables', () => {

@@ -32,7 +32,14 @@ test.describe('Day 01', () => {
     await expect(page.getByRole('navigation', { name: 'Dock' })).toBeVisible()
 
     // No SaaS shell anywhere in the playing surface.
-    for (const forbidden of ['Dashboard', 'Overview', 'Business', 'Timeline', 'Settings', 'Upgrade']) {
+    for (const forbidden of [
+      'Dashboard',
+      'Overview',
+      'Business',
+      'Timeline',
+      'Settings',
+      'Upgrade',
+    ]) {
       await expect(page.getByRole('button', { name: forbidden, exact: true })).toHaveCount(0)
     }
 
@@ -126,11 +133,17 @@ test.describe('Day 01', () => {
     // --- Recall costs something ------------------------------------------
     await openApp(page, 'Recall')
     const recall = page.locator('[data-app="recall"]')
-    await expect(recall.getByRole('meter', { name: 'Memory coherence' })).toHaveAttribute('aria-valuenow', '100')
+    await expect(recall.getByRole('meter', { name: 'Memory coherence' })).toHaveAttribute(
+      'aria-valuenow',
+      '100',
+    )
     await recall.getByLabel('What do you remember?').fill('bitcoin')
     await recall.getByRole('button', { name: 'Recall', exact: true }).click()
     await expect(recall).toContainText('CONFIDENCE: HIGH')
-    await expect(recall.getByRole('meter', { name: 'Memory coherence' })).toHaveAttribute('aria-valuenow', '91')
+    await expect(recall.getByRole('meter', { name: 'Memory coherence' })).toHaveAttribute(
+      'aria-valuenow',
+      '91',
+    )
     await recall.getByLabel('Close Recall').click()
 
     // --- Marc, and the money beat he points at ---------------------------
@@ -138,7 +151,9 @@ test.describe('Day 01', () => {
     await messenger.getByRole('tab', { name: 'Marc' }).click()
     await expect(messenger).toContainText('i have a thing that pays today')
     await messenger.getByRole('button', { name: 'What kind of thing?' }).click()
-    await expect(messenger).toContainText('guy on tradepost is dumping a phone', { timeout: 10_000 })
+    await expect(messenger).toContainText('guy on tradepost is dumping a phone', {
+      timeout: 10_000,
+    })
 
     await openApp(page, 'Halcyon Browser')
     // Straight off the directory, following the classifieds category.
@@ -199,7 +214,9 @@ test.describe('Day 01', () => {
     // --- save / auth / entitlement boundary -------------------------------
     await page.getByTestId('continue-timeline').click()
     await expect(page).toHaveURL(/\/account\?claim=.+&day=2/)
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Keep the 2009 you just made')
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(
+      'Keep the 2009 you just made',
+    )
     await expect(page.getByRole('link', { name: 'CREATE AN ACCOUNT' })).toBeVisible()
   })
 
@@ -210,7 +227,10 @@ test.describe('Day 01', () => {
 
     await openApp(page, 'Recall')
     await page.locator('[data-app="recall"]').getByLabel('What do you remember?').fill('amazon')
-    await page.locator('[data-app="recall"]').getByRole('button', { name: 'Recall', exact: true }).click()
+    await page
+      .locator('[data-app="recall"]')
+      .getByRole('button', { name: 'Recall', exact: true })
+      .click()
     await expect(page.locator('[data-app="recall"]')).toContainText('renting out computers')
 
     // Give the debounced autosave time to land, then resume from the saved id.
@@ -231,7 +251,9 @@ test.describe('Day 01', () => {
   test('day 02 is gated server-side, without an account', async ({ page }) => {
     await page.goto('/play/00000000-0000-4000-8000-000000000000?day=2')
     await expect(page).toHaveURL(/\/account\?upgrade=1/)
-    await expect(page.getByText(/Day 02 is not written yet|Keep the 2009 you just made/)).toBeVisible()
+    await expect(
+      page.getByText(/Day 02 is not written yet|Keep the 2009 you just made/),
+    ).toBeVisible()
   })
 
   test('the gate stays shut until every beat has fired', async ({ page }) => {

@@ -38,7 +38,10 @@ export const mail: MailInput[] = [
     subject: 'sat night',
     time: 'Wed',
     meta: 'From m.deleon@fastwebmail.net · Wed 14 Jan 2009, 23:51',
-    body: ['stayed in all evening, watched the game. call me tomorrow, i have something that pays.', '—m'],
+    body: [
+      'stayed in all evening, watched the game. call me tomorrow, i have something that pays.',
+      '—m',
+    ],
     evidenceId: null,
   },
 ]

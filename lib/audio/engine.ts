@@ -128,7 +128,13 @@ function playNoise(ctx: AudioContext, out: GainNode, burst: NoiseBurst, start: n
   source.stop(start + burst.at + burst.duration)
 }
 
-function playTone(ctx: AudioContext, out: GainNode, tone: Tone, start: number, detune: number): void {
+function playTone(
+  ctx: AudioContext,
+  out: GainNode,
+  tone: Tone,
+  start: number,
+  detune: number,
+): void {
   const osc = ctx.createOscillator()
   osc.type = tone.wave
   osc.detune.value = (tone.detune ?? 0) + detune

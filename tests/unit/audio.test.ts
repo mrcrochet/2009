@@ -85,7 +85,12 @@ describe('sound', () => {
       { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
       { type: 'EVIDENCE_PINNED', evidenceId: 'e4', via: 'bank' },
     ])
-    const accepted = { type: 'CLAIM_ASSERTED' as const, claimId: 'c2', evidenceIds: ['e3', 'e4'], at: 0 }
+    const accepted = {
+      type: 'CLAIM_ASSERTED' as const,
+      claimId: 'c2',
+      evidenceIds: ['e3', 'e4'],
+      at: 0,
+    }
     state = dispatch(state, accepted)
     expect(state.lastVerdict?.verdict).toBe('accepted')
     expect(cueForEvent(accepted, state)).not.toBeNull()
@@ -94,7 +99,9 @@ describe('sound', () => {
     const after = dispatch(state, refused)
     expect(after.lastVerdict?.verdict).toBe('refused')
     // Different verdicts must not resolve to the same cue.
-    expect(cueForEvent(accepted, state)?.toString()).not.toBe(cueForEvent(refused, after)?.toString())
+    expect(cueForEvent(accepted, state)?.toString()).not.toBe(
+      cueForEvent(refused, after)?.toString(),
+    )
     void content
   })
 
@@ -103,6 +110,8 @@ describe('sound', () => {
     expect(cueForEvent({ type: 'TERMINAL_COMMAND_RUN', command: 'ls', at: 0 }, ok)).toBeNull()
 
     const bad = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'sudo' })
-    expect(cueForEvent({ type: 'TERMINAL_COMMAND_RUN', command: 'sudo', at: 0 }, bad)).not.toBeNull()
+    expect(
+      cueForEvent({ type: 'TERMINAL_COMMAND_RUN', command: 'sudo', at: 0 }, bad),
+    ).not.toBeNull()
   })
 })

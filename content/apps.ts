@@ -16,4 +16,15 @@ export const apps: AppInput[] = [
   { id: 'recall', title: 'Recall', mono: 'R', width: 428, height: 352 },
 ]
 
-export const dock = ['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall', 'phone']
+export const dock = [
+  'mail',
+  'msg',
+  'web',
+  'files',
+  'bank',
+  'mkt',
+  'notes',
+  'term',
+  'recall',
+  'phone',
+]

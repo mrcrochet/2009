@@ -22,7 +22,8 @@ export function PinButton({
 }) {
   const dispatch = useDispatch()
   const pinned = useTimeline((s) => isPinned(s, evidenceId))
-  const cls = size === 'sm' ? 'hal-pin hal-pin--sm' : size === 'row' ? 'hal-pin hal-pin--row' : 'hal-pin'
+  const cls =
+    size === 'sm' ? 'hal-pin hal-pin--sm' : size === 'row' ? 'hal-pin hal-pin--row' : 'hal-pin'
 
   return (
     <button

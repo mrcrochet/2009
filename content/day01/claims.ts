@@ -13,7 +13,8 @@ export const claims: ClaimInput[] = [
     text: 'Marc was not at home on the night of the 14th.',
     need: ['e5', 'e6'],
     sound: true,
-    accepted: 'ACCEPTED. Two records, one contradiction, no interpretation required. The claim holds.',
+    accepted:
+      'ACCEPTED. Two records, one contradiction, no interpretation required. The claim holds.',
     rejected:
       'INSUFFICIENT. You are asserting where he was not. You need something that places him elsewhere at a known time.',
   },

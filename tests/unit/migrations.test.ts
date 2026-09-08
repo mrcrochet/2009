@@ -33,7 +33,13 @@ describe('save migration', () => {
     expect(back.divergence).toBe(0)
     expect(back.browser.history).toEqual([])
     expect(back.browser.forward).toEqual([])
-    expect(back.windows[0]).toMatchObject({ app: 'mail', x: 10, y: 20, minimized: false, zoomed: false })
+    expect(back.windows[0]).toMatchObject({
+      app: 'mail',
+      x: 10,
+      y: 20,
+      minimized: false,
+      zoomed: false,
+    })
     expect(back.cashCents).toBe(state.cashCents)
   })
 

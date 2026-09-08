@@ -4,12 +4,24 @@ import type { GameEvent, TimelineState } from './types'
  * Events are stamped with the in-world minute at which they were dispatched. The reducer then
  * advances time itself, so a replay of the log recomputes identical timestamps.
  */
-export type EventInput = Omit<GameEvent, 'at'> extends never ? never : DistributiveOmit<GameEvent, 'at'>
+export type EventInput =
+  Omit<GameEvent, 'at'> extends never ? never : DistributiveOmit<GameEvent, 'at'>
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
 
 export function stamp(state: TimelineState, input: EventInput): GameEvent {
   return { ...input, at: state.minuteOfDay } as GameEvent
+}
+
+/**
+ * Events that carry the player's whole current text rather than a delta. Appending one per
+ * keystroke makes the log — and therefore every save — grow with the square of what they typed,
+ * so the store replaces the previous entry instead. Replay is unaffected: only the last value of
+ * a run matters, and that is what survives.
+ */
+export function supersedesPrevious(event: GameEvent, previous: GameEvent | undefined): boolean {
+  if (!previous || previous.type !== event.type) return false
+  return event.type === 'NOTES_CHANGED'
 }
 
 export function isMeaningful(event: GameEvent): boolean {

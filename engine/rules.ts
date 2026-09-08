@@ -1,12 +1,5 @@
 import type { DayContent } from './content-schema'
-import type {
-  BeatId,
-  Claim,
-  ClaimVerdictKind,
-  Confidence,
-  Memory,
-  Viewport,
-} from './types'
+import type { BeatId, Claim, ClaimVerdictKind, Confidence, Memory, Viewport } from './types'
 
 /**
  * Deterministic game rules. Everything here is a pure function of authored content plus the
@@ -26,7 +19,10 @@ export function cascadePosition(
   viewport: Viewport,
 ): { x: number; y: number } {
   const x = Math.min(150 + index * 34, Math.max(EDGE, viewport.width - width - 40))
-  const y = Math.min(70 + index * 28, Math.max(MENU_BAR_HEIGHT + EDGE, viewport.height - height - DOCK_RESERVE))
+  const y = Math.min(
+    70 + index * 28,
+    Math.max(MENU_BAR_HEIGHT + EDGE, viewport.height - height - DOCK_RESERVE),
+  )
   return { x: Math.round(x), y: Math.round(y) }
 }
 
@@ -57,7 +53,9 @@ export function clampPhone(
 ): { x: number; y: number } {
   return {
     x: Math.round(Math.min(Math.max(x, -(width - 90)), viewport.width - 90)),
-    y: Math.round(Math.min(Math.max(y, MENU_BAR_HEIGHT), Math.max(MENU_BAR_HEIGHT, viewport.height - 60))),
+    y: Math.round(
+      Math.min(Math.max(y, MENU_BAR_HEIGHT), Math.max(MENU_BAR_HEIGHT, viewport.height - 60)),
+    ),
   }
 }
 
@@ -138,8 +136,7 @@ export interface ClaimOutcome {
  */
 export function evaluateClaim(claim: Claim, selectedEvidenceIds: readonly string[]): ClaimOutcome {
   const selected = new Set(selectedEvidenceIds)
-  const complete =
-    claim.need.every((id) => selected.has(id)) && selected.size === claim.need.length
+  const complete = claim.need.every((id) => selected.has(id)) && selected.size === claim.need.length
 
   if (!claim.sound) {
     return {

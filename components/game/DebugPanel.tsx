@@ -12,7 +12,9 @@ export function DebugPanel() {
   if (process.env.NEXT_PUBLIC_DEBUG_PANEL !== '1') return null
 
   const replayed = open ? replay() : null
-  const matches = replayed ? replayed.cashCents === state.cashCents && replayed.minuteOfDay === state.minuteOfDay : null
+  const matches = replayed
+    ? replayed.cashCents === state.cashCents && replayed.minuteOfDay === state.minuteOfDay
+    : null
 
   return (
     <div
@@ -32,7 +34,14 @@ export function DebugPanel() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        style={{ background: 'none', border: 'none', color: 'inherit', font: 'inherit', cursor: 'pointer', padding: 0 }}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'inherit',
+          font: 'inherit',
+          cursor: 'pointer',
+          padding: 0,
+        }}
       >
         debug {open ? '▾' : '▸'}
       </button>
@@ -41,7 +50,9 @@ export function DebugPanel() {
           <div>events: {state.eventLog.length}</div>
           <div>minute: {state.minuteOfDay}</div>
           <div>cash: {state.cashCents}c</div>
-          <div>shift: {state.temporalShift} · div: {state.divergence} · heat: {state.heat}</div>
+          <div>
+            shift: {state.temporalShift} · div: {state.divergence} · heat: {state.heat}
+          </div>
           <div>integrity: {state.memoryIntegrity}</div>
           <div>replay: {matches ? 'matches snapshot' : 'DIVERGED'}</div>
         </div>

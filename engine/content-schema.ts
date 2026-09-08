@@ -148,7 +148,13 @@ export const SearchEntrySchema = z.object({
   /** null = an indexed result that does not resolve to a page in this simulation. */
   go: z.string().nullable().default(null),
   variants: z
-    .array(z.object({ minShift: z.number().int().nonnegative(), title: z.string(), snippet: z.string() }))
+    .array(
+      z.object({
+        minShift: z.number().int().nonnegative(),
+        title: z.string(),
+        snippet: z.string(),
+      }),
+    )
     .default([]),
 })
 

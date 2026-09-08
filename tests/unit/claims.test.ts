@@ -47,7 +47,11 @@ describe('claims', () => {
     expect(state.heat).toBe(0)
     expect(state.beats.claim).toBe(true)
 
-    state = dispatch(state, { type: 'CLAIM_ASSERTED', claimId: 'c4', evidenceIds: ['e7', 'e2', 'e8'] })
+    state = dispatch(state, {
+      type: 'CLAIM_ASSERTED',
+      claimId: 'c4',
+      evidenceIds: ['e7', 'e2', 'e8'],
+    })
     expect(state.claimLog).toHaveLength(1)
     expect(state.claimLog[0]?.claimText).toBe('Marc works for the Aion Group.')
     expect(state.heat).toBe(10)

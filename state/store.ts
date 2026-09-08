@@ -3,7 +3,7 @@
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
 import type { DayContent } from '@/engine/content-schema'
-import { isMeaningful, stamp, type EventInput } from '@/engine/events'
+import { isMeaningful, stamp, supersedesPrevious, type EventInput } from '@/engine/events'
 import { createTimeline } from '@/engine/initial-state'
 import { applyEvents, reduce } from '@/engine/reducer'
 import type { GameEvent, TimelineState, Viewport } from '@/engine/types'
@@ -52,9 +52,14 @@ export function createGameStore(options: CreateStoreOptions) {
       const event = stamp(timeline, input)
       const next = reduce(timeline, event, content)
       if (next === timeline) return
-      const withLog: TimelineState = isMeaningful(event)
-        ? { ...next, eventLog: [...next.eventLog, event], updatedAt: new Date().toISOString() }
-        : next
+      let withLog = next
+      if (isMeaningful(event)) {
+        const log = next.eventLog
+        const eventLog = supersedesPrevious(event, log[log.length - 1])
+          ? [...log.slice(0, -1), event]
+          : [...log, event]
+        withLog = { ...next, eventLog, updatedAt: new Date().toISOString() }
+      }
       set({ timeline: withLog })
       options.onEvent?.(event, withLog, timeline)
     },

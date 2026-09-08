@@ -12,6 +12,7 @@ import { BootSequence } from './BootSequence'
 import { GameErrorBoundary } from './GameErrorBoundary'
 import { GameProvider } from './GameContext'
 import { HalcyonDesktop } from './HalcyonDesktop'
+import { prefetchApp } from './WindowManager'
 import { useAudioUnlock, playEventCue } from './useGameSound'
 import { useDesktopKeys } from './useDesktopKeys'
 import { pace, useReducedMotion } from './useReducedMotion'
@@ -101,19 +102,28 @@ export function GameRoot({ content, timelineId, mode }: Props) {
     function startBoot() {
       if (interval) return
       bootStartedAt.current = Date.now()
-      interval = setInterval(() => {
-        const state = api.getState()
-        if (state.timeline.bootLine >= content.boot.length) {
-          if (interval) clearInterval(interval)
-          interval = null
-          hold = setTimeout(() => {
-            api.getState().dispatch({ type: 'BOOT_COMPLETED' })
-            track('boot_completed', { durationMs: Date.now() - bootStartedAt.current })
-          }, pace(content.bootHoldMs, reducedMotion))
-          return
-        }
-        state.dispatch({ type: 'BOOT_ADVANCED' })
-      }, pace(content.bootIntervalMs, reducedMotion))
+      // Ember opens itself the moment the desktop settles; fetch it while the console runs.
+      prefetchApp('msg')
+      prefetchApp('files')
+      interval = setInterval(
+        () => {
+          const state = api.getState()
+          if (state.timeline.bootLine >= content.boot.length) {
+            if (interval) clearInterval(interval)
+            interval = null
+            hold = setTimeout(
+              () => {
+                api.getState().dispatch({ type: 'BOOT_COMPLETED' })
+                track('boot_completed', { durationMs: Date.now() - bootStartedAt.current })
+              },
+              pace(content.bootHoldMs, reducedMotion),
+            )
+            return
+          }
+          state.dispatch({ type: 'BOOT_ADVANCED' })
+        },
+        pace(content.bootIntervalMs, reducedMotion),
+      )
     }
 
     return () => {
@@ -130,16 +140,22 @@ export function GameRoot({ content, timelineId, mode }: Props) {
 
     const schedule = () => {
       if (msg) return
-      msg = setTimeout(() => {
-        const { dispatch } = api.getState()
-        dispatch({ type: 'APP_OPENED', app: 'msg', viewport: measure() })
-        dispatch({ type: 'THREAD_SELECTED', thread: 'unknown' })
-        dispatch({ type: 'CHAT_STARTED', thread: 'unknown' })
-        track('first_message_seen', {})
-      }, pace(content.messengerOpensAtMs, reducedMotion))
-      icon = setTimeout(() => {
-        api.getState().dispatch({ type: 'DESKTOP_ICON_APPEARED', iconId: 'readme' })
-      }, pace(content.desktopIconAtMs, reducedMotion))
+      msg = setTimeout(
+        () => {
+          const { dispatch } = api.getState()
+          dispatch({ type: 'APP_OPENED', app: 'msg', viewport: measure() })
+          dispatch({ type: 'THREAD_SELECTED', thread: 'unknown' })
+          dispatch({ type: 'CHAT_STARTED', thread: 'unknown' })
+          track('first_message_seen', {})
+        },
+        pace(content.messengerOpensAtMs, reducedMotion),
+      )
+      icon = setTimeout(
+        () => {
+          api.getState().dispatch({ type: 'DESKTOP_ICON_APPEARED', iconId: 'readme' })
+        },
+        pace(content.desktopIconAtMs, reducedMotion),
+      )
     }
 
     const unsub = api.subscribe((s, prev) => {
@@ -158,9 +174,12 @@ export function GameRoot({ content, timelineId, mode }: Props) {
     const unsub = api.subscribe((s, prev) => {
       if (s.timeline.chat.waiting && !prev.timeline.chat.waiting) {
         const thread = s.timeline.chat.thread
-        timer = setTimeout(() => {
-          api.getState().dispatch({ type: 'CHAT_ADVANCED', thread })
-        }, pace(content.chatReplyDelayMs, reducedMotion))
+        timer = setTimeout(
+          () => {
+            api.getState().dispatch({ type: 'CHAT_ADVANCED', thread })
+          },
+          pace(content.chatReplyDelayMs, reducedMotion),
+        )
       }
     })
     return () => {
@@ -180,10 +199,15 @@ export function GameRoot({ content, timelineId, mode }: Props) {
         const opp = content.economy.opportunities.find((o) => o.id === item.id)
         if (!opp) continue
         track('money_action_started', { itemId: item.id })
-        const timer = setTimeout(() => {
-          api.getState().dispatch({ type: 'ITEM_SOLD', itemId: item.id, amountCents: opp.sellCents })
-          track('money_action_completed', { itemId: item.id, amountCents: opp.sellCents })
-        }, pace(opp.settleMs, reducedMotion))
+        const timer = setTimeout(
+          () => {
+            api
+              .getState()
+              .dispatch({ type: 'ITEM_SOLD', itemId: item.id, amountCents: opp.sellCents })
+            track('money_action_completed', { itemId: item.id, amountCents: opp.sellCents })
+          },
+          pace(opp.settleMs, reducedMotion),
+        )
         timers.add(timer)
       }
     })

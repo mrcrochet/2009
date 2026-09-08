@@ -23,8 +23,17 @@ interface Options {
  * `translate3d` transform written straight to its style, so dragging one window does not
  * rerender the desktop, the dock or any other window.
  */
-export function useDragMove(ref: RefObject<HTMLElement | null>, { origin, onCommit, disabled }: Options) {
-  const drag = useRef<{ pointerId: number; startX: number; startY: number; baseX: number; baseY: number } | null>(null)
+export function useDragMove(
+  ref: RefObject<HTMLElement | null>,
+  { origin, onCommit, disabled }: Options,
+) {
+  const drag = useRef<{
+    pointerId: number
+    startX: number
+    startY: number
+    baseX: number
+    baseY: number
+  } | null>(null)
 
   const finish = useCallback(() => {
     const node = ref.current
@@ -33,6 +42,7 @@ export function useDragMove(ref: RefObject<HTMLElement | null>, { origin, onComm
     if (!node || !d) return
     const transform = node.style.transform
     node.style.transform = ''
+    node.classList.remove('is-dragging')
     const match = /translate3d\((-?[\d.]+)px, (-?[\d.]+)px/.exec(transform)
     if (!match) return
     const dx = Number(match[1])
@@ -58,6 +68,7 @@ export function useDragMove(ref: RefObject<HTMLElement | null>, { origin, onComm
         baseX: base.x,
         baseY: base.y,
       }
+      node.classList.add('is-dragging')
       try {
         event.currentTarget.setPointerCapture(event.pointerId)
       } catch {

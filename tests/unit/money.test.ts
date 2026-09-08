@@ -31,7 +31,11 @@ describe('money', () => {
     expect(state.cashCents).toBe(71782)
     expect(formatMoney(state.cashCents)).toBe('$717.82')
 
-    state = dispatch(state, { type: 'DOMAIN_REGISTERED', domain: 'shortclip.com', amountCents: 995 })
+    state = dispatch(state, {
+      type: 'DOMAIN_REGISTERED',
+      domain: 'shortclip.com',
+      amountCents: 995,
+    })
     expect(state.cashCents).toBe(70787)
 
     for (const entry of state.ledger) assertCents(entry.amount, entry.id)
@@ -41,8 +45,18 @@ describe('money', () => {
 
   it('never double-buys or double-sells', () => {
     let state = fresh()
-    state = dispatch(state, { type: 'ITEM_PURCHASED', itemId: 'tradepost-n90', amountCents: 6000, label: 'n90' })
-    state = dispatch(state, { type: 'ITEM_PURCHASED', itemId: 'tradepost-n90', amountCents: 6000, label: 'n90' })
+    state = dispatch(state, {
+      type: 'ITEM_PURCHASED',
+      itemId: 'tradepost-n90',
+      amountCents: 6000,
+      label: 'n90',
+    })
+    state = dispatch(state, {
+      type: 'ITEM_PURCHASED',
+      itemId: 'tradepost-n90',
+      amountCents: 6000,
+      label: 'n90',
+    })
     expect(state.cashCents).toBe(37782)
 
     state = dispatch(state, { type: 'ITEM_LISTED', itemId: 'tradepost-n90' })
@@ -50,8 +64,16 @@ describe('money', () => {
     state = dispatch(state, { type: 'ITEM_SOLD', itemId: 'tradepost-n90', amountCents: 34000 })
     expect(state.cashCents).toBe(71782)
 
-    state = dispatch(state, { type: 'DOMAIN_REGISTERED', domain: 'shortclip.com', amountCents: 995 })
-    state = dispatch(state, { type: 'DOMAIN_REGISTERED', domain: 'shortclip.com', amountCents: 995 })
+    state = dispatch(state, {
+      type: 'DOMAIN_REGISTERED',
+      domain: 'shortclip.com',
+      amountCents: 995,
+    })
+    state = dispatch(state, {
+      type: 'DOMAIN_REGISTERED',
+      domain: 'shortclip.com',
+      amountCents: 995,
+    })
     expect(state.domains).toEqual(['shortclip.com'])
     expect(state.cashCents).toBe(70787)
   })

@@ -38,7 +38,10 @@ export function PhoneOverlay() {
   )
 
   const origin = useCallback(() => ({ x, y }), [x, y])
-  const onCommit = useCallback((nx: number, ny: number) => dispatch({ type: 'PHONE_MOVED', x: nx, y: ny }), [dispatch])
+  const onCommit = useCallback(
+    (nx: number, ny: number) => dispatch({ type: 'PHONE_MOVED', x: nx, y: ny }),
+    [dispatch],
+  )
   const drag = useDragMove(ref, { origin, onCommit, disabled: compact })
 
   if (!phone.open) return null

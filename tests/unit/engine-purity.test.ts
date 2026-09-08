@@ -46,7 +46,9 @@ describe('engine purity', () => {
   it.each(files)('%s imports nothing from a framework or platform', (file) => {
     const source = readFileSync(file, 'utf8')
     for (const specifier of importsOf(source)) {
-      expect(ALLOWED_NODE_FREE.test(specifier), `${file} imports node builtin ${specifier}`).toBe(false)
+      expect(ALLOWED_NODE_FREE.test(specifier), `${file} imports node builtin ${specifier}`).toBe(
+        false,
+      )
       for (const pattern of FORBIDDEN) {
         expect(pattern.test(specifier), `${file} imports ${specifier}`).toBe(false)
       }

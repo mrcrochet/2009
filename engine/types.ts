@@ -6,19 +6,18 @@ export const SCHEMA_VERSION = 4
 // Apps & windows
 // ---------------------------------------------------------------------------
 
-export type AppId =
-  | 'mail'
-  | 'msg'
-  | 'web'
-  | 'files'
-  | 'bank'
-  | 'mkt'
-  | 'notes'
-  | 'term'
-  | 'recall'
+export type AppId = 'mail' | 'msg' | 'web' | 'files' | 'bank' | 'mkt' | 'notes' | 'term' | 'recall'
 
 export const APP_IDS: readonly AppId[] = [
-  'mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall',
+  'mail',
+  'msg',
+  'web',
+  'files',
+  'bank',
+  'mkt',
+  'notes',
+  'term',
+  'recall',
 ] as const
 
 export type DockId = AppId | 'phone'
@@ -61,13 +60,7 @@ export interface PhoneState {
 // ---------------------------------------------------------------------------
 
 export type EvidenceSourceKind =
-  | 'mail'
-  | 'bank'
-  | 'files'
-  | 'browser'
-  | 'phone'
-  | 'terminal'
-  | 'messenger'
+  'mail' | 'bank' | 'files' | 'browser' | 'phone' | 'terminal' | 'messenger'
 
 export type Reliability = 'documentary' | 'testimonial' | 'circumstantial'
 
@@ -243,7 +236,11 @@ export interface TimelineState {
   readonly lastVerdict: ClaimAttempt | null
   readonly claimLog: readonly ClaimAttempt[]
 
-  readonly mail: { readonly openId: string; readonly readIds: readonly string[]; readonly unknownArrived: boolean }
+  readonly mail: {
+    readonly openId: string
+    readonly readIds: readonly string[]
+    readonly unknownArrived: boolean
+  }
   readonly chat: {
     readonly thread: ThreadId
     readonly log: Readonly<Record<ThreadId, readonly ChatLine[]>>
@@ -251,7 +248,11 @@ export interface TimelineState {
     readonly waiting: boolean
   }
   readonly browser: BrowserState
-  readonly files: { readonly openId: string; readonly decrypted: boolean; readonly decryptAttempts: number }
+  readonly files: {
+    readonly openId: string
+    readonly decrypted: boolean
+    readonly decryptAttempts: number
+  }
   readonly terminal: { readonly lines: readonly TerminalLine[]; readonly input: string }
   readonly notes: string
   readonly recalls: readonly RecallResult[]
@@ -261,7 +262,12 @@ export interface TimelineState {
   readonly ledger: readonly LedgerEntry[]
   readonly domains: readonly string[]
 
-  readonly ui: { readonly trayOpen: boolean; readonly boardOpen: boolean; readonly watched: boolean; readonly dayCard: boolean }
+  readonly ui: {
+    readonly trayOpen: boolean
+    readonly boardOpen: boolean
+    readonly watched: boolean
+    readonly dayCard: boolean
+  }
 
   readonly beats: Readonly<Partial<Record<BeatId, boolean>>>
   readonly flags: Readonly<Record<string, boolean>>

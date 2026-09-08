@@ -58,7 +58,12 @@ function ParkingStructure() {
       </g>
       {/* A sedan, three-quarters on, no lights. */}
       <g>
-        <path d="M118 56h44l9 -11h-24l-6 -7h-16l-4 7h-9z" fill="#39434c" stroke="#6d7c88" strokeWidth="1.3" />
+        <path
+          d="M118 56h44l9 -11h-24l-6 -7h-16l-4 7h-9z"
+          fill="#39434c"
+          stroke="#6d7c88"
+          strokeWidth="1.3"
+        />
         <path d="M131 45h13l4 6h-19z" fill="#5d6d79" opacity="0.9" />
         <circle cx="127" cy="57" r="4" fill="#161a1e" />
         <circle cx="158" cy="57" r="4" fill="#161a1e" />
@@ -89,7 +94,15 @@ function ScannedPage() {
     <g>
       <rect width="240" height="78" fill="#c9ced4" />
       <g transform="rotate(-1.6 120 39)">
-        <rect x="42" y="4" width="156" height="76" fill="#f4f2ec" stroke="#a8a8a0" strokeWidth="1" />
+        <rect
+          x="42"
+          y="4"
+          width="156"
+          height="76"
+          fill="#f4f2ec"
+          stroke="#a8a8a0"
+          strokeWidth="1"
+        />
         <g fill="#b7b5ac">
           <rect x="56" y="16" width="76" height="4" />
           <rect x="56" y="28" width="128" height="2.4" />

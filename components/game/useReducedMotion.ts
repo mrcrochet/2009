@@ -19,7 +19,10 @@ function subscribe(onChange: () => void): () => void {
 export function useReducedMotion(): boolean {
   return useSyncExternalStore(
     subscribe,
-    useCallback(() => (typeof window === 'undefined' ? false : window.matchMedia(QUERY).matches), []),
+    useCallback(
+      () => (typeof window === 'undefined' ? false : window.matchMedia(QUERY).matches),
+      [],
+    ),
     () => false,
   )
 }

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { hasWitnessedShift, isPageAltered, resolveBlocks, resolveSearchEntry } from '@/engine/temporal'
+import {
+  hasWitnessedShift,
+  isPageAltered,
+  resolveBlocks,
+  resolveSearchEntry,
+} from '@/engine/temporal'
 import { selectDaySummary, selectPage } from '@/engine/selectors'
 import { content, dispatch, fresh, run } from './helpers'
 
@@ -8,14 +13,22 @@ const article = content.browser.pages.find((p) => p.url === 'columbia-register.c
 describe('temporal engine', () => {
   it('serves the authored article below the shift threshold', () => {
     const blocks = resolveBlocks(article, 1)
-    expect(blocks[0]).toMatchObject({ kind: 'heading', text: expect.stringContaining('plugin-free video') })
+    expect(blocks[0]).toMatchObject({
+      kind: 'heading',
+      text: expect.stringContaining('plugin-free video'),
+    })
     expect(isPageAltered(article, 1)).toBe(false)
   })
 
   it('rewrites the same URL at shift >= 2', () => {
     const blocks = resolveBlocks(article, 2)
-    expect(blocks[0]).toMatchObject({ kind: 'heading', text: expect.stringContaining('folds before demo') })
-    expect(blocks.at(-1)).toMatchObject({ text: 'You have read this page before. It did not say this.' })
+    expect(blocks[0]).toMatchObject({
+      kind: 'heading',
+      text: expect.stringContaining('folds before demo'),
+    })
+    expect(blocks.at(-1)).toMatchObject({
+      text: 'You have read this page before. It did not say this.',
+    })
     expect(isPageAltered(article, 2)).toBe(true)
   })
 
@@ -26,9 +39,7 @@ describe('temporal engine', () => {
   })
 
   it('two recalls are enough to change what the player already read', () => {
-    let state = run(fresh(), [
-      { type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/business' },
-    ])
+    let state = run(fresh(), [{ type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/business' }])
     expect(selectPage(state, content).blocks[0]).toMatchObject({
       text: expect.stringContaining('plugin-free video'),
     })

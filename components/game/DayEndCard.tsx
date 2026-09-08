@@ -42,8 +42,8 @@ export function DayEndCard() {
         <h1 className="hal-daycard__title">{content.dayEnd.title}</h1>
         <div className="hal-daycard__stats" role="status">
           <span>
-            Balance: {summary.balance} · Quota {String(content.day).padStart(2, '0')}: {summary.quota} ·{' '}
-            {summary.daysLeft} days left
+            Balance: {summary.balance} · Quota {String(content.day).padStart(2, '0')}:{' '}
+            {summary.quota} · {summary.daysLeft} days left
           </span>
           <span>Memory coherence: {summary.integrity}</span>
           <span>Claims on record: {summary.claimCount}</span>

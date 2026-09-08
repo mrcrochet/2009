@@ -19,6 +19,7 @@ recreates it. It is never reinterpreted into a dashboard.
 ## 2. Canonical design rules
 
 ### MUST
+
 - Full viewport game surface after **WAKE UP**.
 - HALCYON top menu bar, desktop, dock, draggable overlapping windows.
 - Phone is an in-world movable overlay, not a tab.
@@ -31,6 +32,7 @@ recreates it. It is never reinterpreted into a dashboard.
 - Save/account prompt happens only after the experience has earned it.
 
 ### MUST NOT
+
 - SaaS dashboard shell around the game.
 - Permanent "Phone / Computer / Business / Timeline" navigation.
 - Modern giant rounded cards inside HALCYON.

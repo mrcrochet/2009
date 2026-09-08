@@ -122,7 +122,10 @@ describe('the web is actually a web', () => {
     const hosts = new Set([...pageUrls].map((u) => u.split('/')[0]))
     for (const host of hosts) {
       if (host === 'corvid.com' || host === 'metzdowd.archive') continue
-      expect([...listed].some((u) => u.split('/')[0] === host), `directory misses ${host}`).toBe(true)
+      expect(
+        [...listed].some((u) => u.split('/')[0] === host),
+        `directory misses ${host}`,
+      ).toBe(true)
     }
   })
 

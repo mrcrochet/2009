@@ -8,7 +8,7 @@ Each item maps to an automated test. `E` = `tests/e2e/day01.spec.ts`, `U` = `tes
 2. `E` The landing route ships no game bundle (verified by the absence of the desktop DOM).
 3. `E` `WAKE UP` navigates to `/play` and the HALCYON boot console runs.
 4. `E` Boot completes and the HALCYON desktop, menu bar and dock appear.
-5. `E` Ember Messenger opens by itself with a message from `unknown_`: *"You have 30 days."*
+5. `E` Ember Messenger opens by itself with a message from `unknown_`: _"You have 30 days."_
 6. `E` `READ_ME.txt` appears on the desktop and opens in Files.
 
 ## Apps

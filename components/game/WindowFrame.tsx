@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, type ReactNode } from 'react'
+import { memo, useCallback, useRef, type ReactNode } from 'react'
 import type { AppDefinition, AppId, WindowState } from '@/engine/types'
 import { useDispatch } from './GameContext'
 import { useDragMove, useIsCompact } from './useDragMove'
@@ -12,7 +12,7 @@ interface Props {
   readonly children: ReactNode
 }
 
-export function WindowFrame({ def, win, front, children }: Props) {
+function WindowFrameImpl({ def, win, front, children }: Props) {
   const dispatch = useDispatch()
   const ref = useRef<HTMLDivElement>(null)
   const compact = useIsCompact()
@@ -24,7 +24,10 @@ export function WindowFrame({ def, win, front, children }: Props) {
   )
   const drag = useDragMove(ref, { origin, onCommit, disabled: compact })
 
-  const focus = useCallback(() => dispatch({ type: 'APP_FOCUSED', app: def.id }), [dispatch, def.id])
+  const focus = useCallback(
+    () => dispatch({ type: 'APP_FOCUSED', app: def.id }),
+    [dispatch, def.id],
+  )
 
   if (win.minimized) return null
 
@@ -71,5 +74,12 @@ export function WindowFrame({ def, win, front, children }: Props) {
     </div>
   )
 }
+
+/**
+ * Memoised on purpose. `windows` is a fresh array after any focus, move or minimise, so without
+ * this a single click reconciles every open app's subtree — the browser's whole page, the mail
+ * list, the terminal log.
+ */
+export const WindowFrame = memo(WindowFrameImpl)
 
 export type { AppId }

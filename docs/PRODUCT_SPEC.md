@@ -2,19 +2,19 @@
 
 ## Canonical world
 
-| Field | Value |
-| --- | --- |
-| Date | Thursday, 15 January 2009 |
-| Wake time | 07:32 |
-| Location | Portland, Oregon |
-| Currency | USD (stored as integer cents) |
-| Player identity | Owen T. Rask (not the player's own) |
-| Fictional OS | HALCYON 4.1 (build 4.1.882) |
-| Bank | Meridian Savings & Loan, checking ····4471 |
-| Opening balance | $437.82 (43782 cents) |
-| Core mystery | Aion Group |
-| Contacts | Marc Deleon, Lea Voss, "M" |
-| Quota | $10,000.00 within 30 days |
+| Field           | Value                                      |
+| --------------- | ------------------------------------------ |
+| Date            | Thursday, 15 January 2009                  |
+| Wake time       | 07:32                                      |
+| Location        | Portland, Oregon                           |
+| Currency        | USD (stored as integer cents)              |
+| Player identity | Owen T. Rask (not the player's own)        |
+| Fictional OS    | HALCYON 4.1 (build 4.1.882)                |
+| Bank            | Meridian Savings & Loan, checking ····4471 |
+| Opening balance | $437.82 (43782 cents)                      |
+| Core mystery    | Aion Group                                 |
+| Contacts        | Marc Deleon, Lea Voss, "M"                 |
+| Quota           | $10,000.00 within 30 days                  |
 
 ## Stage machine
 
@@ -28,30 +28,32 @@
 
 ## Applications (Day 01)
 
-| App id | Title | Window |
-| --- | --- | --- |
-| `mail` | Corvid Mail | 640×410 |
-| `msg` | Ember Messenger | 318×392 |
-| `web` | Halcyon Browser | 720×472 |
-| `files` | Files | 600×352 |
-| `bank` | Meridian Savings | 472×364 |
-| `mkt` | Quoteline | 520×340 |
-| `notes` | Notes | 352×300 |
-| `term` | Terminal | 568×328 |
-| `recall` | Recall | 428×352 |
-| `phone` | Nokora N90 | 296×552 in-world overlay |
+| App id   | Title            | Window                   |
+| -------- | ---------------- | ------------------------ |
+| `mail`   | Corvid Mail      | 640×410                  |
+| `msg`    | Ember Messenger  | 318×392                  |
+| `web`    | Halcyon Browser  | 720×472                  |
+| `files`  | Files            | 600×352                  |
+| `bank`   | Meridian Savings | 472×364                  |
+| `mkt`    | Quoteline        | 520×340                  |
+| `notes`  | Notes            | 352×300                  |
+| `term`   | Terminal         | 568×328                  |
+| `recall` | Recall           | 428×352                  |
+| `phone`  | Nokora N90       | 296×552 in-world overlay |
 
 ## Investigation
 
 Evidence is a first-class object:
 
 ```ts
-{ id, source, text, discoveredBy, discoveredAt, tags, reliability }
+{
+  ;(id, source, text, discoveredBy, discoveredAt, tags, reliability)
+}
 ```
 
 Flow: **discover → pin → tray → board → select evidence → assert claim → consequence.**
 
-A claim requires an *exact* evidence set (no extras, no omissions). Verdicts:
+A claim requires an _exact_ evidence set (no extras, no omissions). Verdicts:
 
 - `ACCEPTED` — requirements met and the claim is sound.
 - `INSUFFICIENT` — requirements not met.
@@ -75,7 +77,7 @@ Recall is **not** a chat assistant.
 
 ## Fictional Browser
 
-A closed 2009 internet simulation — and an actual *web*, not a set of islands.
+A closed 2009 internet simulation — and an actual _web_, not a set of islands.
 
 - **Search** runs against an internal index only. It never calls a real search engine.
 - **Every site has a front page**, and sites link to each other: the Register's business article
@@ -123,13 +125,13 @@ does not have.
 
 `End day 01` appears in the menu bar only once **all five** beats are true:
 
-| Beat | Fired by |
-| --- | --- |
-| `readme` | opening `READ_ME.txt` |
-| `marc` | replying to Marc in Ember Messenger |
-| `recall` | running a Recall retrieval |
-| `money` | the TradePost resale completing |
-| `claim` | asserting any claim on the board |
+| Beat     | Fired by                            |
+| -------- | ----------------------------------- |
+| `readme` | opening `READ_ME.txt`               |
+| `marc`   | replying to Marc in Ember Messenger |
+| `recall` | running a Recall retrieval          |
+| `money`  | the TradePost resale completing     |
+| `claim`  | asserting any claim on the board    |
 
 ## Day 01 end
 
@@ -145,4 +147,4 @@ does not have.
 ## Commercial boundary
 
 Day 01 is free and account-free. Day 02+ requires an entitled account. Entitlement is resolved
-server-side; the client only *renders* the result.
+server-side; the client only _renders_ the result.

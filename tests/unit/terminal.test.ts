@@ -35,11 +35,17 @@ describe('terminal', () => {
   it('counts down wrong keys and eventually reports the player', () => {
     let state = fresh()
     for (let i = 0; i < 2; i += 1) {
-      state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 1111' })
+      state = dispatch(state, {
+        type: 'TERMINAL_COMMAND_RUN',
+        command: 'decrypt cibles.enc --key 1111',
+      })
     }
     expect(last(state)?.text).toContain('1 attempts remain')
 
-    state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 2222' })
+    state = dispatch(state, {
+      type: 'TERMINAL_COMMAND_RUN',
+      command: 'decrypt cibles.enc --key 2222',
+    })
     expect(last(state)?.text).toBe(content.terminal.decrypt.lockout)
     expect(state.flags.decryptReported).toBe(true)
     expect(state.heat).toBe(30)
