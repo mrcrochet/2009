@@ -54,4 +54,5 @@ meant to be content, not a rewrite.
 - [`CLAUDE.md`](CLAUDE.md) — product rules, stack, and the non-negotiables
 - [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — the canonical world and Day 01 in detail
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — layering, the reducer, persistence, entitlement
-- [`docs/DAY01_ACCEPTANCE.md`](docs/DAY01_ACCEPTANCE.md) — 33 acceptance criteria mapped to tests
+- [`docs/DAY01_ACCEPTANCE.md`](docs/DAY01_ACCEPTANCE.md) — acceptance criteria mapped to tests
+- [`docs/AUTHORING.md`](docs/AUTHORING.md) — how to add a day without touching the engine
