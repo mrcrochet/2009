@@ -84,6 +84,16 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
     domains: [],
     watchlist: [],
 
+    wayup: {
+      // Hidden. There is no icon in the dock and no announcement; the player finds a process
+      // that should not be running.
+      unlocked: false,
+      observed: [],
+      futureEvidence: [],
+      mysteries: [],
+      signalSpent: 0,
+    },
+
     ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false },
 
     beats: {},

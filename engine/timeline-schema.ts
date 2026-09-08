@@ -172,6 +172,24 @@ export const TimelineStateSchema = z.object({
     )
     .max(256),
   domains: z.array(z.string().max(255)).max(64),
+  wayup: z.object({
+    unlocked: z.boolean(),
+    observed: z.array(z.string().max(128)).max(512),
+    futureEvidence: z
+      .array(
+        z.object({
+          id: z.string().max(64),
+          snapshotId: z.string().max(128),
+          excerpt: z.string().max(4096),
+          excerptHash: z.string().length(64),
+          capturedDay: z.number().int().min(1).max(366),
+          capturedAt: minute,
+        }),
+      )
+      .max(256),
+    mysteries: z.array(z.string().max(64)).max(256),
+    signalSpent: z.number().int().min(0).max(10_000),
+  }),
   watchlist: z.array(z.string().max(16)).max(32),
 
   ui: z.object({

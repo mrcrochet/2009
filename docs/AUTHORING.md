@@ -102,6 +102,12 @@ These are not, and are the known cost of the next day:
 - **Evidence ids are one flat namespace.** Reusing a page from an earlier day brings its evidence
   with it, and a player can pin something they never encountered.
 
+## Mysteries
+
+A mystery is not a day. See [`MYSTERY_AUTHORING.md`](MYSTERY_AUTHORING.md) for the editorial
+framework, what the build enforces about it, and why there is no mode meaning "adapts a real
+unsolved case".
+
 ## When a day genuinely needs new machinery
 
 Add it to `engine/`, then:

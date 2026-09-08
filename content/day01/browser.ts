@@ -59,6 +59,11 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'nav', items: [{ label: 'TradePost', url: 'tradepost.com' }] },
         { kind: 'subheading', text: 'Community', ink: '#7a0f0f' },
         { kind: 'nav', items: [{ label: 'Cluster', url: 'cluster.com' }] },
+        { kind: 'subheading', text: 'Personal Pages', ink: '#7a0f0f' },
+        {
+          kind: 'nav',
+          items: [{ label: 'GeoHost — free pages for everyone', url: 'geohost.com/Terminal/4417' }],
+        },
         { kind: 'subheading', text: 'Business Services', ink: '#7a0f0f' },
         { kind: 'nav', items: [{ label: 'Aion Group', url: 'aion-group.com' }] },
         { kind: 'rule' },
@@ -66,6 +71,85 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           kind: 'sub',
           text: 'Suggest a site · Add a category · © 2009 Corvid Inc. All rights reserved.',
         },
+      ],
+      variants: [],
+    },
+
+    // ------------------------------------------------------------- geohost
+    // A free host in its last year, though nobody here knows that. Three ordinary pages by
+    // three unrelated people, and one thing they have in common.
+    {
+      url: 'geohost.com/Terminal/4417',
+      background: '#ffffcc',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: "~ DON'S N SCALE PAGE ~", ink: '#000080' },
+        {
+          kind: 'sub',
+          text: 'you are visitor 004417 · last updated 11/22/2007 · best viewed 800x600',
+        },
+        {
+          kind: 'p',
+          text: 'Welcome to my page about model railroading in N scale. I have been building the Cascade line for eleven years now. The turntable took two winters.\n\nSign my guestbook before you go!',
+        },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: '[image not found: aion_eye_03.gif]\n\nThis ring is a member of the QUIET LINE webring.\n[prev] [next] [random] [list all]',
+        },
+        {
+          kind: 'nav',
+          items: [
+            { label: '[next]', url: 'geohost.com/Meadow/2210' },
+            { label: '[list all]', url: 'geohost.com/ring' },
+          ],
+        },
+      ],
+      variants: [],
+    },
+    {
+      url: 'geohost.com/Meadow/2210',
+      background: '#ffffff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Karen & Doug — August 14th', ink: '#993366' },
+        { kind: 'sub', text: 'our wedding page · 61 photos · thanks for visiting!!' },
+        {
+          kind: 'p',
+          text: 'We put these up so the family in Ohio could see them. Doug says the page is too pink. Doug is wrong.',
+        },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: '[image not found: aion_eye_03.gif]\n\nQUIET LINE webring member #2 of 9\n[prev] [next] [random] [list all]',
+        },
+        {
+          kind: 'nav',
+          items: [
+            { label: '[prev]', url: 'geohost.com/Terminal/4417' },
+            { label: '[list all]', url: 'geohost.com/ring' },
+          ],
+        },
+      ],
+      variants: [],
+    },
+    {
+      url: 'geohost.com/ring',
+      background: '#f0f0f0',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'QUIET LINE — member directory', ink: '#000080' },
+        { kind: 'sub', text: '9 members · ring maintained by (no contact given)' },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: '001  Terminal/4417 — model railroading\n002  Meadow/2210 — wedding photographs\n003  (page removed by owner)\n004  (page removed by owner)\n005  (page removed by owner)\n006  (page removed by owner)\n007  (page removed by owner)\n008  (page removed by owner)\n009  (page removed by owner)',
+        },
+        {
+          kind: 'p',
+          text: 'To join this ring, place the ring graphic on your page. There is no application. There is no owner listed. The graphic has been served from the same address since 1998.',
+        },
+        { kind: 'evidence', evidenceId: 'e11' },
       ],
       variants: [],
     },
@@ -864,6 +948,15 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       snippet:
         'Three posts this month. Warehouse swing shift, temporary data entry, and one that does not say what it is.',
       go: 'tradepost.com/pdx/jobs',
+      variants: [],
+    },
+    {
+      id: 'idx-geohost',
+      keys: ['geohost', 'webring', 'quiet line', 'model railroad', 'free pages', 'homepages'],
+      title: 'GeoHost — free pages for everyone',
+      url: 'geohost.com/Terminal/4417',
+      snippet: 'you are visitor 004417 · last updated 11/22/2007 · best viewed 800x600',
+      go: 'geohost.com/Terminal/4417',
       variants: [],
     },
     {

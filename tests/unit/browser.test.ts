@@ -252,3 +252,16 @@ describe('the address bar is not the location', () => {
     expect(state.browser.url).toBe('tradepost.com')
   })
 })
+
+describe('a URL is not a lowercase string', () => {
+  it('the host is case-insensitive and the path is not', () => {
+    // On a 2009 server `/Terminal/4417` and `/terminal/4417` were different pages, and the game
+    // authors paths with capitals. Lowercasing the whole address made an authored page
+    // unreachable and silently broke a mystery's unlock condition.
+    expect(normalizeUrl('http://GeoHost.COM/Terminal/4417')).toBe('geohost.com/Terminal/4417')
+    expect(normalizeUrl('WWW.TradePost.com/pdx/electronics')).toBe('tradepost.com/pdx/electronics')
+
+    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'GEOHOST.com/Terminal/4417' })
+    expect(selectPage(state, content).found).toBe(true)
+  })
+})

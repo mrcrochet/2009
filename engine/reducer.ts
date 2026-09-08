@@ -44,6 +44,8 @@ export const LIMITS = {
   terminalLines: 512,
   claimLog: 128,
   notes: 20_000,
+  wayupObserved: 512,
+  futureEvidence: 256,
 } as const
 
 // How much in-world time each action costs.
@@ -138,7 +140,14 @@ export function normalizeUrl(raw: string): string {
   const cut = url.search(/[?#]/)
   const path = cut === -1 ? url : url.slice(0, cut)
   const rest = cut === -1 ? '' : url.slice(cut)
-  return path.toLowerCase().replace(/\/+$/, '') + rest
+
+  // Only the host is case-insensitive. Lowercasing the path too would make
+  // `geohost.com/Terminal/4417` a different page from the one that was authored — and on a real
+  // 2009 server it was a different page.
+  const slash = path.indexOf('/')
+  const host = (slash === -1 ? path : path.slice(0, slash)).toLowerCase()
+  const rest0 = slash === -1 ? '' : path.slice(slash)
+  return (host + rest0).replace(/\/+$/, '') + rest
 }
 
 function currentEntry(state: TimelineState): BrowserEntry {
@@ -750,9 +759,73 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         files: { ...state.files, openId: event.firstFileId },
         terminal: { lines: [event.terminalBanner], input: '' },
         recallQuery: '',
+        // The relay stays open and every page read stays read; only the day's supply refills.
+        wayup: { ...state.wayup, signalSpent: 0 },
         ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false },
         // The gate is about *this* day. Sharing them opened a later day's gate before it began.
         beats: {},
+      }
+    }
+
+    // --- the relay ---------------------------------------------------------
+    case 'WAYUP_UNLOCKED': {
+      if (state.wayup.unlocked) return state
+      return { ...state, wayup: { ...state.wayup, unlocked: true } }
+    }
+
+    /**
+     * The network happened outside the engine. What lands here is the id of an immutable
+     * snapshot and what the look cost, so a replay shows the bytes the player read rather than
+     * whatever the site says today.
+     */
+    case 'WAYUP_SNAPSHOT_OBSERVED': {
+      if (!state.wayup.unlocked) return state
+      const seen = state.wayup.observed.includes(event.snapshotId)
+      return {
+        ...state,
+        wayup: {
+          ...state.wayup,
+          observed: seen
+            ? state.wayup.observed
+            : [...state.wayup.observed, event.snapshotId].slice(-LIMITS.wayupObserved),
+          // A page already read costs nothing to read again. The cost is in reaching for it.
+          signalSpent: seen ? state.wayup.signalSpent : state.wayup.signalSpent + event.signalCost,
+        },
+      }
+    }
+
+    case 'WAYUP_EVIDENCE_PINNED': {
+      if (!state.wayup.observed.includes(event.snapshotId)) return state
+      if (state.wayup.futureEvidence.some((e) => e.excerptHash === event.excerptHash)) return state
+      return {
+        ...state,
+        wayup: {
+          ...state.wayup,
+          futureEvidence: [
+            ...state.wayup.futureEvidence,
+            {
+              id: event.id,
+              snapshotId: event.snapshotId,
+              excerpt: event.excerpt,
+              excerptHash: event.excerptHash,
+              capturedDay: state.day,
+              capturedAt: event.at,
+            },
+          ].slice(-LIMITS.futureEvidence),
+        },
+        ui: { ...state.ui, trayOpen: true },
+      }
+    }
+
+    case 'MYSTERY_OPENED': {
+      if (state.wayup.mysteries.includes(event.mysteryId)) return state
+      return {
+        ...state,
+        wayup: { ...state.wayup, mysteries: [...state.wayup.mysteries, event.mysteryId] },
+        flags: event.setsFlags.reduce(
+          (flags, flag) => ({ ...flags, [flag]: true }),
+          state.flags as Record<string, boolean>,
+        ),
       }
     }
 

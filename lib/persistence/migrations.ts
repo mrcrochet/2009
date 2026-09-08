@@ -135,6 +135,22 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 9,
+    to: 10,
+    describe: 'the timeline remembers what the relay showed it',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const wayup = { ...((snapshot.wayup as AnyRecord) ?? {}) }
+      if (typeof wayup.unlocked !== 'boolean') wayup.unlocked = false
+      if (!Array.isArray(wayup.observed)) wayup.observed = []
+      if (!Array.isArray(wayup.futureEvidence)) wayup.futureEvidence = []
+      if (!Array.isArray(wayup.mysteries)) wayup.mysteries = []
+      if (typeof wayup.signalSpent !== 'number') wayup.signalSpent = 0
+      snapshot.wayup = wayup
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

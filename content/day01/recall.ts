@@ -145,6 +145,14 @@ export const memories: MemoryInput[] = [
     confidence: 'NONE',
   },
   {
+    id: 'mem-freehosts',
+    // No `homepage`: it is longer than `home`, so it would swallow a player asking whether
+    // they ever get home and answer them about web hosting.
+    keys: ['geocities', 'free host', 'angelfire', 'tripod', 'web host', 'hosting', 'geohost'],
+    text: 'The free hosts die this year. One of the big ones announces it in the spring and switches the lights off in the autumn, and about seven million pages go with it. People will spend the last weeks copying strangers’ homepages onto their own hard drives. Nobody in this January knows any of that yet.',
+    confidence: 'HIGH',
+  },
+  {
     id: 'mem-self',
     keys: ['2026', 'future', 'me', 'myself', 'who am i', 'home'],
     text: 'You remember a room, a screen, a date seventeen years out, and the sensation of standing up. Nothing before it.',

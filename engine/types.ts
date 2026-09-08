@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 9
+export const SCHEMA_VERSION = 10
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -229,6 +229,23 @@ export interface LedgerEntry {
  */
 export type BeatId = string
 
+/**
+ * An excerpt pinned from a page that has not been written yet.
+ *
+ * Provenance is the whole point: it can be argued alongside 2009 evidence, but the player — and
+ * anyone reading the claim afterwards — must be able to see it came from another time source,
+ * and that the document it came from may since have changed.
+ */
+export interface FutureEvidence {
+  readonly id: string
+  readonly snapshotId: string
+  readonly excerpt: string
+  readonly excerptHash: string
+  /** In-world, when the player captured it. */
+  readonly capturedDay: number
+  readonly capturedAt: number
+}
+
 export type Stage = 'landing' | 'boot' | 'playing' | 'day-end'
 
 export interface Viewport {
@@ -295,6 +312,21 @@ export interface TimelineState {
    * forget them overnight. A day wanting a transient marker should prefix it with its own day.
    */
   readonly flags: Readonly<Record<string, boolean>>
+
+  /**
+   * The relay. Snapshots the player has observed are lifetime — a page read on the 15th is still
+   * a page they read — while the signal budget is a day's supply and refills overnight.
+   */
+  readonly wayup: {
+    readonly unlocked: boolean
+    /** Immutable snapshot ids, in the order they were first observed. */
+    readonly observed: readonly string[]
+    /** Excerpts pinned from 2026, alongside the 2009 evidence they will be argued against. */
+    readonly futureEvidence: readonly FutureEvidence[]
+    /** Mysteries this timeline has opened. */
+    readonly mysteries: readonly string[]
+    readonly signalSpent: number
+  }
 
   // --- per day: cleared by DAY_ADVANCED ------------------------------------
 
@@ -427,5 +459,20 @@ export type GameEvent =
       terminalBanner: TerminalLine
     })
   | (Base & { type: 'TIMELINE_CLAIMED'; ownerId: string })
+  | (Base & { type: 'WAYUP_UNLOCKED'; via: string })
+  /**
+   * A capture, not a fetch. The network happened outside the engine; what the log records is the
+   * immutable snapshot the player saw, so a replay shows the bytes they read rather than
+   * whatever the site says today.
+   */
+  | (Base & { type: 'WAYUP_SNAPSHOT_OBSERVED'; snapshotId: string; signalCost: number })
+  | (Base & {
+      type: 'WAYUP_EVIDENCE_PINNED'
+      id: string
+      snapshotId: string
+      excerpt: string
+      excerptHash: string
+    })
+  | (Base & { type: 'MYSTERY_OPENED'; mysteryId: string; setsFlags: readonly string[] })
 
 export type GameEventType = GameEvent['type']
