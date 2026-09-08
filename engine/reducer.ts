@@ -608,6 +608,18 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       }
     }
 
+    case 'WATCHLIST_TOGGLED': {
+      const held = state.watchlist.includes(event.symbol)
+      return {
+        ...state,
+        watchlist: held
+          ? state.watchlist.filter((s) => s !== event.symbol)
+          : [...state.watchlist, event.symbol],
+        // Writing down what you know about the future is not free, even when nothing is bought.
+        heat: held ? state.heat : state.heat + 2,
+      }
+    }
+
     // --- day end -----------------------------------------------------------
     case 'DAY_ENDED': {
       if (state.stage === 'day-end') return state

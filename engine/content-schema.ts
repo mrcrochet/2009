@@ -79,6 +79,8 @@ export const UnknownMailSchema = z.object({
     .default([]),
   /** Appended when the player wrote in Notes. Length only — never a word of it. */
   notesLine: z.string().nullable().default(null),
+  /** Appended when the player wrote down what they know on someone else's machine. */
+  watchlistLine: z.string().nullable().default(null),
 })
 
 // --- Messenger -------------------------------------------------------------

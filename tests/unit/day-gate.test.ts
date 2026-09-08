@@ -167,3 +167,32 @@ describe('what the day remembers', () => {
     expect(body).not.toContain('the account was opened')
   })
 })
+
+describe('the watchlist', () => {
+  it('costs nothing but is not free', () => {
+    let state = fresh()
+    state = dispatch(state, { type: 'WATCHLIST_TOGGLED', symbol: 'AAPL' })
+    expect(state.watchlist).toEqual(['AAPL'])
+    expect(state.cashCents).toBe(43782)
+    expect(state.heat).toBe(2)
+
+    state = dispatch(state, { type: 'WATCHLIST_TOGGLED', symbol: 'AAPL' })
+    expect(state.watchlist).toEqual([])
+    // Taking a name off does not un-write it.
+    expect(state.heat).toBe(2)
+  })
+
+  it('is read back to the player at the end of the day', () => {
+    let state = run(playThroughRequirements(), [
+      { type: 'WATCHLIST_TOGGLED', symbol: 'AAPL' },
+      { type: 'WATCHLIST_TOGGLED', symbol: 'AMZN' },
+      { type: 'WATCHLIST_TOGGLED', symbol: 'NFLX' },
+    ])
+    state = dispatch(state, { type: 'DAY_ENDED' })
+
+    expect(selectMail(state, content)[0]?.body.join(' ')).toContain('You wrote down 3 names today')
+    expect(selectDaySummary(state, content).deeds).toContain(
+      'You put AAPL, AMZN, NFLX on a watchlist, on a machine that is not yours.',
+    )
+  })
+})

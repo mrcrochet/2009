@@ -165,6 +165,7 @@ export const TimelineStateSchema = z.object({
     )
     .max(256),
   domains: z.array(z.string().max(255)).max(64),
+  watchlist: z.array(z.string().max(16)).max(32),
 
   ui: z.object({
     trayOpen: z.boolean(),

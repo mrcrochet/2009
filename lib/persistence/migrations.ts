@@ -71,6 +71,16 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 5,
+    to: 6,
+    describe: 'Quoteline keeps a watchlist',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      if (!Array.isArray(snapshot.watchlist)) snapshot.watchlist = []
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

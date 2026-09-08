@@ -11,7 +11,7 @@ export const economy: z.input<typeof EconomySchema> = {
   accountOpened: 'Available balance · Account opened 06 Jan 2009',
   brokerageNotice:
     'Brokerage account required to place orders. Minimum opening deposit: $2,000.00.',
-  brokerageMinimum: 'You have no brokerage account.',
+  brokerageMinimum: 'You have no brokerage account. You may keep a watchlist.',
   domainPriceCents: parseCents('9.95'),
   domainShift: 1,
   opportunities: [

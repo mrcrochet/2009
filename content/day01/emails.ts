@@ -65,4 +65,5 @@ export const unknownMail: z.input<typeof UnknownMailSchema> = {
     { minHeat: 20, text: 'The encrypted file reported you. We were going to tell you tomorrow.' },
   ],
   notesLine: 'You wrote {{count}} characters into an unsaved document. It was not unsaved.',
+  watchlistLine: 'You wrote down {{count}} names today. We have the list.',
 }

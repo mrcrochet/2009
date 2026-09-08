@@ -1254,6 +1254,29 @@
   color: var(--credit);
 }
 
+.hal-mkt__watch {
+  appearance: none;
+  width: 62px;
+  border: 1px solid var(--control-border);
+  background: var(--control-face);
+  color: #6f7680;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  padding: 3px 0;
+  cursor: pointer;
+  border-radius: 2px;
+}
+
+.hal-mkt__watch:hover {
+  border-color: var(--control-focus);
+}
+
+.hal-mkt__watch[aria-pressed='true'] {
+  background: linear-gradient(180deg, #e6f2e6, #cfe4d0);
+  border-color: #2a6a3a;
+  color: #2a2a2a;
+}
+
 .hal-mkt__notice {
   padding: 13px 14px;
   background: #faf6ea;

@@ -77,6 +77,7 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       amount: l.amount,
     })),
     domains: [],
+    watchlist: [],
 
     ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false },
 

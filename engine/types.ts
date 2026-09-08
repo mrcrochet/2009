@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -270,6 +270,11 @@ export interface TimelineState {
   readonly inventory: readonly InventoryItem[]
   readonly ledger: readonly LedgerEntry[]
   readonly domains: readonly string[]
+  /**
+   * Symbols the player has written down. No money moves — they cannot open a brokerage account
+   * on $717.82. It is the act of recording what they know, on a machine someone else is reading.
+   */
+  readonly watchlist: readonly string[]
 
   readonly ui: {
     readonly trayOpen: boolean
@@ -345,6 +350,7 @@ export type GameEvent =
   | (Base & { type: 'ITEM_LISTED'; itemId: string })
   | (Base & { type: 'ITEM_SOLD'; itemId: string; amountCents: Cents })
   | (Base & { type: 'DOMAIN_REGISTERED'; domain: string; amountCents: Cents })
+  | (Base & { type: 'WATCHLIST_TOGGLED'; symbol: string })
   | (Base & { type: 'DAY_ENDED' })
   | (Base & { type: 'DAY_CARD_SHOWN' })
   | (Base & { type: 'TIMELINE_CLAIMED'; ownerId: string })

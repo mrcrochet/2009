@@ -77,6 +77,7 @@ export const selectMail: (state: TimelineState, content: DayContent) => readonly
     s.claimLog,
     s.mail.unknownArrived ? s.heat : 0,
     s.mail.unknownArrived ? s.notes.length : 0,
+    s.mail.unknownArrived ? s.watchlist : 0,
     c,
   ],
   (state, content) => {
@@ -95,6 +96,9 @@ export const selectMail: (state: TimelineState, content: DayContent) => readonly
       // analytics, and it is more frightening this way.
       if (u.notesLine && state.notes.trim().length > 0) {
         body.push(u.notesLine.replace('{{count}}', String(state.notes.length)))
+      }
+      if (u.watchlistLine && state.watchlist.length > 0) {
+        body.push(u.watchlistLine.replace('{{count}}', String(state.watchlist.length)))
       }
       list.unshift({
         id: u.id,
@@ -123,6 +127,7 @@ export const selectOpenMail: (state: TimelineState, content: DayContent) => Mail
     s.claimLog,
     s.mail.unknownArrived ? s.heat : 0,
     s.mail.unknownArrived ? s.notes.length : 0,
+    s.mail.unknownArrived ? s.watchlist : 0,
     c,
   ],
   (state, content) => {
@@ -374,6 +379,11 @@ function selectDeeds(state: TimelineState): readonly string[] {
   if (state.flags.leaPostRemoved) {
     deeds.push('You told someone to take down the only public record of what is happening to her.')
   }
+  if (state.watchlist.length > 0) {
+    deeds.push(
+      `You put ${state.watchlist.join(', ')} on a watchlist, on a machine that is not yours.`,
+    )
+  }
   if (state.recalls.length > 0) {
     deeds.push(
       `You spent ${state.recalls.length === 1 ? 'one memory' : `${state.recalls.length} memories`} finding out what you already knew.`,
@@ -397,6 +407,7 @@ export const selectDaySummary: (state: TimelineState, content: DayContent) => Da
     s.files,
     s.flags,
     s.recalls,
+    s.watchlist,
     c,
   ],
   (state, content) => {
