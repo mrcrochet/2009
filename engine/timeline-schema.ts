@@ -65,8 +65,6 @@ const RecallResultSchema = z.object({
   at: minute,
 })
 
-const BeatId = z.enum(['readme', 'marc', 'recall', 'money', 'claim'])
-
 export const TimelineStateSchema = z.object({
   id: z.string().min(1).max(64),
   ownerId: z.string().max(64).nullable(),
@@ -175,8 +173,8 @@ export const TimelineStateSchema = z.object({
     dayCard: z.boolean(),
   }),
 
-  // A beat that has not fired is simply absent, so this is a partial record.
-  beats: z.partialRecord(BeatId, z.boolean()),
+  // A beat that has not fired is simply absent, and a day names its own.
+  beats: z.record(z.string().max(64), z.boolean()),
   flags: z.record(z.string().max(64), z.boolean()),
 
   createdAt: z.string().max(64),

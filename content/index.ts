@@ -7,7 +7,9 @@ import { day01 as day01Raw } from './day01'
  */
 export const DAY_01: DayContent = DayContentSchema.parse(day01Raw)
 
-const BY_DAY: Readonly<Record<number, DayContent>> = { 1: DAY_01 }
+/** Every authored day. The invariant suite iterates this, so a new day is validated the moment
+ * it is registered rather than shipping on Zod alone. */
+export const BY_DAY: Readonly<Record<number, DayContent>> = { 1: DAY_01 }
 
 export function contentForDay(day: number): DayContent {
   const found = BY_DAY[day]

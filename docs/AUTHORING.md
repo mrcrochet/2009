@@ -77,6 +77,31 @@ the player, so only those are reported in the summary — `isPageAltered` delibe
 flag variants, because a page the player asked to change is not the same thing as a page
 rewriting itself behind their back.
 
+## What is still missing for a second day
+
+An agent authored a real, playable Day 02 in an isolated worktree to test the claim above. It
+held: **one file outside `content/day02/`**, and the reducer needed no changes at all. Three
+things it found are fixed — beats are named per day rather than shared (a finished Day 01 was
+opening Day 02's gate before it started), the day-end deeds are authored rather than derived in
+the engine, and the content invariants now run against every registered day rather than only the
+first.
+
+These are not, and are the known cost of the next day:
+
+- **There is no transition.** `stage` runs `landing → boot → playing → day-end` and stops.
+  Nothing carries a timeline into the 16th, so a second day is currently a separate new game
+  that happens to be set later. It needs a `DAY_ADVANCED` event that resets the per-day surfaces
+  (windows, mail, chat, browser, terminal, `minuteOfDay`, beats) while preserving the ledger of
+  who the player has become — cash, evidence, claims on record, heat, flags, domains, watchlist,
+  and above all `memoryIntegrity`, which currently returns to 100 overnight in a game whose
+  premise is that spent coherence does not come back.
+- **Thread ids are still a closed union** (`unknown | marc | lea`), so a day cannot introduce a
+  correspondent.
+- **`WAKE_MINUTE` and `DAY_END_MINUTE` are module constants**, so every day starts and ends at
+  the same hour.
+- **Evidence ids are one flat namespace.** Reusing a page from an earlier day brings its evidence
+  with it, and a player can pin something they never encountered.
+
 ## When a day genuinely needs new machinery
 
 Add it to `engine/`, then:

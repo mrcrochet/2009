@@ -126,7 +126,7 @@ describe('what the day remembers', () => {
 
     const { deeds } = selectDaySummary(state, content)
     expect(deeds).toContain('You opened a file that was not addressed to you.')
-    expect(deeds).toContain("You registered shortclip.com in a dead man's name.")
+    expect(deeds).toContain('You registered shortclip.com in a dead man\u2019s name.')
     expect(deeds.some((d) => d.includes('bought') && d.includes('$340.00'))).toBe(true)
     expect(deeds.some((d) => d.includes('one memory'))).toBe(true)
   })
@@ -194,5 +194,38 @@ describe('the watchlist', () => {
     expect(selectDaySummary(state, content).deeds).toContain(
       'You put AAPL, AMZN, NFLX on a watchlist, on a machine that is not yours.',
     )
+  })
+})
+
+describe('a day’s gate is about that day', () => {
+  it('beats are named by the day, not by a closed union', () => {
+    // The gate was a fixed enum of Day 01's five, so a second day had to name its gate after
+    // Day 01's characters — and, worse, they shared one namespace.
+    expect(content.requiredBeats).toEqual(['readme', 'marc', 'recall', 'money', 'claim'])
+    const state = dispatch(fresh(), { type: 'FILE_OPENED', fileId: 'readme' })
+    expect(state.beats.readme).toBe(true)
+    expect(selectCanEndDay(state, { ...content, requiredBeats: ['readme'] })).toBe(true)
+    expect(selectCanEndDay(state, { ...content, requiredBeats: ['something-else'] })).toBe(false)
+  })
+
+  it('the deeds are authored, not derived in the engine', () => {
+    const state = run(fresh(), [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 0412' },
+      { type: 'DOMAIN_REGISTERED', domain: 'cloudrent.com', amountCents: 995 },
+    ])
+    const quiet = {
+      ...content,
+      dayEnd: {
+        ...content.dayEnd,
+        deeds: {
+          ...content.dayEnd.deeds,
+          domain: 'ANOTHER DAY WOULD SAY THIS ABOUT {{domain}}.',
+          flagged: [],
+        },
+      },
+    }
+    const deeds = selectDaySummary(state, quiet).deeds
+    expect(deeds).toContain('ANOTHER DAY WOULD SAY THIS ABOUT cloudrent.com.')
+    expect(deeds).not.toContain('You opened a file that was not addressed to you.')
   })
 })

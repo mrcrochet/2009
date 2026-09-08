@@ -53,6 +53,31 @@ export const day01: z.input<typeof DayContentSchema> = {
   phone,
   dayEnd: {
     timestamp: '15 JANUARY 2009 · 23:41',
+    deeds: {
+      sold: 'You bought {{label}} for {{buy}} and sold it for {{sell}}.',
+      lost: 'You bought {{label}} for {{buy}} and let it go for {{sell}}.',
+      holding: 'You are still holding {{label}}.',
+      domain: 'You registered {{domain}} in a dead man’s name.',
+      watchlist: 'You put {{names}} on a watchlist, on a machine that is not yours.',
+      recalls: 'You spent {{spent}} finding out what you already knew.',
+      recallsOne: 'one memory',
+      recallsMany: '{{count}} memories',
+      flagged: [
+        { whenFlag: 'decrypted', text: 'You opened a file that was not addressed to you.' },
+        {
+          whenFlag: 'decryptReported',
+          text: 'You tried three keys on it before that, and it counted.',
+        },
+        {
+          whenFlag: 'leaPostedAgain',
+          text: 'You told someone to put a description of the car on a public page.',
+        },
+        {
+          whenFlag: 'leaPostRemoved',
+          text: 'You told someone to take down the only public record of what is happening to her.',
+        },
+      ],
+    },
     title: 'DAY 01\nCOMPLETE',
     watchedLine: 'Someone was watching the last four hours of this.',
     shiftedLine: 'One page you read today no longer says what it said.',

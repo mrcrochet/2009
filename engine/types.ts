@@ -194,8 +194,12 @@ export interface LedgerEntry {
 // Day 01 beats
 // ---------------------------------------------------------------------------
 
-export type BeatId = 'readme' | 'marc' | 'recall' | 'money' | 'claim'
-export const REQUIRED_BEATS: readonly BeatId[] = ['readme', 'marc', 'recall', 'money', 'claim']
+/**
+ * A beat is whatever a day says it is. It was a closed union of Day 01's five, which meant a
+ * second day had to name its gate after Day 01's characters — and, worse, that the beats were
+ * one shared namespace: a finished Day 01 opened Day 02's gate before it started.
+ */
+export type BeatId = string
 
 export type Stage = 'landing' | 'boot' | 'playing' | 'day-end'
 
@@ -292,7 +296,8 @@ export interface TimelineState {
     readonly dayCard: boolean
   }
 
-  readonly beats: Readonly<Partial<Record<BeatId, boolean>>>
+  /** Cleared when a day advances; a day's gate is about that day. */
+  readonly beats: Readonly<Record<string, boolean>>
   readonly flags: Readonly<Record<string, boolean>>
 
   readonly eventLog: readonly GameEvent[]

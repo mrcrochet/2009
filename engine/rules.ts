@@ -154,14 +154,14 @@ export function evaluateClaim(claim: Claim, selectedEvidenceIds: readonly string
 // --- Day gate --------------------------------------------------------------
 
 export function canEndDay(
-  beats: Readonly<Partial<Record<BeatId, boolean>>>,
+  beats: Readonly<Record<string, boolean>>,
   required: readonly BeatId[],
 ): boolean {
   return required.every((b) => beats[b] === true)
 }
 
 export function outstandingBeats(
-  beats: Readonly<Partial<Record<BeatId, boolean>>>,
+  beats: Readonly<Record<string, boolean>>,
   required: readonly BeatId[],
 ): readonly BeatId[] {
   return required.filter((b) => beats[b] !== true)

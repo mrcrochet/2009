@@ -349,45 +349,47 @@ export interface DaySummary {
 }
 
 /**
- * A stats screen reports numbers. This reports what the player did — every line derived from
- * state that already exists, and every one of them something they chose.
+ * A stats screen reports numbers. This reports what the player did — but every word of it is
+ * authored in `content.dayEnd.deeds`. The engine fills templates; it does not know that
+ * registering a domain happens in a dead man's name.
  */
-function selectDeeds(state: TimelineState): readonly string[] {
+function selectDeeds(state: TimelineState, content: DayContent): readonly string[] {
+  const t = content.dayEnd.deeds
   const deeds: string[] = []
 
   for (const item of state.inventory) {
+    const label = item.label.toLowerCase()
     if (item.state === 'sold' && item.soldFor !== null) {
-      const verb = item.soldFor >= item.acquiredFor ? 'sold it for' : 'let it go for'
+      const template = item.soldFor >= item.acquiredFor ? t.sold : t.lost
       deeds.push(
-        `You bought ${item.label.toLowerCase()} for ${formatMoney(item.acquiredFor)} and ${verb} ${formatMoney(item.soldFor)}.`,
+        template
+          .replace('{{label}}', label)
+          .replace('{{buy}}', formatMoney(item.acquiredFor))
+          .replace('{{sell}}', formatMoney(item.soldFor)),
       )
-    } else if (item.state !== 'sold') {
-      deeds.push(`You are still holding ${item.label.toLowerCase()}.`)
+    } else {
+      deeds.push(t.holding.replace('{{label}}', label))
     }
   }
 
-  if (state.files.decrypted) deeds.push('You opened a file that was not addressed to you.')
-  if (state.flags.decryptReported) {
-    deeds.push('You tried three keys on it before that, and it counted.')
+  // `decrypted` is state rather than a flag, so it is offered to the authored list as one.
+  const flags: Record<string, boolean> = { ...state.flags, decrypted: state.files.decrypted }
+  for (const line of t.flagged) {
+    if (flags[line.whenFlag]) deeds.push(line.text)
   }
+
   for (const domain of state.domains) {
-    deeds.push(`You registered ${domain} in a dead man's name.`)
-  }
-  if (state.flags.leaPostedAgain) {
-    deeds.push('You told someone to put a description of the car on a public page.')
-  }
-  if (state.flags.leaPostRemoved) {
-    deeds.push('You told someone to take down the only public record of what is happening to her.')
+    deeds.push(t.domain.replace('{{domain}}', domain))
   }
   if (state.watchlist.length > 0) {
-    deeds.push(
-      `You put ${state.watchlist.join(', ')} on a watchlist, on a machine that is not yours.`,
-    )
+    deeds.push(t.watchlist.replace('{{names}}', state.watchlist.join(', ')))
   }
   if (state.recalls.length > 0) {
-    deeds.push(
-      `You spent ${state.recalls.length === 1 ? 'one memory' : `${state.recalls.length} memories`} finding out what you already knew.`,
-    )
+    const spent =
+      state.recalls.length === 1
+        ? t.recallsOne
+        : t.recallsMany.replace('{{count}}', String(state.recalls.length))
+    deeds.push(t.recalls.replace('{{spent}}', spent))
   }
 
   return deeds
@@ -413,7 +415,7 @@ export const selectDaySummary: (state: TimelineState, content: DayContent) => Da
   (state, content) => {
     return {
       timestamp: content.dayEnd.timestamp,
-      deeds: selectDeeds(state),
+      deeds: selectDeeds(state, content),
       balance: formatMoney(state.cashCents),
       quota: formatMoney(content.economy.quotaCents),
       daysLeft: content.economy.quotaDays - state.day,

@@ -122,8 +122,8 @@ export const ThreadSchema = z.object({
   id: z.enum(['unknown', 'marc', 'lea']),
   label: z.string().min(1),
   script: z.array(ChatNodeSchema).min(1),
-  /** Beat fired when the player replies in this thread. */
-  beat: z.enum(['readme', 'marc', 'recall', 'money', 'claim']).nullable().default(null),
+  /** Beat fired when the player replies in this thread. Beats are named by the day. */
+  beat: z.string().nullable().default(null),
 })
 
 // --- Browser ---------------------------------------------------------------
@@ -225,7 +225,7 @@ export const FileDocSchema = z.object({
   bodyWhenDecrypted: z.string().nullable().default(null),
   evidenceId: id.nullable().default(null),
   evidenceRequiresDecryption: z.boolean().default(false),
-  beat: z.enum(['readme', 'marc', 'recall', 'money', 'claim']).nullable().default(null),
+  beat: z.string().nullable().default(null),
 })
 
 // --- Terminal --------------------------------------------------------------
@@ -271,7 +271,7 @@ export const OpportunitySchema = z.object({
   shiftOnSell: z.number().int().nonnegative(),
   buyLedgerLabel: z.string(),
   sellLedgerLabel: z.string(),
-  beat: z.enum(['readme', 'marc', 'recall', 'money', 'claim']).nullable().default(null),
+  beat: z.string().nullable().default(null),
 })
 
 export const QuoteSchema = z.object({
@@ -347,8 +347,27 @@ export const AppDefinitionSchema = z.object({
 
 // --- Day end ---------------------------------------------------------------
 
+/**
+ * What the day tells the player they did. This is authored, not derived in the engine — the
+ * previous version hard-coded Day 01's flags and the phrase "in a dead man's name" inside
+ * `selectDeeds`, which put narrative truth in the one place CLAUDE.md says it must never live.
+ */
+export const DeedsSchema = z.object({
+  sold: z.string(),
+  lost: z.string(),
+  holding: z.string(),
+  domain: z.string(),
+  watchlist: z.string(),
+  recalls: z.string(),
+  recallsOne: z.string(),
+  recallsMany: z.string(),
+  /** A line for each flag the day cares about, in the order it should be read. */
+  flagged: z.array(z.object({ whenFlag: z.string().min(1), text: z.string().min(1) })).default([]),
+})
+
 export const DayEndSchema = z.object({
   timestamp: z.string(),
+  deeds: DeedsSchema,
   title: z.string(),
   watchedLine: z.string(),
   shiftedLine: z.string(),
@@ -389,7 +408,8 @@ export const DayContentSchema = z.object({
   economy: EconomySchema,
   phone: PhoneConfigSchema,
   dayEnd: DayEndSchema,
-  requiredBeats: z.array(z.enum(['readme', 'marc', 'recall', 'money', 'claim'])).min(1),
+  /** The gate for *this* day, named however the day likes. */
+  requiredBeats: z.array(z.string().min(1)).min(1),
 })
 
 export type DayContent = z.infer<typeof DayContentSchema>
