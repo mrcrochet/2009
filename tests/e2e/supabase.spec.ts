@@ -48,7 +48,12 @@ test.describe('Supabase', () => {
   test('the definer functions are not callable over REST', async ({ request }) => {
     // prune_billing_events would empty the webhook idempotency ledger, after which processed
     // Stripe events replay as new.
-    for (const fn of ['prune_billing_events', 'handle_new_user']) {
+    for (const fn of [
+      'prune_billing_events',
+      'handle_new_user',
+      'prune_orphan_wayup_snapshots',
+      'future_evidence_cap',
+    ]) {
       const res = await request.post(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
         headers: {
           apikey: SUPABASE_KEY,
@@ -59,6 +64,67 @@ test.describe('Supabase', () => {
       })
       expect(res.status(), fn).toBeGreaterThanOrEqual(400)
     }
+  })
+
+  test('the Way Up cache is shared for storage, never for reading', async ({ request }) => {
+    // A snapshot has no owner — it is deduplicated across timelines. Ownership is borrowed from
+    // the visits that reference it, so an anonymous read must see nothing. Without that policy
+    // `select=*` on a public key would be a free scraped-web API, a record of what every player
+    // looked up, and a spoiler table for a game whose subject is discovery.
+    for (const table of [
+      'wayup_snapshots',
+      'timeline_wayup_visits',
+      'future_evidence',
+      'mystery_unlocks',
+      'global_mystery_fragments',
+    ]) {
+      const res = await request.get(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
+        headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}` },
+      })
+      expect(res.status(), table).toBe(200)
+      expect(await res.json(), table).toEqual([])
+    }
+  })
+
+  test('a snapshot cannot be forged by a client', async ({ request }) => {
+    // Only the relay route, holding the service role, has actually fetched a page and computed
+    // its hash. A client-writable cache would let one player author a document another player
+    // reads inside the game's own renderer.
+    const res = await request.post(`${SUPABASE_URL}/rest/v1/wayup_snapshots`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        authorization: `Bearer ${SUPABASE_KEY}`,
+        'content-type': 'application/json',
+      },
+      data: {
+        id: 'wu_forged00000000000000000000000',
+        canonical_url: 'https://example.com/',
+        content_hash: 'f'.repeat(64),
+        remote_fetched_at: new Date().toISOString(),
+        provider: 'forged',
+      },
+    })
+    expect(res.status()).toBeGreaterThanOrEqual(400)
+  })
+
+  test('the shared mystery count is public, and the ledger behind it is not', async ({
+    request,
+  }) => {
+    const shared = await request.get(`${SUPABASE_URL}/rest/v1/global_mystery_state?select=*`, {
+      headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}` },
+    })
+    // "7 / 9" is the point of a shared puzzle, and the row carries no personal data.
+    expect(shared.status()).toBe(200)
+
+    const write = await request.post(`${SUPABASE_URL}/rest/v1/global_mystery_state`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        authorization: `Bearer ${SUPABASE_KEY}`,
+        'content-type': 'application/json',
+      },
+      data: { mystery_id: 'forged', fragments_required: 1, fragments_found: 999 },
+    })
+    expect(write.status()).toBeGreaterThanOrEqual(400)
   })
 
   test('a save cannot be used as a file host', async ({ request }) => {
