@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 10
+export const SCHEMA_VERSION = 11
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -292,6 +292,15 @@ export interface TimelineState {
   readonly divergence: number
   readonly temporalShift: number
 
+  /**
+   * World artifacts the player has actually encountered.
+   *
+   * The graph is complete; what the player knows is not. An entity page shows what they have
+   * found and a *count* of what they have not — the shape of the gap is the whole value of the
+   * page, and listing the gap would give away the world.
+   */
+  readonly discovered: readonly string[]
+
   /** Qualified by the day they were found on, so a later day cannot expose an earlier one's. */
   readonly evidence: readonly PinnedEvidence[]
   readonly claimLog: readonly ClaimAttempt[]
@@ -474,5 +483,7 @@ export type GameEvent =
       excerptHash: string
     })
   | (Base & { type: 'MYSTERY_OPENED'; mysteryId: string; setsFlags: readonly string[] })
+  /** The player met a surface. Batched, because opening a page reveals everything on it. */
+  | (Base & { type: 'WORLD_ARTIFACTS_SEEN'; artifactIds: readonly string[] })
 
 export type GameEventType = GameEvent['type']

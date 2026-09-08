@@ -96,6 +96,7 @@ export const TimelineStateSchema = z.object({
     smsStep: z.number().int().min(0).max(64),
   }),
 
+  discovered: z.array(z.string().max(128)).max(4096),
   evidence: z
     .array(
       z.object({

@@ -66,6 +66,7 @@ export const GAME_EVENT_TYPES = [
   'WAYUP_SNAPSHOT_OBSERVED',
   'WAYUP_EVIDENCE_PINNED',
   'MYSTERY_OPENED',
+  'WORLD_ARTIFACTS_SEEN',
 ] as const satisfies readonly GameEvent['type'][]
 
 const KNOWN = new Set<string>(GAME_EVENT_TYPES)

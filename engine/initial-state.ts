@@ -39,6 +39,7 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
     desktopIcons: [],
     phone: { open: false, tab: 'sms', x: null, y: null, smsStep: 0 },
 
+    discovered: [],
     evidence: [],
     selectedEvidenceIds: [],
     selectedClaimId: null,

@@ -151,6 +151,16 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 10,
+    to: 11,
+    describe: 'the timeline records which of the world it has actually met',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      if (!Array.isArray(snapshot.discovered)) snapshot.discovered = []
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

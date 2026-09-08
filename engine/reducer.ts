@@ -44,6 +44,7 @@ export const LIMITS = {
   terminalLines: 512,
   claimLog: 128,
   notes: 20_000,
+  discovered: 4096,
   wayupObserved: 512,
   futureEvidence: 256,
 } as const
@@ -815,6 +816,12 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         },
         ui: { ...state.ui, trayOpen: true },
       }
+    }
+
+    case 'WORLD_ARTIFACTS_SEEN': {
+      const fresh = event.artifactIds.filter((id) => !state.discovered.includes(id))
+      if (fresh.length === 0) return state
+      return { ...state, discovered: [...state.discovered, ...fresh].slice(-LIMITS.discovered) }
     }
 
     case 'MYSTERY_OPENED': {

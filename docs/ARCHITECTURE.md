@@ -86,6 +86,37 @@ and calls `reduce`. Components subscribe with narrow selectors so a window drag 
 the desktop. Drag itself never touches the store until pointerup — `useWindowDrag` writes a
 `translate3d` transform directly to the element.
 
+## The world graph
+
+`engine/world/` holds a graph of entities, artifacts, relations and facts — people, companies,
+places, vehicles, and the emails, photographs, transactions and forum posts that are traces of
+them. `content/world/` authors it.
+
+**It is content, not a database, and that is a decision rather than an accident.** Putting it in
+Postgres would cost two properties this repo has paid for: Day 01 is playable with no account and
+no network, and a world that lives in rows has no offline existence; and the engine is pure and
+replayable, which a world that changes because someone updated a row is not. Supabase stores what
+a _timeline_ did with the world — visited, pinned, discovered — never the world itself.
+
+`engine/world/project.ts` projects a day's authored content into the same graph. Without it there
+would be two worlds: a graph nobody's story happens in, and a story the graph has never heard of.
+Days remain the unit of authoring; they become events _in_ the world rather than the only things
+in it.
+
+The rule the graph exists to serve is **one fact, many surfaces**. A fact worth knowing leaves
+traces in several places and the player needs two or three of them. `tests/unit/world.test.ts`
+fails a fact that is reachable from only one place, or whose traces all sit on one surface —
+because a fact with a single trace is a quest step wearing a costume.
+
+Search is deliberately literal: it matches text. The bank line reading `PORTLAND AUTO PARTS` is a
+trace of the Saab and searching "saab" will never find it. That is correct, and it is why the
+entity page exists — search finds words; a person's page assembles a fact out of things that do
+not share one.
+
+`TimelineState.discovered` is what the player has actually met. The graph is complete; what they
+know is not. An entity page shows what they found and a **count** of what they did not, because
+the shape of the gap is the value of the page and listing it would give away the world.
+
 ## Validation at the boundary
 
 The engine's types vanish at compile time, so `engine/timeline-schema.ts` is the runtime shape of
