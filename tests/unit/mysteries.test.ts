@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MysterySchema } from '@/engine/mystery-schema'
 import { MYSTERIES, mysteryById } from '@/content/mysteries'
 import { isUnlocked, signalRemaining, unlockedMysteries, unmetConditions } from '@/engine/mysteries'
+import { selectDaySummary } from '@/engine/selectors'
 import { content, dispatch, fresh, run } from './helpers'
 
 const ctx = (state: ReturnType<typeof fresh>, globallyUnlocked: string[] = []) => ({
@@ -211,6 +212,8 @@ describe('signal', () => {
       id: 'f1',
       snapshotId: 'wu_never',
       excerpt: 'x',
+      sourceUrl: 'example.test/a',
+      sourceTitle: 'A page',
       excerptHash: 'a'.repeat(64),
     })
     expect(unseen.wayup.futureEvidence).toEqual([])
@@ -223,10 +226,87 @@ describe('signal', () => {
         id: 'f1',
         snapshotId: 'wu_a',
         excerpt: 'Its incorporation date has changed.',
+        sourceUrl: 'example.test/a',
+        sourceTitle: 'A page',
         excerptHash: 'b'.repeat(64),
       },
     ])
     expect(seen.wayup.futureEvidence).toHaveLength(1)
     expect(seen.wayup.futureEvidence[0]?.capturedDay).toBe(1)
+  })
+})
+
+/**
+ * The rule in CLAUDE.md §7: anything the game accumulates and never spends is a hole a player
+ * will feel. A line carried back from 2026 used to land in an array nothing read.
+ */
+describe('what a kept line costs, and where it goes', () => {
+  const keep = (id: string, hash: string) => ({
+    type: 'WAYUP_EVIDENCE_PINNED' as const,
+    id,
+    snapshotId: 'wu_a',
+    excerpt: 'a sentence that has not happened',
+    excerptHash: hash,
+    sourceUrl: 'example.test/a',
+    sourceTitle: 'A page',
+  })
+
+  const seen = () =>
+    run(fresh(), [
+      { type: 'WAYUP_UNLOCKED', via: 'terminal' },
+      { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
+    ])
+
+  it('moves the world, because the sentence is now somewhere it was not', () => {
+    const before = seen()
+    const after = dispatch(before, keep('f1', 'a'.repeat(64)))
+    expect(after.temporalShift).toBe(before.temporalShift + content.wayup!.keepShift)
+    expect(after.wayup.futureEvidence).toHaveLength(1)
+  })
+
+  it('remembers where it came from, so an offline replay can still say', () => {
+    const after = dispatch(seen(), keep('f1', 'a'.repeat(64)))
+    expect(after.wayup.futureEvidence[0]?.sourceUrl).toBe('example.test/a')
+    expect(after.wayup.futureEvidence[0]?.sourceTitle).toBe('A page')
+  })
+
+  it('is read back on the card at the end of the day', () => {
+    const after = dispatch(seen(), keep('f1', 'a'.repeat(64)))
+    const summary = selectDaySummary(after, content)
+    expect(summary.deeds.join('\n')).toContain('1 things that have not happened')
+  })
+
+  it('the same line kept twice is one line and costs once', () => {
+    let state = dispatch(seen(), keep('f1', 'a'.repeat(64)))
+    const once = state.temporalShift
+    state = dispatch(state, keep('f2', 'a'.repeat(64)))
+    expect(state.wayup.futureEvidence).toHaveLength(1)
+    expect(state.temporalShift).toBe(once)
+  })
+})
+
+describe('asking costs, even when nothing comes back', () => {
+  it('spends signal on the question, not only on the answer', () => {
+    const state = run(fresh(), [
+      { type: 'WAYUP_UNLOCKED', via: 'terminal' },
+      { type: 'WAYUP_SEARCHED', signalCost: content.wayup!.searchCost },
+    ])
+    expect(signalRemaining(state, content)).toBe(
+      content.wayup!.signalBudget - content.wayup!.searchCost,
+    )
+  })
+
+  it('cannot be asked past the day’s budget', () => {
+    const unlocked = dispatch(fresh(), { type: 'WAYUP_UNLOCKED', via: 'terminal' })
+    const over = dispatch(unlocked, {
+      type: 'WAYUP_SEARCHED',
+      signalCost: content.wayup!.signalBudget + 1,
+    })
+    expect(over).toBe(unlocked)
+  })
+
+  it('is not a thing an unattached machine can do', () => {
+    const state = dispatch(fresh(), { type: 'WAYUP_SEARCHED', signalCost: 1 })
+    expect(state.wayup.signalSpent).toBe(0)
   })
 })

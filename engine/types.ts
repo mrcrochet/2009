@@ -255,6 +255,9 @@ export interface FutureEvidence {
   readonly snapshotId: string
   readonly excerpt: string
   readonly excerptHash: string
+  /** The address and title of the document it was taken from, as it read at capture. */
+  readonly sourceUrl: string
+  readonly sourceTitle: string
   /** In-world, when the player captured it. */
   readonly capturedDay: number
   readonly capturedAt: number
@@ -506,6 +509,12 @@ export type GameEvent =
   | (Base & { type: 'WAYUP_UNLOCKED'; via: string })
   | (Base & { type: 'WAYUP_TOGGLED'; open?: boolean })
   /**
+   * Asking costs signal even when nothing useful comes back — which is what makes the player
+   * think before they ask. The query itself is never carried: freeform player text does not
+   * enter the event log any more than it enters analytics.
+   */
+  | (Base & { type: 'WAYUP_SEARCHED'; signalCost: number })
+  /**
    * A capture, not a fetch. The network happened outside the engine; what the log records is the
    * immutable snapshot the player saw, so a replay shows the bytes they read rather than
    * whatever the site says today.
@@ -517,6 +526,16 @@ export type GameEvent =
       snapshotId: string
       excerpt: string
       excerptHash: string
+      /**
+       * Where the line came from, carried on the event rather than looked up.
+       *
+       * The timeline holds snapshot *ids*; the snapshots themselves live in a cache the engine
+       * cannot see and a replay may not have. A kept line has to be able to say where it came
+       * from on a machine that has been offline since, or the tray shows an excerpt from
+       * nowhere.
+       */
+      sourceUrl: string
+      sourceTitle: string
     })
   | (Base & { type: 'MYSTERY_OPENED'; mysteryId: string; setsFlags: readonly string[] })
   /** The player met a surface. Batched, because opening a page reveals everything on it. */

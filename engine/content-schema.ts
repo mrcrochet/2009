@@ -315,12 +315,62 @@ export const WayUpConfigSchema = z.object({
   /** How the console reports each way a request can be refused, keyed by `WayUpRefusal`. */
   refusals: z.record(z.string().max(64), z.string()),
   fallbackRefusal: z.string().min(1),
+  /**
+   * What carrying a line back costs. Signal buys the looking; these are the price of the
+   * carrying — a sentence that has not happened yet, written down on a 2009 machine, moves the
+   * world a little because it is now somewhere it was not.
+   */
+  keepShift: z.number().int().nonnegative().default(1),
+  keepHeat: z.number().int().nonnegative().default(0),
+  /**
+   * The name of the document region, for somebody who cannot see it.
+   *
+   * The captured page is a list of lines with one tab stop and arrow keys, because "select the
+   * text and press keep" is a pointer gesture and would have left the relay's only mechanic
+   * unreachable by keyboard.
+   */
+  docLabel: z.string().default(''),
+  /** The heading kept lines sit under, in the tray and on the board. */
+  keptHeading: z.string().default(''),
+  /**
+   * Why they are there and not selectable. A claim in 2009 cannot rest on a document from a year
+   * nobody has reached, and the player has to be told that in words rather than by a control
+   * quietly not responding.
+   */
+  keptNote: z.string().default(''),
+  /** The day-end line, with `{{count}}`. */
+  keptDeed: z.string().default(''),
   /** The control that keeps an excerpt, and the tray heading it lands under. */
   pinLabel: z.string().min(1),
   pinnedLabel: z.string().min(1),
   /** The line under a snapshot that says when the other side answered. */
   capturedTemplate: z.string().min(1),
   signalTemplate: z.string().min(1),
+
+  /**
+   * The rest of the console's vocabulary.
+   *
+   * Every one of these is a word a player reads — including the ones only a screen reader says
+   * out loud — so none of them may be written in a component. They default to empty rather than
+   * being required because a later day may build a different console out of the same parts, and
+   * a missing label should cost that day a label, not the whole content module.
+   */
+  /** The accessible name of the control that leaves the console. The glyph is not a word. */
+  closeLabel: z.string().default(''),
+  /** Getting back to what came back, from inside a captured page. */
+  backLabel: z.string().default(''),
+  /** The heading over the rows the far end returned. */
+  resultsLabel: z.string().default(''),
+  /** The heading over the addresses a captured page names. */
+  linksLabel: z.string().default(''),
+  /** What the console says while the line is open and nothing has come back yet. */
+  working: z.string().default(''),
+  /** What opening one of the returns costs, before the player spends it. `{{cost}}`. */
+  costTemplate: z.string().default(''),
+  /** How a line is kept: the standing instruction, and the answer to keeping nothing. */
+  pinHint: z.string().default(''),
+  /** Asked again too soon. `{{seconds}}`. */
+  rateLimited: z.string().default(''),
 })
 
 // --- Economy ---------------------------------------------------------------

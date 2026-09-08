@@ -2118,6 +2118,392 @@
   color: #7e8b95;
 }
 
+/* ------------------------------------------------------ the relay console */
+
+/*
+ * A process, not a browser. Everything below is the terminal's palette and the terminal's
+ * column: hard edges, one monospace measure, and no affordance that had not been invented yet.
+ */
+
+.hal-wayup {
+  position: absolute;
+  inset: var(--menubar-height) 0 0 0;
+  z-index: var(--z-board);
+  background: rgba(4, 6, 8, 0.94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The dock floats above this layer, as it does above the board. The extra room at the foot is
+     so the last line of a captured page is not read through a row of icons. */
+  padding: 26px 26px 82px;
+  animation: fadein 0.2s both;
+}
+
+.hal-wayup__panel {
+  width: min(760px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0d1013;
+  border: 1px solid #2b333a;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.72);
+  font-family: var(--font-terminal);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #c2cdd4;
+}
+
+.hal-wayup__head {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 13px;
+  border-bottom: 1px solid #22282d;
+}
+
+.hal-wayup__title {
+  color: #6f9ab5;
+}
+
+.hal-wayup__sub {
+  flex: 1;
+  min-width: 0;
+  color: var(--ink-dimmer);
+  font-size: 10.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hal-wayup__close {
+  appearance: none;
+  background: none;
+  border: none;
+  color: var(--overlay-ink-dim);
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.hal-wayup__send {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 13px;
+  border-bottom: 1px solid #22282d;
+}
+
+.hal-wayup__label {
+  color: #6f9ab5;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+.hal-wayup__input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #dfe7ec;
+  font-family: var(--font-terminal);
+  font-size: 11.5px;
+}
+
+.hal-wayup__input:focus-visible {
+  outline: 1px solid var(--menubar-accent);
+  outline-offset: -2px;
+}
+
+.hal-wayup__go {
+  appearance: none;
+  border: 1px solid #3c4750;
+  background: #171c21;
+  color: #c2cdd4;
+  font-family: var(--font-terminal);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.hal-wayup__go:hover[aria-disabled='false'] {
+  border-color: var(--menubar-accent);
+  color: #fff;
+}
+
+/* aria-disabled rather than disabled, so the control never drops a keyboard player to <body>. */
+.hal-wayup__go[aria-disabled='true'],
+.hal-wayup__row[aria-disabled='true'],
+.hal-wayup__link[aria-disabled='true'],
+.hal-wayup__keep[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.hal-wayup__meter {
+  flex: none;
+  display: flex;
+  gap: 12px;
+  padding: 7px 13px;
+  border-bottom: 1px solid #22282d;
+  font-size: 10.5px;
+}
+
+.hal-wayup__signal {
+  flex: none;
+  color: var(--ink-dimmer);
+}
+
+.hal-wayup__say {
+  flex: 1;
+  min-width: 0;
+  color: var(--conf-mid);
+}
+
+.hal-wayup__out {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 13px;
+}
+
+.hal-wayup__notice {
+  border: 1px solid #3a3330;
+  border-left: 3px solid #7a4a42;
+  padding: 13px 15px;
+  max-width: 60ch;
+}
+
+.hal-wayup__noticetitle {
+  margin: 0 0 8px;
+  font-family: var(--font-terminal);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #e2887a;
+}
+
+.hal-wayup__noticebody {
+  margin: 0;
+  color: var(--overlay-prose);
+  line-height: 1.85;
+}
+
+.hal-wayup__empty {
+  margin: 0;
+  color: var(--overlay-empty);
+  max-width: 60ch;
+}
+
+.hal-wayup__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 9px;
+  background: #22282d;
+  border: 1px solid #22282d;
+}
+
+.hal-wayup__row {
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #10151a;
+  border: none;
+  padding: 9px 11px;
+  cursor: pointer;
+  font-family: var(--font-terminal);
+  font-size: 11.5px;
+  color: #c2cdd4;
+}
+
+.hal-wayup__row:hover[aria-disabled='false'] {
+  background: #171e24;
+}
+
+.hal-wayup__rowtitle {
+  display: block;
+  color: #dfe7ec;
+}
+
+.hal-wayup__rowurl {
+  display: block;
+  color: #6f9ab5;
+  font-size: 10.5px;
+  word-break: break-all;
+}
+
+.hal-wayup__rowsnip {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink-dim);
+  font-size: 10.5px;
+  line-height: 1.6;
+}
+
+.hal-wayup__rowcost:not(:empty) {
+  display: block;
+  margin-top: 5px;
+  color: var(--ink-dimmer);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.hal-wayup__docbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 11px;
+}
+
+.hal-wayup__back,
+.hal-wayup__keep {
+  appearance: none;
+  border: 1px solid #3c4750;
+  background: #171c21;
+  color: #c2cdd4;
+  font-family: var(--font-terminal);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  padding: 5px 11px;
+  cursor: pointer;
+}
+
+.hal-wayup__back:hover,
+.hal-wayup__keep:hover[aria-disabled='false'] {
+  border-color: var(--menubar-accent);
+  color: #fff;
+}
+
+.hal-wayup__doctitle {
+  margin: 0;
+  font-family: var(--font-terminal);
+  font-size: 13px;
+  font-weight: 400;
+  color: #dfe7ec;
+}
+
+.hal-wayup__docurl {
+  color: #6f9ab5;
+  font-size: 10.5px;
+  word-break: break-all;
+  margin-bottom: 12px;
+}
+
+.hal-wayup__blocks {
+  border-top: 1px solid #22282d;
+  border-bottom: 1px solid #22282d;
+  padding: 12px 0;
+  max-width: 74ch;
+}
+
+.hal-wayup__h {
+  margin: 16px 0 6px;
+  font-family: var(--font-terminal);
+  font-weight: 400;
+  color: #dfe7ec;
+}
+
+h3.hal-wayup__h {
+  font-size: 12.5px;
+}
+h4.hal-wayup__h {
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+}
+h5.hal-wayup__h {
+  font-size: 11px;
+  color: #a9b6bf;
+}
+
+.hal-wayup__p {
+  margin: 0 0 10px;
+  line-height: 1.85;
+}
+
+.hal-wayup__quote {
+  margin: 0 0 10px;
+  padding-left: 11px;
+  border-left: 2px solid #3c4750;
+  color: var(--ink-dim);
+}
+
+.hal-wayup__list {
+  margin: 0 0 10px;
+  padding-left: 18px;
+  line-height: 1.85;
+}
+
+.hal-wayup__code {
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  background: #080b0e;
+  border: 1px solid #22282d;
+  overflow-x: auto;
+  font-family: var(--font-terminal);
+  font-size: 11px;
+  color: #a9b6bf;
+  white-space: pre-wrap;
+}
+
+.hal-wayup__rule {
+  border: none;
+  border-top: 1px solid #22282d;
+  margin: 14px 0;
+}
+
+.hal-wayup__captured {
+  margin-top: 10px;
+  color: var(--ink-dimmer);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+.hal-wayup__hint {
+  margin: 4px 0 0;
+  color: var(--overlay-empty);
+  font-size: 10.5px;
+  max-width: 62ch;
+}
+
+.hal-wayup__kept,
+.hal-wayup__links {
+  margin-top: 14px;
+  border-top: 1px solid #22282d;
+  padding-top: 10px;
+}
+
+.hal-wayup__keptline {
+  color: var(--conf-high);
+  font-size: 10.5px;
+  line-height: 1.7;
+  margin-top: 5px;
+  max-width: 70ch;
+}
+
+.hal-wayup__link {
+  display: block;
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 3px 0;
+  text-align: left;
+  font-family: var(--font-terminal);
+  font-size: 10.5px;
+  color: #6f9ab5;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.hal-wayup__link:hover[aria-disabled='false'] {
+  color: #a9c9de;
+}
+
 /* ---------------------------------------------------------------- dock */
 
 .hal-dock {
@@ -2458,6 +2844,32 @@
 
   .hal-board__left {
     border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  }
+
+  .hal-wayup {
+    padding: 0;
+    inset: var(--menubar-height) 0 0 0;
+  }
+
+  .hal-wayup__panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+  }
+
+  .hal-wayup__head {
+    flex-wrap: wrap;
+  }
+
+  .hal-wayup__sub {
+    order: 3;
+    flex-basis: 100%;
+    white-space: normal;
+  }
+
+  /* Full height on a phone, so the dock is over the panel rather than beside it. */
+  .hal-wayup__out {
+    padding-bottom: 82px;
   }
 
   .hal-dock {
@@ -3040,4 +3452,82 @@
   font-size: 11.5px;
   color: var(--body-ink);
   line-height: 1.35;
+}
+
+/* Lines carried back from the far side of the relay.
+   Set apart from evidence by paper rather than by colour: evidence is a card you can pick up,
+   this is a slip of something that should not be here, ruled off and quoted. It is never a
+   button, because the one thing it cannot do is hold up a claim. */
+.hal-kept {
+  border-top: 1px solid var(--rule, #cdd2d8);
+  margin-top: 10px;
+  padding-top: 9px;
+}
+
+.hal-kept__head {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--body-ink);
+}
+
+.hal-kept__note {
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: #79808a;
+  margin: 3px 0 7px;
+}
+
+.hal-kept__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hal-kept__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  margin-bottom: 5px;
+  border: 1px dashed #b9bec6;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 7px,
+    rgba(0, 0, 0, 0.018) 7px,
+    rgba(0, 0, 0, 0.018) 14px
+  );
+}
+
+.hal-kept__excerpt {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--body-ink);
+}
+
+.hal-kept__src {
+  font-size: 10px;
+  color: #79808a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A captured document is a list of lines: one tab stop, arrows to move, Enter to keep. The
+   active line is marked by a rule in the margin rather than by colour, so it survives a screen
+   that cannot show colour and a reader that does not look at one. */
+.hal-wayup__line {
+  border-left: 2px solid transparent;
+  padding-left: 8px;
+  margin-left: -10px;
+}
+
+.hal-wayup__line[aria-selected='true'] {
+  border-left-color: currentColor;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hal-wayup__blocks:focus-visible {
+  outline: 1px dotted currentColor;
+  outline-offset: 3px;
 }

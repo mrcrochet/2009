@@ -2,6 +2,7 @@
 
 import { selectEvidenceCards } from '@/engine/selectors'
 import { useContent, useDispatch, useTimeline } from './GameContext'
+import { KeptLines } from './KeptLines'
 
 /** Light, collapsible, always reachable. Never a permanent panel. */
 export function EvidenceTray() {
@@ -59,6 +60,7 @@ export function EvidenceTray() {
                 decide what matters.
               </div>
             ) : null}
+            <KeptLines variant="tray" />
           </div>
           <div className="hal-tray__foot">
             <button

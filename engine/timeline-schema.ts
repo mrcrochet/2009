@@ -195,6 +195,8 @@ export const TimelineStateSchema = z.object({
           snapshotId: z.string().max(128),
           excerpt: z.string().max(4096),
           excerptHash: z.string().length(64),
+          sourceUrl: z.string().max(2048).default(''),
+          sourceTitle: z.string().max(300).default(''),
           capturedDay: z.number().int().min(1).max(366),
           capturedAt: minute,
         }),

@@ -877,11 +877,32 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       }
     }
 
+    case 'WAYUP_SEARCHED': {
+      if (!state.wayup.unlocked) return state
+      const budget = content.wayup?.signalBudget ?? 0
+      if (state.wayup.signalSpent + event.signalCost > budget) return state
+      if (event.signalCost === 0) return state
+      return {
+        ...state,
+        wayup: { ...state.wayup, signalSpent: state.wayup.signalSpent + event.signalCost },
+      }
+    }
+
     case 'WAYUP_EVIDENCE_PINNED': {
       if (!state.wayup.observed.includes(event.snapshotId)) return state
       if (state.wayup.futureEvidence.some((e) => e.excerptHash === event.excerptHash)) return state
+      /*
+       * Keeping a line is not free, and it is not free in the currency signal is.
+       *
+       * Signal buys the looking. This is the carrying: a sentence that has not happened yet,
+       * written down on a machine in 2009, and the world moves a little because it is now
+       * somewhere it was not. Both numbers are the day's decision.
+       */
+      const cost = content.wayup
       return {
         ...state,
+        temporalShift: state.temporalShift + (cost?.keepShift ?? 0),
+        heat: state.heat + (cost?.keepHeat ?? 0),
         wayup: {
           ...state.wayup,
           futureEvidence: [
@@ -891,6 +912,8 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
               snapshotId: event.snapshotId,
               excerpt: event.excerpt,
               excerptHash: event.excerptHash,
+              sourceUrl: event.sourceUrl,
+              sourceTitle: event.sourceTitle,
               capturedDay: state.day,
               capturedAt: event.at,
             },

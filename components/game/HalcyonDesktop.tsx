@@ -11,6 +11,7 @@ import { InvestigationBoard } from './InvestigationBoard'
 import { MenuBar } from './MenuBar'
 import { PhoneOverlay } from './PhoneOverlay'
 import { SurveillanceOverlay } from './SurveillanceOverlay'
+import { WayUpOverlay } from './WayUpOverlay'
 import { WindowManager } from './WindowManager'
 import { useDispatch, useTimeline } from './GameContext'
 import { useWorldOptional } from './WorldContext'
@@ -43,6 +44,7 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
   const [directoryFocus, setDirectoryFocus] = useState<string | null>(null)
   const trayOpen = useTimeline((s) => s.ui.trayOpen)
   const boardOpen = useTimeline((s) => s.ui.boardOpen)
+  const wayupOpen = useTimeline((s) => s.ui.wayupOpen)
   const phoneOpen = useTimeline((s) => s.phone.open)
 
   // One search across the whole machine. Ctrl+K rather than a dock icon: it is a route through
@@ -61,13 +63,13 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (searchOpen || boardOpen) return // each handles its own Escape
+      if (searchOpen || boardOpen || wayupOpen) return // each handles its own Escape
       if (trayOpen) dispatch({ type: 'TRAY_TOGGLED', open: false })
       else if (phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen])
+  }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen, wayupOpen])
 
   /**
    * Opening a result has to arrive at the document, not at the application that happens to hold
@@ -118,6 +120,7 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
       <PhoneOverlay />
       <EvidenceTray />
       <InvestigationBoard />
+      <WayUpOverlay />
       <SearchPalette
         open={searchOpen}
         onClose={() => setSearchOpen(false)}

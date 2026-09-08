@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { selectEvidenceCards } from '@/engine/selectors'
+import { KeptLines } from './KeptLines'
 import { useContent, useDispatch, useTimeline } from './GameContext'
 import { useFocusTrap } from './useFocusTrap'
 
@@ -94,6 +95,7 @@ export function InvestigationBoard() {
                   behind it.
                 </div>
               ) : null}
+              <KeptLines variant="board" />
             </div>
           </div>
           <div className="hal-board__right">

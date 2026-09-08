@@ -183,6 +183,19 @@ const STEPS: readonly MigrationStep[] = [
       }
       snapshot.files = files
 
+      // A line kept from the far side now records where it came from. A save written before
+      // that has snapshot ids and nothing to label them with, which is what the empty string is.
+      const wayup = { ...((snapshot.wayup as AnyRecord) ?? {}) }
+      const future = Array.isArray(wayup.futureEvidence)
+        ? (wayup.futureEvidence as AnyRecord[])
+        : []
+      wayup.futureEvidence = future.map((e) => ({
+        ...e,
+        sourceUrl: typeof e.sourceUrl === 'string' ? e.sourceUrl : '',
+        sourceTitle: typeof e.sourceTitle === 'string' ? e.sourceTitle : '',
+      }))
+      snapshot.wayup = wayup
+
       // The relay console is a screen the timeline can be sitting on, so it needs a place in
       // the saved shape. A save from before it existed was never on it.
       const ui = { ...((snapshot.ui as AnyRecord) ?? {}) }

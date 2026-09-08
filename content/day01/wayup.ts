@@ -60,6 +60,34 @@ export const wayup: z.input<typeof WayUpConfigSchema> = {
   },
   fallbackRefusal: 'qlmux: refused. no reason given, which is itself a reason.',
 
+  /*
+   * Signal buys the looking. This is the price of the carrying: one notch of drift for every
+   * sentence brought back, and no heat — nobody is watching the line yet.
+   */
+  keepShift: 1,
+  keepHeat: 0,
+
+  docLabel: 'the document, line by line',
+  keptHeading: 'BROUGHT BACK',
+  keptNote:
+    'These are not evidence. Nothing you can show anyone in 2009 begins in a year nobody has reached, and a claim that rests on one is a claim you cannot make. You know it anyway.',
+  keptDeed:
+    'You wrote down {{count}} things that have not happened, on a machine that is not yours.',
+
   pinLabel: 'KEEP THIS LINE',
   pinnedLabel: 'kept',
+
+  /*
+   * The rest of the console's vocabulary. The rule is the same as everything above it: if the
+   * player can read it — or hear it read out — it is written here, in the voice of a process
+   * that reports carrier and bytes and has no idea what it is touching.
+   */
+  closeLabel: 'detach the listener',
+  backLabel: 'back to what came back',
+  resultsLabel: 'came back:',
+  linksLabel: 'this document names further addresses:',
+  working: 'sending. the far end is not close.',
+  costTemplate: 'opening this costs {{cost}}',
+  pinHint: 'mark a line in the document first. this machine will not decide which line matters.',
+  rateLimited: 'qlmux: too fast for the line. {{seconds}} seconds before it will carry again.',
 }

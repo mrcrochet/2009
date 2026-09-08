@@ -422,6 +422,13 @@ function selectDeeds(state: TimelineState, content: DayContent): readonly string
   if (state.watchlist.length > 0) {
     deeds.push(t.watchlist.replace('{{names}}', state.watchlist.join(', ')))
   }
+  // Reaching forward is a deed like any other, and the card is where deeds are read back.
+  if (state.wayup.futureEvidence.length > 0 && content.wayup?.keptDeed) {
+    deeds.push(
+      content.wayup.keptDeed.replace('{{count}}', String(state.wayup.futureEvidence.length)),
+    )
+  }
+
   if (state.recalls.length > 0) {
     const spent =
       state.recalls.length === 1
@@ -448,6 +455,7 @@ export const selectDaySummary: (state: TimelineState, content: DayContent) => Da
     s.flags,
     s.recalls,
     s.watchlist,
+    s.wayup,
     c,
   ],
   (state, content) => {
