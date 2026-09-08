@@ -109,6 +109,9 @@ export const selectMail: (state: TimelineState, content: DayContent) => readonly
         meta: u.meta,
         body,
         evidenceId: null,
+        // The message that arrives at the end of the day disputes nothing; it is the day
+        // reporting itself back.
+        disputedClaim: null,
       })
     }
     return list.map((m) => ({

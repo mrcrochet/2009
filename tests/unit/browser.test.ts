@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import { searchIndex } from '@/engine/rules'
-import { normalizeUrl } from '@/engine/reducer'
+import { normalizeUrl } from '@/engine/url'
 import { isPageAltered, resolveBlocks } from '@/engine/temporal'
 import { BrowserPageSchema } from '@/engine/content-schema'
 import { content, dispatch, fresh, run } from './helpers'

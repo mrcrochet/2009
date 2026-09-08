@@ -445,7 +445,18 @@ export type GameEvent =
   | (Base & { type: 'BROWSER_QUERY_CHANGED'; query: string })
   | (Base & { type: 'BROWSER_URL_CHANGED'; url: string })
   | (Base & { type: 'BROWSER_SEARCHED'; query: string })
-  | (Base & { type: 'BROWSER_NAVIGATED'; url: string })
+  | (Base & {
+      type: 'BROWSER_NAVIGATED'
+      url: string
+      /**
+       * The world artifact living at this address, when the browser found one there.
+       *
+       * On the event rather than worked out by the reducer, because only the shell holds the
+       * world index — and on the event rather than dispatched separately afterwards, because the
+       * log has to be able to say what the player read without a second event to correlate.
+       */
+      worldArtifactId?: string | null
+    })
   | (Base & { type: 'BROWSER_WENT_BACK' })
   | (Base & { type: 'BROWSER_WENT_FORWARD' })
   | (Base & { type: 'FILE_OPENED'; fileId: string })

@@ -112,9 +112,17 @@ const index = buildWorldIndex(world)
 const disputedIndex = buildWorldIndex(
   WorldSchema.parse({
     ...world,
-    artifacts: world.artifacts.map((a) =>
-      a.id === 'photo-1' ? { ...a, reliability: 'deceptive', contradicts: ['mail-1'] } : a,
-    ),
+    artifacts: world.artifacts.map((a) => {
+      if (a.id === 'photo-1')
+        return {
+          ...a,
+          reliability: 'deceptive',
+          contradicts: ['mail-1'],
+          disputedClaim: 'no car in the driveway on the ninth',
+        }
+      if (a.id === 'mail-1') return { ...a, disputedClaim: 'Marc still has the Saab' }
+      return a
+    }),
   }),
 )
 
@@ -343,6 +351,10 @@ describe('directory', () => {
     expect(screen.getByText('DOES NOT ADD UP')).toBeInTheDocument()
     expect(screen.getByText('Two things you have cannot both be true.')).toBeInTheDocument()
     const pair = document.querySelector('.hal-dir__conflict')!
+    // The lines, not the file names — the disagreement itself is what the player reads.
+    expect(pair).toHaveTextContent('“Marc still has the Saab”')
+    expect(pair).toHaveTextContent('“no car in the driveway on the ninth”')
+    // The document each came from is still named, underneath.
     expect(pair).toHaveTextContent('Re: the car')
     expect(pair).toHaveTextContent('Driveway, March')
     // Neither is marked as the false one.

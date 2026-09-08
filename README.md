@@ -56,4 +56,5 @@ meant to be content, not a rewrite.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — layering, the reducer, persistence, entitlement
 - [`docs/DAY01_ACCEPTANCE.md`](docs/DAY01_ACCEPTANCE.md) — acceptance criteria mapped to tests
 - [`docs/AUTHORING.md`](docs/AUTHORING.md) — how to add a day without touching the engine
+- [`docs/CORPUS.md`](docs/CORPUS.md) — how to author the world the days happen inside, and what the build enforces about it
 - [`docs/MYSTERY_AUTHORING.md`](docs/MYSTERY_AUTHORING.md) — the editorial line on real-world mysteries, and what the build enforces

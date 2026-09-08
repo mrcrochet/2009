@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { DayContentSchema } from '@/engine/content-schema'
 import { day01 } from '@/content/day01'
 import { BY_DAY, GAME_WORLD } from '@/content'
+import { artifactUrl } from '@/engine/world'
+import { WORLD } from '@/content/world'
 import { resolveBlocks } from '@/engine/temporal'
 import { content } from './helpers'
 
@@ -158,6 +160,73 @@ describe('the world corpus holds together', () => {
 
   it('gives no artifact the same id twice, including the projected days', () => {
     expect(ids.size).toBe(GAME_WORLD.artifacts.length)
+  })
+
+  /**
+   * The ratio the whole corpus exists to hold.
+   *
+   * If every site on the web is about Aion, the world is artificial inside twenty minutes. The
+   * target is roughly 65 ordinary / 20 economic / 10 side-story / 4 suggestive / 1 anomalous per
+   * hundred pages, and it is measured per artifact rather than per fact because the thing being
+   * rationed is what a player reads, not what an author files.
+   *
+   * The bounds are wide on purpose. A plot fact needs four to six traces to be solvable from any
+   * two of them, so the suggestive layer cannot shrink below a floor — it converges by the
+   * ordinary layer growing, and this fails when it has stopped growing.
+   */
+  it('is mostly not about the case', () => {
+    const register = new Map(WORLD.facts.map((f) => [f.id, f.register]))
+    const tally: Record<string, number> = {
+      ordinary: 0,
+      economic: 0,
+      sideStory: 0,
+      suggestive: 0,
+      anomalous: 0,
+    }
+    for (const artifact of WORLD.artifacts) {
+      // A page carrying no fact carries no plot, which is what ordinary means.
+      const key = (artifact.factId && register.get(artifact.factId)) || 'ordinary'
+      tally[key] = (tally[key] ?? 0) + 1
+    }
+
+    const total = WORLD.artifacts.length
+    const pct = (key: string) => Math.round(((tally[key] ?? 0) / total) * 100)
+    const shape = Object.keys(tally)
+      .map((key) => `${key} ${pct(key)}%`)
+      .join(' · ')
+
+    expect(pct('ordinary'), `too little ordinary world: ${shape}`).toBeGreaterThanOrEqual(50)
+    expect(pct('anomalous'), `too much wonder: ${shape}`).toBeLessThanOrEqual(5)
+    expect(
+      pct('suggestive') + pct('anomalous'),
+      `the plot is eating the world: ${shape}`,
+    ).toBeLessThanOrEqual(20)
+  })
+
+  /**
+   * A page nobody can reach is not on the web.
+   *
+   * The corpus is the rest of the internet — the classified from November, the thread nobody
+   * links to. All of it is findable through search, and all of it has to be *openable*, or the
+   * search is a list of places the player is not allowed to go.
+   */
+  it('gives every page on the web an address', () => {
+    const unreachable = GAME_WORLD.artifacts
+      .filter((a) => (a.surface === 'web' || a.surface === 'archive') && !artifactUrl(a))
+      .map((a) => a.id)
+    expect(unreachable, `${unreachable.length} pages with no address`).toEqual([])
+  })
+
+  it('never puts two documents at the same address', () => {
+    const seen = new Map<string, string>()
+    for (const artifact of GAME_WORLD.artifacts) {
+      const url = artifactUrl(artifact)
+      if (!url) continue
+      const first = seen.get(url)
+      // The index keeps the first and drops the rest in silence, so the loser is unreachable.
+      expect(first, `${artifact.id} and ${first} both live at ${url}`).toBeUndefined()
+      seen.set(url, artifact.id)
+    }
   })
 
   /**

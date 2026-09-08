@@ -64,7 +64,11 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
     | 'variants'
     | 'reliability'
     | 'contradicts'
+    | 'url'
+    | 'disputedClaim'
   > => ({
+    url: null,
+    disputedClaim: null,
     ownerEntityId: null,
     fields: {},
     amountCents: null,
@@ -90,6 +94,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
       surface: 'mail',
       mentions: mentionsIn(text, resolve, names),
       fields: { from: mail.from, received: mail.time },
+      disputedClaim: mail.disputedClaim,
     })
   }
 
@@ -104,6 +109,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
       source: `Files — ${file.name}`,
       surface: 'files',
       mentions: mentionsIn(file.body, resolve, names),
+      disputedClaim: file.disputedClaim,
     })
   }
 
@@ -163,6 +169,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
       id: projectedId.web(day, page.url),
       type: 'webPage',
       date,
+      url: page.url,
       title: page.url,
       body: text,
       source: page.url,

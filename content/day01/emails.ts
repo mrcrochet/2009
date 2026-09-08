@@ -44,6 +44,8 @@ export const mail: MailInput[] = [
       '—m',
     ],
     evidenceId: null,
+    // Half of this message is false and half of it is the reason there is a Day 02.
+    disputedClaim: 'stayed in all evening, watched the game',
   },
 ]
 

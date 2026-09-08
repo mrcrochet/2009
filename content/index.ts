@@ -1,5 +1,5 @@
 import { DayContentSchema, type DayContent } from '@/engine/content-schema'
-import { buildWorldIndex, type WorldIndex } from '@/engine/world'
+import { buildWorldIndex, worldAsOf, type WorldIndex } from '@/engine/world'
 import type { World } from '@/engine/world/schema'
 import { projectDay } from '@/engine/world/project'
 import { day01 as day01Raw } from './day01'
@@ -81,4 +81,18 @@ export const GAME_WORLD: World = {
   ],
 }
 
-export const WORLD_INDEX: WorldIndex = buildWorldIndex(GAME_WORLD)
+/**
+ * The world index for a given day, built once per day and kept.
+ *
+ * Cut to the day's own date, because every authored day is projected into one graph and a
+ * machine on the fifteenth has no business answering questions about the twentieth.
+ */
+const INDEX_BY_DAY = new Map<number, WorldIndex>()
+
+export function worldIndexForDay(day: number): WorldIndex {
+  const cached = INDEX_BY_DAY.get(day)
+  if (cached) return cached
+  const built = buildWorldIndex(worldAsOf(GAME_WORLD, contentForDay(day).dateISO))
+  INDEX_BY_DAY.set(day, built)
+  return built
+}

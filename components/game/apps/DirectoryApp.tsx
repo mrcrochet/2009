@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react'
 import { displayDate, entityDossier, factCoverage, knownEntities } from '@/engine/world'
-import type { RelationTypeSchema, WorldEntity } from '@/engine/world/schema'
+import type { RelationTypeSchema, WorldArtifact, WorldEntity } from '@/engine/world/schema'
 import type { z } from 'zod'
 import { useWorldOptional } from '../WorldContext'
+import { useDirectoryFocus } from '../DirectoryFocus'
 
 type RelationType = z.infer<typeof RelationTypeSchema>
 
@@ -75,6 +76,28 @@ type Confidence = keyof typeof CONFIDENCE
 const CONFIDENCE_ORDER: readonly Confidence[] = ['asserted', 'inferred', 'rumoured']
 
 /**
+ * One half of a disagreement.
+ *
+ * The quoted line where a document has one, because "stayed in all evening" set against "IN
+ * 01/14/09 21:47" is the moment; two file names set against each other is a filing system
+ * telling you to go and read something.
+ */
+function ConflictSide({ artifact }: { artifact: WorldArtifact }) {
+  const line = artifact.disputedClaim
+  return (
+    <span className="hal-dir__conflictside">
+      <span className={line ? 'hal-dir__conflictquote' : 'hal-dir__conflicttitle'}>
+        {line ? `“${line}”` : artifact.title || artifact.source}
+      </span>
+      <span className="hal-dir__conflictmeta">
+        {line ? `${artifact.title || artifact.source} · ` : ''}
+        {artifact.source} · {displayDate(artifact.date)}
+      </span>
+    </span>
+  )
+}
+
+/**
  * What the player is told about a fact they are partway through.
  *
  * It never says which document is wrong. Naming the lie would make this page an answer key; the
@@ -100,7 +123,18 @@ const GROUPS: readonly {
 
 export function DirectoryApp() {
   const world = useWorldOptional()
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const focus = useDirectoryFocus()
+  const [selectedId, setSelectedId] = useState<string | null>(focus)
+
+  /*
+   * A search that sends the player here has already chosen who they wanted. Adopted during
+   * render rather than in an effect, so the window never paints somebody else first.
+   */
+  const [lastFocus, setLastFocus] = useState(focus)
+  if (lastFocus !== focus) {
+    setLastFocus(focus)
+    if (focus) setSelectedId(focus)
+  }
 
   /**
    * Only people the player has actually run into.
@@ -122,10 +156,23 @@ export function DirectoryApp() {
     [known],
   )
 
+  /**
+   * A dossier only exists for somebody the player has met.
+   *
+   * The search deliberately shows the whole world, so it can send the player to a name they have
+   * never encountered. That is a good tease and it must not become a briefing: no aliases, no
+   * address, no date of death for a person nothing they hold has mentioned.
+   */
   const dossier = useMemo(() => {
     if (!world || !selectedId) return null
+    if (!known.some((e) => e.id === selectedId)) return null
     return entityDossier(world.index, selectedId, world.discovered)
-  }, [world, selectedId])
+  }, [world, known, selectedId])
+
+  const stranger = useMemo(() => {
+    if (!world || !selectedId || dossier) return null
+    return world.index.entityById.get(selectedId) ?? null
+  }, [world, selectedId, dossier])
 
   /**
    * How many traces of each fact the player holds. Two of six is usually enough to act on, and
@@ -177,7 +224,15 @@ export function DirectoryApp() {
       </div>
 
       <div className="hal-dir__page">
-        {!dossier ? (
+        {stranger ? (
+          <div className="hal-dir__empty">
+            <p>{stranger.canonicalName}</p>
+            <p>
+              The name has come up in a search of this machine. Nothing you have read mentions them,
+              so there is nothing here yet.
+            </p>
+          </div>
+        ) : !dossier ? (
           <div className="hal-dir__empty">
             <p>{known.length === 0 ? 'Nobody yet.' : 'Nobody selected.'}</p>
             <p>
@@ -251,21 +306,11 @@ export function DirectoryApp() {
                 <ul className="hal-dir__conflicts">
                   {dossier.conflicts.map(([a, b]) => (
                     <li key={`${a.id}|${b.id}`} className="hal-dir__conflict">
-                      <span className="hal-dir__conflictside">
-                        <span className="hal-dir__conflicttitle">{a.title || a.source}</span>
-                        <span className="hal-dir__conflictmeta">
-                          {a.source} · {displayDate(a.date)}
-                        </span>
-                      </span>
+                      <ConflictSide artifact={a} />
                       <span className="hal-dir__conflictvs" aria-hidden="true">
                         ×
                       </span>
-                      <span className="hal-dir__conflictside">
-                        <span className="hal-dir__conflicttitle">{b.title || b.source}</span>
-                        <span className="hal-dir__conflictmeta">
-                          {b.source} · {displayDate(b.date)}
-                        </span>
-                      </span>
+                      <ConflictSide artifact={b} />
                     </li>
                   ))}
                 </ul>

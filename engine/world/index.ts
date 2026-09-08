@@ -1,3 +1,4 @@
+import { normalizeUrl } from '../url'
 import type { World, WorldArtifact, WorldEntity, WorldFact, WorldRelation } from './schema'
 
 /**
@@ -21,12 +22,77 @@ export interface WorldIndex {
   readonly contradictedBy: ReadonlyMap<string, ReadonlySet<string>>
   /** Lowercased alias → entity id. What lets "saabman81" reach a person. */
   readonly aliasIndex: ReadonlyMap<string, string>
+  /**
+   * Normalised address → the artifact that lives there. This is what makes the corpus an
+   * internet rather than a filing cabinet: a URL written in one document can be typed into the
+   * address bar and arrive somewhere.
+   */
+  readonly artifactByUrl: ReadonlyMap<string, WorldArtifact>
+  /**
+   * Site → every page belonging to it, in address order. See `siteOf`.
+   *
+   * A site is more than a page. Don's model railway pages have a nav bar between them, and the
+   * graph knew only that they shared a string in a `source` field — so a player who found the
+   * links page had no way back to the rest of the site except by guessing.
+   */
+  readonly siteByHost: ReadonlyMap<string, readonly WorldArtifact[]>
 }
 
 function push<T>(map: Map<string, T[]>, key: string, value: T): void {
   const list = map.get(key)
   if (list) list.push(value)
   else map.set(key, [value])
+}
+
+/**
+ * The address of an artifact, if it has one.
+ *
+ * An explicit `url` wins. Otherwise the head of `source` is used when it is already URL-shaped,
+ * because most of the web corpus writes its source as the address it came from and asking an
+ * author to repeat it in a second field is how the two drift apart.
+ */
+export function artifactUrl(artifact: WorldArtifact): string | null {
+  // Only the web is browsable. A bank statement whose source happens to read like a hostname is
+  // still a bank statement, and an address on it would put it on the internet.
+  if (artifact.surface !== 'web' && artifact.surface !== 'archive') return null
+  if (artifact.url) return normalizeUrl(artifact.url)
+  const head = (artifact.source.split('·')[0] ?? '').trim()
+  return /^[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(head) ? normalizeUrl(head) : null
+}
+
+/**
+ * The world as it stood on a given date.
+ *
+ * A machine on the fifteenth of January cannot find a document written on the twentieth. Without
+ * this the search would answer questions about the rest of the season on the first morning —
+ * every day is projected into one graph, so the graph has to be cut to the day being played.
+ *
+ * Entities go with their documents. Filtering artifacts alone would leave a name searchable with
+ * nothing behind it, which is worse than either extreme: the player learns somebody exists and
+ * learns it from a machine that cannot say why.
+ */
+export function worldAsOf(world: World, dateISO: string): World {
+  const artifacts = world.artifacts.filter((a) => a.date.slice(0, 10) <= dateISO)
+
+  const present = new Set<string>()
+  for (const artifact of artifacts) {
+    for (const entityId of artifact.mentions) present.add(entityId)
+    if (artifact.ownerEntityId) present.add(artifact.ownerEntityId)
+  }
+  const ids = new Set(artifacts.map((a) => a.id))
+
+  return {
+    entities: world.entities.filter((e) => present.has(e.id)),
+    artifacts,
+    // Both ends have to still exist, or the entity page offers a connection to nobody.
+    relations: world.relations.filter(
+      (r) =>
+        present.has(r.from) &&
+        present.has(r.to) &&
+        (r.sources.length === 0 || r.sources.some((id) => ids.has(id))),
+    ),
+    facts: world.facts.filter((f) => artifacts.some((a) => a.factId === f.id)),
+  }
 }
 
 export function buildWorldIndex(world: World): WorldIndex {
@@ -44,6 +110,27 @@ export function buildWorldIndex(world: World): WorldIndex {
       if (entityId) push(artifactsByEntity, entityId, artifact)
     }
     if (artifact.factId) push(artifactsByFact, artifact.factId, artifact)
+  }
+
+  const artifactByUrl = new Map<string, WorldArtifact>()
+  for (const artifact of world.artifacts) {
+    const url = artifactUrl(artifact)
+    // First writer wins, so a day's authored page is never shadowed by a corpus one at the same
+    // address — `projectDay` runs after the corpus in `content/index.ts`, and this keeps that
+    // ordering meaningful rather than accidental.
+    if (url && !artifactByUrl.has(url)) artifactByUrl.set(url, artifact)
+  }
+
+  const siteByHost = new Map<string, WorldArtifact[]>()
+  for (const [url, artifact] of artifactByUrl) {
+    const site = siteOf(url)
+    if (!site) continue
+    const pages = siteByHost.get(site)
+    if (pages) pages.push(artifact)
+    else siteByHost.set(site, [artifact])
+  }
+  for (const pages of siteByHost.values()) {
+    pages.sort((a, b) => (artifactUrl(a) ?? '').localeCompare(artifactUrl(b) ?? ''))
   }
 
   const contradictedBy = new Map<string, Set<string>>()
@@ -79,7 +166,43 @@ export function buildWorldIndex(world: World): WorldIndex {
     artifactsByFact,
     contradictedBy,
     aliasIndex,
+    artifactByUrl,
+    siteByHost,
   }
+}
+
+/**
+ * The site an address belongs to: the folder its pages sit in.
+ *
+ * The host is not the site. `geohost.com` hosts a model railway enthusiast, a wedding page and a
+ * band, and grouping by host puts fourteen strangers in one man's nav bar. What a 2009 free host
+ * actually gave somebody was a directory — `geohost.com/Terminal/4417` — and everything under it
+ * was theirs.
+ *
+ * So: drop the last segment when it is a filename, keep it otherwise. `…/4417/links.html` and
+ * `…/4417/stock.html` are one site, and `…/4417` is its front page. The failure mode is a page
+ * with no nav bar, never a page whose nav bar belongs to somebody else.
+ */
+export function siteOf(url: string): string {
+  const path = url.split('?')[0] ?? url
+  const cut = path.lastIndexOf('/')
+  if (cut === -1) return path
+  const last = path.slice(cut + 1)
+  return /\.[a-z0-9]{2,5}$/i.test(last) ? path.slice(0, cut) : path
+}
+
+/**
+ * The other pages of the site this address belongs to.
+ *
+ * Not gated by discovery: a nav bar on a page you are reading lists what the site links to,
+ * whether or not you have been there. That is what a nav bar is, and it is the whole reason a
+ * player who lands on one page of a stranger's site ends up reading all five.
+ */
+export function siblingPages(index: WorldIndex, artifact: WorldArtifact): readonly WorldArtifact[] {
+  const url = artifactUrl(artifact)
+  if (!url) return []
+  const pages = index.siteByHost.get(siteOf(url)) ?? []
+  return pages.filter((page) => page.id !== artifact.id)
 }
 
 // --------------------------------------------------------------------- search

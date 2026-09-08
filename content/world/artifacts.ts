@@ -45,6 +45,7 @@ saabman81
 '91 900 · se portland`,
     source: 'Cascade Import Owners · Introductions',
     surface: 'web',
+    url: 'cascadeimports.com/board/8814',
     ownerEntityId: 'handle.saabman81',
     mentions: ['handle.saabman81', 'person.marc-deleon', 'vehicle.saab-900-black'],
     fields: {
@@ -68,6 +69,7 @@ Whole car considered if it's cheap and it's black. Cash, I can come to you, week
 Portland, SE. No dealers.`,
     source: 'TradePost · Parts & Accessories',
     surface: 'web',
+    url: 'tradepost.com/pdx/parts/118402',
     ownerEntityId: 'person.marc-deleon',
     mentions: ['person.marc-deleon', 'vehicle.saab-900-black', 'org.tradepost'],
     fields: {
@@ -181,6 +183,7 @@ recovered from the impound lot on NE Columbia Blvd. Storage accrues daily.
 Partial plates as recorded by the removal contractor. Owners must present registration.`,
     source: 'Columbia Register · Public notices, 27 December',
     surface: 'archive',
+    url: 'register.archive/notices/2008-12-27/snow-route-removals',
     ownerEntityId: null,
     mentions: [
       'vehicle.saab-900-black',
@@ -263,6 +266,7 @@ Cell shown is the tower that carried the call, not a position.`,
     // downtown at 21:47. Declared here so the machine can say the player is holding two things
     // that cannot both be true — never which of them is the lie.
     contradicts: ['d1.mail.m3'],
+    disputedClaim: 'IN 01/14/09 21:47 · OUT 01/14/09 22:20 · LEVEL 4',
   },
   {
     id: 'art.atm-frame-index',
@@ -283,6 +287,7 @@ Retention 30 days. Frames are indexed at the machine; images are held at the bra
 on written request only.`,
     source: 'Meridian Savings · branch systems',
     surface: 'archive',
+    url: 'meridian.archive/branch/morrison/camera/2009-01-14',
     ownerEntityId: 'org.meridian-savings',
     mentions: [
       'org.meridian-savings',
@@ -307,6 +312,7 @@ third night in a row something. i know how this sounds. im writing it down so th
 it down someone notices.`,
     source: 'Cluster · leavoss',
     surface: 'web',
+    url: 'cluster.com/leavoss/ok-now-im-annoyed',
     ownerEntityId: 'person.lea-voss',
     mentions: ['person.lea-voss', 'device.nokora-n90', 'place.2118-se-ankeny'],
     fields: { Author: 'leavoss', Posted: '15 Jan, 08:02', Comments: '0' },
@@ -327,11 +333,14 @@ looking at the upstairs windows and there were no lights on the whole evening.
 If it's yours, the sensor is too sensitive, it's been cold, that does it.`,
     source: 'Cluster · SE Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/se/car-alarm-on-39th',
     ownerEntityId: null,
     mentions: ['place.1822-se-39th', 'person.marc-deleon', 'vehicle.saab-900-black'],
     fields: { Board: 'Cluster · SE Portland', Comments: '2' },
     factId: 'fact.marc-downtown-14th',
     contradicts: ['d1.mail.m3'],
+    disputedClaim:
+      'I stood on my porch twice looking at the upstairs windows and there were no lights on the whole evening',
   },
 ]
 
@@ -363,6 +372,7 @@ saabman81
 [ attachment: DSC_0044.JPG · 1600x1200 · NOKORA N90 · body XJ18172 ]`,
     source: 'Cascade Import Owners · Post a picture of your car',
     surface: 'web',
+    url: 'cascadeimports.com/board/6602',
     ownerEntityId: 'handle.saabman81',
     mentions: [
       'handle.saabman81',
@@ -422,6 +432,7 @@ number and remaining airtime move together unless the outgoing party requests ot
 was recorded.`,
     source: 'Meridian Wireless · account history',
     surface: 'archive',
+    url: 'meridian.archive/wireless/account/5520/transfers',
     ownerEntityId: 'org.meridian-wireless',
     mentions: [
       'org.meridian-wireless',
@@ -502,6 +513,7 @@ ARTICLES OF ORGANIZATION · DOMESTIC LIMITED LIABILITY COMPANY
 Filed by mail. Fee paid $100.00.`,
     source: 'Oregon Business Registry · entity search',
     surface: 'archive',
+    url: 'registry.archive/oregon/entity/1188241-94',
     ownerEntityId: 'org.aion-group',
     mentions: [
       'org.aion-group',
@@ -517,6 +529,8 @@ Filed by mail. Fee paid $100.00.`,
     },
     amountCents: 10000,
     factId: 'fact.orbe-agent-of-record',
+    reliability: 'deceptive',
+    contradicts: ['art.morrison-directory'],
   },
   {
     id: 'art.orbe-agent-list',
@@ -542,6 +556,7 @@ Registered agents accept service of process on behalf of a business. An agent is
 officer or member, and the registry holds no information about who instructed them.`,
     source: 'Oregon Business Registry · agent search',
     surface: 'archive',
+    url: 'registry.archive/oregon/agent/orbe-stefan',
     ownerEntityId: 'person.stefan-orbe',
     mentions: ['person.stefan-orbe', 'org.aion-group'],
     fields: { Results: '11', Active: '9', 'Since 2008': '5' },
@@ -565,6 +580,7 @@ three of them share a street address with a bank branch. thats probably also bor
 no replies needed if the answer is just "no".`,
     source: 'nullcache.org · thread 3341',
     surface: 'web',
+    url: 'nullcache.org/thread/3341',
     ownerEntityId: null,
     mentions: ['person.stefan-orbe', 'org.aion-group', 'place.1140-se-morrison'],
     fields: { Thread: '3341', Replies: '0', Board: 'nullcache.org' },
@@ -594,6 +610,7 @@ no replies needed if the answer is just "no".`,
   Best viewed 800x600`,
     source: 'Way Up Machine · geohost.com/Terminal/1104 · captured 17/04/2001',
     surface: 'archive',
+    url: 'wayup.archive/2001/geohost.com/Terminal/1104',
     ownerEntityId: 'domain.geohost',
     mentions: ['domain.geohost', 'domain.blackbird', 'org.blackbird-hosting', 'org.aion-group'],
     fields: {
@@ -658,6 +675,7 @@ never met.
 edit: 02 is a 404 but the referrer logs on my own page have been getting hits for it since november.`,
     source: 'nullcache.org · thread 3327',
     surface: 'web',
+    url: 'nullcache.org/thread/3327',
     ownerEntityId: null,
     mentions: [
       'domain.blackbird',
@@ -701,6 +719,7 @@ $40 each or $200 for all six. You will need a truck and a friend. The elevator w
 Buyer collects, SE, weekday evenings.`,
     source: 'TradePost · Office & Business',
     surface: 'web',
+    url: 'tradepost.com/pdx/office/121455',
     ownerEntityId: 'person.gwen-sorrel',
     mentions: ['person.gwen-sorrel', 'org.tradepost'],
     fields: { Price: '$40 each / $200 all', Contact: '503-555-0129', Location: 'Portland, SE' },
@@ -724,6 +743,7 @@ polite and the whole thing was decided somewhere else a month before anybody tol
 Anyway. If somebody needs a filing cabinet, I have six.`,
     source: 'Cluster · Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/they-closed-us-on-a-friday',
     ownerEntityId: 'person.gwen-sorrel',
     mentions: ['person.gwen-sorrel'],
     fields: { Author: 'gsorrel', Comments: '14' },
@@ -748,6 +768,7 @@ party.
 Executed 14 November 2008.`,
     source: 'Multnomah County · recorded documents',
     surface: 'archive',
+    url: 'county.archive/multnomah/recorded/2008-11-14/morrison-suite-300',
     ownerEntityId: null,
     mentions: ['place.1140-se-morrison', 'person.gwen-sorrel'],
     fields: { Suite: '300', Effective: '31 December 2008', Executed: '14 November 2008' },
@@ -770,6 +791,7 @@ Rents have moved. Bring us a number.
 Broker: 503-555-0184`,
     source: 'TradePost · Commercial',
     surface: 'web',
+    url: 'tradepost.com/pdx/commercial/121702',
     ownerEntityId: null,
     mentions: ['place.1140-se-morrison', 'org.meridian-savings', 'org.tradepost'],
     fields: { Floors: '2, 3, 4', 'Sq ft': '3,100 each', Ground: 'occupied, long lease' },
@@ -792,8 +814,8 @@ Broker: 503-555-0184`,
 
 Plastic letters on a felt board. Three of the four slots are empty and the felt behind them is
 darker than the rest.`,
-    source: 'Photos · lobby board',
-    surface: 'archive',
+    source: 'Files · photographed, lobby board',
+    surface: 'files',
     ownerEntityId: null,
     mentions: ['place.1140-se-morrison', 'org.meridian-savings', 'org.aion-group'],
     fields: { Occupied: '1 of 4', 'Mail room': '24 hour access' },
@@ -842,6 +864,7 @@ and its the part i finished.
 not looking for advice. just wanted it written somewhere that isnt my own notebook.`,
     source: 'Cluster · leavoss',
     surface: 'web',
+    url: 'cluster.com/leavoss/counting-months',
     ownerEntityId: 'person.lea-voss',
     mentions: ['person.lea-voss', 'org.arcadia-ventures'],
     fields: { Author: 'leavoss', Comments: '6' },
@@ -889,6 +912,7 @@ $15 for the box. I am not going to sort it and I am not going to post photos of 
 Beaverton, near the library.`,
     source: 'TradePost · Auto parts',
     surface: 'web',
+    url: 'tradepost.com/pdx/parts/121880',
     ownerEntityId: 'person.nora-kemp',
     mentions: ['person.nora-kemp', 'org.tradepost', 'vehicle.saab-900-black'],
     fields: { Price: '$15', Location: 'Beaverton', Origin: 'storage auction' },
@@ -916,6 +940,7 @@ going to have it on the shelf like i used to.
 raycott`,
     source: 'Cascade Import Owners · General',
     surface: 'web',
+    url: 'cascadeimports.com/board/9741',
     ownerEntityId: 'handle.raycott',
     mentions: ['handle.raycott', 'person.raymond-cott', 'org.portland-auto-parts'],
     fields: { Author: 'raycott', Split: '60/40 used to new', Replies: '11' },
@@ -1036,7 +1061,8 @@ not rebuilding it, it has become the thing I like most.
   you are visitor 004417 · last updated 2 September 2008
   best viewed 800x600`,
     source: 'geohost.com/Terminal/4417',
-    surface: 'web',
+    surface: 'archive',
+    url: 'wayup.archive/2008/geohost.com/Terminal/4417',
     ownerEntityId: 'person.don-ackerley',
     mentions: ['person.don-ackerley', 'domain.geohost'],
     fields: { Visitors: '004417', Updated: '2 September 2008', Scale: 'N' },
@@ -1123,7 +1149,8 @@ Kept since 1998. Prices are what I paid, not what anything is worth.
 
   you are visitor 002210 · best viewed 800x600`,
     source: 'geohost.com/Meadow/2210',
-    surface: 'web',
+    surface: 'archive',
+    url: 'wayup.archive/2007/geohost.com/Meadow/2210',
     ownerEntityId: 'person.karen-mabry',
     mentions: ['person.karen-mabry', 'person.doug-mabry', 'domain.geohost'],
     fields: { Married: '14 August 2007', Visitors: '002210' },
@@ -1189,6 +1216,7 @@ You will need help and a proper truck, it is heavier than it looks. Doreen, 503-
 Woodstock. Evenings are best.`,
     source: 'TradePost · Arts & Crafts',
     surface: 'web',
+    url: 'tradepost.com/pdx/arts/121390',
     ownerEntityId: 'person.doreen-halloway',
     mentions: ['person.doreen-halloway', 'org.tradepost'],
     fields: { Price: '$400', Contact: '503-555-0193', Bought: '1994' },
@@ -1268,6 +1296,7 @@ can sign up for and there is nearly always somebody who will show you how to cen
 $30 a year. Come to one first and see.`,
     source: 'TradePost · Community',
     surface: 'web',
+    url: 'tradepost.com/pdx/community/121844',
     ownerEntityId: 'org.cascade-ceramics',
     mentions: ['org.cascade-ceramics', 'org.tradepost'],
     fields: { When: 'Second Tuesday, 7pm', Dues: '$30/year' },
@@ -1345,6 +1374,7 @@ This is genuinely the last one, our drummer is moving. Come if you came before. 
 did, that is arguably worse but it is not too late.`,
     source: 'TradePost · Music & Events',
     surface: 'web',
+    url: 'tradepost.com/pdx/music/119027',
     ownerEntityId: 'org.fenner-line',
     mentions: ['org.fenner-line', 'person.wesley-pike', 'org.tradepost'],
     fields: { Date: '6 December 2008', Door: '$5' },
@@ -1366,6 +1396,7 @@ my mother thinks a term off becomes two terms off. i think my mother might be ri
 asking strangers instead of her.`,
     source: 'Cluster · Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/anyone-else-taking-a-term-off',
     ownerEntityId: 'person.wesley-pike',
     mentions: ['person.wesley-pike', 'handle.wespike'],
     fields: { Author: 'wespike', Comments: '9' },
@@ -1384,6 +1415,7 @@ $90 or best offer. It has been good to me. I need the ninety dollars more than I
 Portland, near PSU, I can meet you somewhere with a bus stop.`,
     source: 'TradePost · Musical Instruments',
     surface: 'web',
+    url: 'tradepost.com/pdx/instruments/122011',
     ownerEntityId: 'person.wesley-pike',
     mentions: ['person.wesley-pike', 'org.tradepost', 'org.fenner-line'],
     fields: { Price: '$90 obo', Location: 'Portland, near PSU' },
@@ -1413,6 +1445,7 @@ not make a sound.
 Priya, 503-555-0166. Any hour. I mean that.`,
     source: 'TradePost · Lost & Found',
     surface: 'web',
+    url: 'tradepost.com/pdx/lostfound/121502',
     ownerEntityId: 'person.priya-raghunathan',
     mentions: ['person.priya-raghunathan', 'org.tradepost'],
     fields: { Missing: '2 January', Contact: '503-555-0166', Chipped: 'yes' },
@@ -1437,6 +1470,7 @@ if you are out walking, please just look under things.
 thank you.`,
     source: 'Cluster · SE Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/se/day-eleven',
     ownerEntityId: 'person.priya-raghunathan',
     mentions: ['person.priya-raghunathan'],
     fields: { Day: '11', Comments: '23' },
@@ -1461,6 +1495,7 @@ No grey tabby male matching described notch. Enquiry logged, caller to be contac
 matching. Standing enquiries expire after 60 days.`,
     source: 'Multnomah County · animal services',
     surface: 'archive',
+    url: 'county.archive/multnomah/animal/intake/2009-01-12',
     ownerEntityId: null,
     mentions: ['person.priya-raghunathan'],
     fields: { Week: '12 January', Match: 'none', 'Enquiry expires': '60 days' },
@@ -1511,6 +1546,7 @@ CERTIFIED VETERINARY TECHNICIAN · REGISTRY EXTRACT
   DISCIPLINARY HISTORY   NONE`,
     source: 'Oregon veterinary board · public registry',
     surface: 'archive',
+    url: 'board.archive/oregon-vet/cvt-4471-b',
     ownerEntityId: 'person.priya-raghunathan',
     mentions: ['person.priya-raghunathan'],
     fields: { Certificate: 'CVT-4471-B', Status: 'ACTIVE', 'First issued': '2002' },
@@ -1531,6 +1567,7 @@ because I went twice, decided I preferred sitting in the lodge, and had the hone
 $120 for everything. Hillsboro. I will meet you in a parking lot on a Saturday.`,
     source: 'TradePost · Sporting Goods',
     surface: 'web',
+    url: 'tradepost.com/pdx/sporting/121611',
     ownerEntityId: 'person.ted-bramble',
     mentions: ['person.ted-bramble', 'org.tradepost'],
     fields: { Price: '$120', Length: '156cm', Location: 'Hillsboro' },
@@ -1550,6 +1587,7 @@ I will also trade for something for a 98 pickup, it needs a wiper linkage and I 
 order but I would rather have the money back.`,
     source: 'TradePost · Sporting Goods',
     surface: 'web',
+    url: 'tradepost.com/pdx/sporting/122098',
     ownerEntityId: 'person.ted-bramble',
     mentions: ['person.ted-bramble', 'org.tradepost', 'org.portland-auto-parts'],
     fields: { Price: '$90', Repost: 'yes' },
@@ -1572,6 +1610,7 @@ not helping you carry it down the steps. Bring somebody young.
 Gresham. First person here.`,
     source: 'TradePost · Free Stuff',
     surface: 'web',
+    url: 'tradepost.com/pdx/free/121955',
     ownerEntityId: 'person.hal-ottoway',
     mentions: ['person.hal-ottoway', 'org.tradepost'],
     fields: { Price: 'Free', Weight: '~115 lb', Location: 'Gresham' },
@@ -1589,6 +1628,7 @@ For the eleven other people who wrote to me: I am sorry, and it went to the firs
 more of these, everybody is buying flat ones.`,
     source: 'TradePost · Free Stuff',
     surface: 'web',
+    url: 'tradepost.com/pdx/free/122140',
     ownerEntityId: 'person.hal-ottoway',
     mentions: ['person.hal-ottoway', 'org.tradepost'],
     fields: { Status: 'TAKEN', Enquiries: '12' },
@@ -1637,8 +1677,8 @@ Deposits made after 5:00pm, on a weekend, or on a bank holiday are credited the 
 If a machine retains your card, telephone 1-800-555-9910. Do not wait at the machine.
 
 A laminated card taped at eye level beside the door. The tape has gone yellow at the corners.`,
-    source: 'Photos · vestibule notice',
-    surface: 'archive',
+    source: 'Files · photographed, vestibule notice',
+    surface: 'files',
     ownerEntityId: 'org.meridian-savings',
     mentions: ['org.meridian-savings', 'place.1140-se-morrison', 'account.meridian-4471'],
     fields: { 'Daily limit': '$500', Monitoring: 'camera', Access: '24 hours' },
@@ -1692,6 +1732,7 @@ BRANCH: SE MORRISON
 Note in the margin, ballpoint: "asked for the ATM card same day — told him 7-10 business days."`,
     source: 'Meridian Savings · branch systems',
     surface: 'archive',
+    url: 'meridian.archive/branch/morrison/new-accounts/2009-01-06',
     ownerEntityId: 'org.meridian-savings',
     mentions: [
       'org.meridian-savings',
@@ -1758,6 +1799,7 @@ post your street. i will keep a list at the top.
   burnside downtown - fine, and there was a man on skis`,
     source: 'Cluster · Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/road-report-thread',
     ownerEntityId: null,
     mentions: ['place.1822-se-39th', 'place.2118-se-ankeny'],
     fields: { Updated: '2pm', Comments: '87' },
@@ -1783,6 +1825,7 @@ Where a plate could not be fully read at removal, the vehicle is held under a pa
 and the owner is not notified. Fourteen vehicles are currently held on partial plates.`,
     source: 'Columbia Register · public notices',
     surface: 'archive',
+    url: 'register.archive/notices/2009-01-05/snow-route-season-total',
     ownerEntityId: null,
     mentions: ['org.columbia-register', 'vehicle.saab-900-black'],
     fields: { Removed: '240', Unrecovered: '44', 'Partial plate, no notice': '14' },
@@ -1873,6 +1916,7 @@ to remember if you changed that pump and you wont be able to, and youll change i
 raycott`,
     source: 'Cascade Import Owners · Introductions',
     surface: 'web',
+    url: 'cascadeimports.com/board/8814/2',
     ownerEntityId: 'handle.raycott',
     mentions: [
       'handle.raycott',
@@ -1911,6 +1955,7 @@ raycott`,
   2,411 posts and 2,388 of them are replies.`,
     source: 'Cascade Import Owners · member profile',
     surface: 'web',
+    url: 'cascadeimports.com/member/raycott',
     ownerEntityId: 'handle.raycott',
     mentions: ['handle.raycott', 'person.raymond-cott', 'org.portland-auto-parts'],
     fields: { Posts: '2,411', Replies: '2,388', Registered: '04 February 2002' },
@@ -1930,6 +1975,7 @@ $690 plus utilities. First, last, and $400 deposit. No smoking, cat considered.
 Available September 1. 1822 SE 39th.`,
     source: 'TradePost · Housing',
     surface: 'web',
+    url: 'tradepost.com/pdx/housing/72244',
     ownerEntityId: null,
     mentions: ['place.1822-se-39th', 'org.tradepost'],
     fields: { Rent: '$690', Address: '1822 SE 39th Ave', Note: 'snow route, they do tow' },
@@ -1953,6 +1999,7 @@ Listings are compiled from published telephone directories and public records. A
 of date. Corvid does not verify occupancy.`,
     source: 'corvid.com/directory',
     surface: 'web',
+    url: 'corvid.com/directory/reverse/1822-se-39th-ave',
     ownerEntityId: null,
     mentions: ['place.1822-se-39th', 'person.marc-deleon'],
     fields: { Unit: 'UPPER', Listed: 'DELEON M', Telephone: '503-555-0148' },
@@ -2012,10 +2059,13 @@ of date. Corvid does not verify occupancy.`,
   DELEONE M J · Vancouver WA`,
     source: 'corvid.com/directory',
     surface: 'web',
+    url: 'corvid.com/directory/listing/deleon-m',
     ownerEntityId: 'person.marc-deleon',
     mentions: ['person.marc-deleon', 'place.1822-se-39th'],
     fields: { Telephone: '503-555-0148', 'Listed since': '2006' },
     factId: 'fact.marc-phone-number',
+    reliability: 'mistaken',
+    contradicts: ['art.39th-rental-listing'],
   },
   {
     id: 'art.parts-callback-note',
@@ -2031,8 +2081,8 @@ of date. Corvid does not verify occupancy.`,
 
 Ray's handwriting on the back of a parts invoice, pinned to a corkboard behind the counter.
 "DELEON" is underlined twice, with "will pick up sat" written beside it.`,
-    source: 'Photos · behind the parts counter',
-    surface: 'archive',
+    source: 'Files · photographed, parts counter',
+    surface: 'files',
     ownerEntityId: 'org.portland-auto-parts',
     mentions: [
       'org.portland-auto-parts',
@@ -2060,6 +2110,7 @@ $625. Cat considered. No parking included, but Ankeny is flat and there is alway
 street.`,
     source: 'TradePost · Housing',
     surface: 'web',
+    url: 'tradepost.com/pdx/housing/48119',
     ownerEntityId: null,
     mentions: ['place.2118-se-ankeny', 'org.tradepost'],
     fields: { Rent: '$625', Unit: 'Apartment 4', Built: '1926' },
@@ -2070,23 +2121,27 @@ street.`,
     id: 'art.lea-cluster-profile',
     type: 'webPage',
     date: '2009-01-15',
-    title: 'Cluster — leavoss',
-    body: `  leavoss
-  Portland, OR · SE Ankeny
-  Joined March 2006
-
+    title: 'leavoss — all posts',
+    body: `  leavoss · Portland, OR · SE Ankeny · joined March 2006
   Building something. Ask me about it in a year.
 
-  RECENT
-  ok now im annoyed                                  15 Jan
-  third night                                        14 Jan
-  is it normal to photograph a car                   13 Jan
-  counting months                                    30 Nov
-  eleven meetings                                    21 Nov
+  ALL POSTS, NEWEST FIRST — 47
 
-  47 posts · 0 followers listed · profile is public`,
-    source: 'cluster.com/leavoss',
+  15 Jan   ok now im annoyed                              0 comments
+  14 Jan   third night                                    1
+  13 Jan   is it normal to photograph a car               4
+  09 Jan   nothing, still                                 0
+  02 Jan   a year in which the product works              2
+  30 Nov   counting months                                6
+  21 Nov   eleven meetings                                3
+  02 Nov   shipped the thing nobody asked for             1
+  [ older ]
+
+  Profile is public. Comments are open. There is no way to see who has read a post
+  and I have looked.`,
+    source: 'cluster.com/leavoss/posts',
     surface: 'web',
+    url: 'cluster.com/leavoss/posts',
     ownerEntityId: 'person.lea-voss',
     mentions: ['person.lea-voss', 'place.2118-se-ankeny', 'vehicle.grey-sedan'],
     fields: { Joined: 'March 2006', Posts: '47', Location: 'SE Ankeny' },
@@ -2112,6 +2167,7 @@ and it isnt in the service menu either.
 people upload straight off the phone constantly and have no idea any of this is in there.`,
     source: 'nullcache.org · thread 2904',
     surface: 'web',
+    url: 'nullcache.org/thread/2904',
     ownerEntityId: null,
     mentions: ['device.nokora-n90'],
     fields: { Thread: '2904', Replies: '6', Key: 'same serial = same physical handset' },
@@ -2824,6 +2880,7 @@ is there a name for that arrangement. i assume there is a name for it and that t
 im not in trouble. im asking because ive agreed to it and i would like to know what ive agreed to.`,
     source: 'nullcache.org · thread 3298',
     surface: 'web',
+    url: 'nullcache.org/thread/3298',
     ownerEntityId: null,
     mentions: ['person.m'],
     fields: { Thread: '3298', Replies: '2' },
@@ -2888,6 +2945,7 @@ Notices are placed by trustees as statute requires. The newspaper is paid by the
 print them and does not verify them.`,
     source: 'Columbia Register · public notices',
     surface: 'archive',
+    url: 'register.archive/notices/2009-01-13/trustee-sales',
     ownerEntityId: 'org.columbia-register',
     mentions: ['org.columbia-register'],
     fields: { Notices: '14', Column: 'Trustee sales', Verification: 'none' },
@@ -2968,6 +3026,7 @@ they explain it to me, and i have to stand there and take it and give them forty
 ive stopped taking jewellery. thats a business decision and its also not.`,
     source: 'Cluster · Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/running-a-pawn-shop-right-now',
     ownerEntityId: null,
     mentions: ['org.columbia-register'],
     fields: { Comments: '31' },
@@ -2992,6 +3051,7 @@ whole story and I am happy to tell it in an interview.
 Portland metro. 503-555-0129.`,
     source: 'TradePost · Jobs Wanted',
     surface: 'web',
+    url: 'tradepost.com/pdx/jobs/122076',
     ownerEntityId: 'person.gwen-sorrel',
     mentions: ['person.gwen-sorrel', 'org.tradepost'],
     fields: { Experience: '6 years', Available: 'immediately', Contact: '503-555-0129' },
@@ -3051,6 +3111,7 @@ Assessed value fell 23.6 percent for 2009. Appeals must be filed by 31 December 
 No appeal is recorded.`,
     source: 'Multnomah County · assessor',
     surface: 'archive',
+    url: 'county.archive/multnomah/assessor/r284119',
     ownerEntityId: null,
     mentions: ['place.1140-se-morrison', 'org.meridian-savings'],
     fields: { '2008': '$1,545,000', '2009': '$1,180,000', Change: '-23.6%' },
@@ -3105,6 +3166,7 @@ Occupant may redeem at any time before the sale by paying all sums due.
 The operator makes no representation as to the contents of any unit.`,
     source: 'Columbia Register · public notices',
     surface: 'archive',
+    url: 'register.archive/notices/2009-01-08/storage-lien-sale',
     ownerEntityId: null,
     mentions: ['org.columbia-register', 'person.nora-kemp'],
     fields: { Units: '4', Sale: '24 January', Terms: 'cash, sight seen from doorway' },
@@ -3126,8 +3188,8 @@ Below, on a separate sheet taped up beside it, in different handwriting:
   are in on a weekday, the counter has his number and he would like
   to hear from you. He is not looking for sympathy, he is looking for
   work, and he is very good.`,
-    source: 'Photos · Portland Auto Parts',
-    surface: 'archive',
+    source: 'Files · photographed, machine shop door',
+    surface: 'files',
     ownerEntityId: 'org.portland-auto-parts',
     mentions: ['org.portland-auto-parts', 'person.raymond-cott'],
     fields: { 'Machine shop': 'closed Saturdays', Note: 'second man finished 24 December' },
@@ -3158,6 +3220,7 @@ is the situation we are in.
 Printed timetables are at the transit centre and at branch libraries, where available.`,
     source: 'Transit · service changes',
     surface: 'web',
+    url: 'portlandtransit.org/service-changes/january-2009',
     ownerEntityId: null,
     mentions: ['org.columbia-register'],
     fields: { Discontinued: '2 lines', Reduced: '6 lines', Effective: '4 January' },
@@ -3180,6 +3243,7 @@ the answer keeps being that i need a car, and the reason i take the bus is that 
 if anybody is out that way at eleven pm on a weeknight i will pay for gas.`,
     source: 'Cluster · Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/the-96-is-gone-and-i-work-nights',
     ownerEntityId: null,
     mentions: ['org.columbia-register'],
     fields: { Line: '96', Comments: '18' },
@@ -3206,6 +3270,7 @@ Computer sessions are one hour with a second hour if nobody is waiting, and ther
 somebody waiting, which was not true two years ago.`,
     source: 'Library · hours & locations',
     surface: 'web',
+    url: 'countylibrary.org/hours',
     ownerEntityId: null,
     mentions: ['org.columbia-register'],
     fields: { Closed: 'Sunday, Monday', 'Computer session': '1 hour' },
@@ -3229,6 +3294,7 @@ and comes back the next day.
 theyve also cut mondays. so its the same number of people in five days instead of six.`,
     source: 'Cluster · Portland',
     surface: 'web',
+    url: 'cluster.com/pdx/library-computers-are-full-now',
     ownerEntityId: null,
     mentions: ['org.columbia-register'],
     fields: { Comments: '12' },
@@ -3316,6 +3382,7 @@ place on 82nd. i dont know whats in it. neither do they.
 raycott`,
     source: 'Cascade Import Owners · General',
     surface: 'web',
+    url: 'cascadeimports.com/board/9655',
     ownerEntityId: 'handle.raycott',
     mentions: ['handle.raycott', 'person.raymond-cott'],
     fields: { Author: 'raycott', Replies: '19' },
@@ -3337,10 +3404,332 @@ This is not a scam and I am not going to ask you for anything. I am a sophomore 
 on the twentieth.`,
     source: 'TradePost · Jobs Wanted',
     surface: 'web',
+    url: 'tradepost.com/pdx/jobs/122183',
     ownerEntityId: 'person.wesley-pike',
     mentions: ['person.wesley-pike', 'org.tradepost'],
     fields: { Experience: '2 years', Available: 'mornings, any day' },
     factId: 'fact.wesley-student',
+  },
+]
+
+// ---------------------------------------------------------------------------
+// Pages that exist because the sites they are on would have had them.
+//
+// The links page is the one that matters. The eye chain had three traces and no reason for anybody
+// to start pulling on it — a whois and two nullcache threads are things you find after you are
+// already suspicious. Don is not suspicious. Don is a retired man explaining, in the friendliest
+// possible way, that he was given a graphic in 2001 and told to swap it for a newer one in 2004,
+// and he names the file both times. Seven years before the company that the file is named after.
+// ---------------------------------------------------------------------------
+
+const later: ArtifactInput[] = [
+  {
+    id: 'art.don-links-page',
+    type: 'webPage',
+    date: '2004-08-19',
+    title: 'The Terminal District — links',
+    body: `LINKS
+
+Other people's layouts, mostly better than mine. If your page has moved, write to me and I will fix
+it, I check these about once a year and things move.
+
+  Ken's Tacoma waterfront (N)       the reason I built the grain elevators
+  The Cascade Division roster       everything anybody has ever owned, catalogued
+  Marjorie's tile and clay page     not trains, but she signed my guestbook first
+  Bridges of the lower Columbia     photographs, 1911-1958, an enormous amount of work
+
+THE QUIET LINE
+
+I have been in this ring since 2001. A man wrote to me and said he liked the ice house and would I
+join, and I said what is it, and he said it is nine people who are listening, which I did not
+understand then and do not now. There is no mailing list and nobody has ever asked me for anything.
+
+You put their graphic on your page and it links to the next one along. Mine was aion_eye_01.gif
+until 2004, when a note came round asking everybody to change it to aion_eye_03.gif, which is the
+same eye at a better size. I never saw an 02 and I did not ask.
+
+  <img src="http://img.blackbird-hosting.net/aion_eye_03.gif">
+
+If you are reading this because you are in the ring and you cannot remember the address of the
+graphic, that is it, and you are welcome.
+
+  back to the front page · last updated 19 August 2004`,
+    source: 'geohost.com/Terminal/4417/links.html',
+    surface: 'web',
+    ownerEntityId: 'person.don-ackerley',
+    mentions: [
+      'person.don-ackerley',
+      'domain.geohost',
+      'domain.blackbird',
+      'org.blackbird-hosting',
+      'org.aion-group',
+    ],
+    fields: {
+      'In the ring since': '2001',
+      Graphic: 'aion_eye_01.gif until 2004, then aion_eye_03.gif',
+      Host: 'img.blackbird-hosting.net',
+      'Saw an 02': 'no',
+    },
+    factId: 'fact.eye-predates-aion',
+  },
+  {
+    id: 'art.don-prototype-page',
+    type: 'webPage',
+    date: '2007-03-11',
+    title: 'The Terminal District — the prototype',
+    body: `THE PROTOTYPE
+
+Photographs of the real waterfront, 1954 to 1961, which is the period I model. Most of these are
+mine, taken with my father's camera when I was between eleven and eighteen. A few are from the
+historical society and are marked.
+
+  The ice house from the water, 1956          the only good photograph I ever took
+  Grain elevator no. 2 under construction     1954, three frames
+  The diner at the end of the spur            1958, and it was already closing
+  Switching the north lead, winter            1959
+  The same view, 1961, everything gone
+
+A word about the last one. I went back with the same camera and stood in the same place four years
+later and there was nothing there at all. I did not understand at eighteen why I wanted a photograph
+of nothing. I have spent fifty years building the something back, four feet by nine, in the spare
+room, and I understand it now.`,
+    source: 'geohost.com/Terminal/4417/prototype.html',
+    surface: 'web',
+    ownerEntityId: 'person.don-ackerley',
+    mentions: ['person.don-ackerley', 'domain.geohost'],
+    fields: { Period: '1954-1961', Photographs: '31' },
+    factId: 'fact.don-railway',
+  },
+  {
+    id: 'art.mabry-photos',
+    type: 'webPage',
+    date: '2007-09-03',
+    title: 'The photos — page 1 of 4',
+    body: `THE PHOTOS · PAGE 1 OF 4
+
+These are big. If you are on a modem, be patient, or write to me and I will post you a CD.
+
+  01  getting ready, upstairs at my mother's
+  02  Doug and his brother, outside, before
+  03  the rain, which lasted forty minutes
+  04  it stopping, which Doug's mother arranged
+  05  walking in
+  06  the vows, from too far back, sorry
+  07  the vows, from the right place, my cousin took this one
+  08  coming out
+  09  everybody outside squinting
+  10  the cake, before
+  11  the cake, after
+
+  [ page 2 ]  [ page 3 ]  [ page 4 ]  [ back to the front page ]
+
+61 photographs in total and I am not sorry about a single one of them.`,
+    source: 'geohost.com/Meadow/2210/photos.html',
+    surface: 'web',
+    ownerEntityId: 'person.karen-mabry',
+    mentions: ['person.karen-mabry', 'person.doug-mabry', 'domain.geohost'],
+    fields: { Photographs: '61', Pages: '4' },
+    factId: 'fact.mabry-wedding',
+  },
+  {
+    id: 'art.guild-show-page',
+    type: 'webPage',
+    date: '2009-01-12',
+    title: 'The spring show — call for entries',
+    body: `CASCADE CERAMICS GUILD · SPRING SHOW
+Entries close 14 March. The show hangs 4 April.
+
+  CATEGORIES     functional · sculptural · surface · under two years working
+  ENTRY          two pieces per member, $5 the pair, and the $5 goes on the wine
+  JUDGING        one judge, one afternoon, written comments for every entry
+
+Doreen Halloway judges again, as she has since 1991. She writes a paragraph on every single piece,
+including the ones that are not good, and members have been known to keep them.
+
+THE UNDER TWO YEARS CATEGORY was added in 2003 because beginners kept not entering. Fourteen people
+entered it last year and four of them had never shown anything anywhere.
+
+If you are thinking about entering and you are talking yourself out of it, enter.`,
+    source: 'geohost.com/SoHo/1978/show.html',
+    surface: 'web',
+    ownerEntityId: 'org.cascade-ceramics',
+    mentions: ['org.cascade-ceramics', 'person.doreen-halloway', 'domain.geohost'],
+    fields: { Entries: 'close 14 March', Judge: 'Doreen Halloway, since 1991', Fee: '$5' },
+    amountCents: 500,
+    factId: 'fact.cascade-guild-meets',
+  },
+  {
+    id: 'art.cascade-board-rules',
+    type: 'webPage',
+    date: '2006-01-04',
+    title: 'Board rules — read before posting',
+    body: `CASCADE IMPORT OWNERS · BOARD RULES
+
+1. Say what car you have. Year, model, whether it is a turbo. Half the questions here cannot be
+answered without it and we will only ask.
+
+2. Search first. Then post anyway if the search did not answer it — an old thread that nearly
+answers a question is not the same as an answer, and we would rather have the duplicate.
+
+3. No selling in the technical forums. There is a classifieds forum. Use it.
+
+4. Be careful giving advice about brakes, fuel and steering. If you are not sure, say you are not
+sure. Somebody is going to drive on what you tell them.
+
+5. Nobody here is a dealer and nobody here is paid. Ray works a parts counter and answers about
+forty questions a week on his own time, and if he tells you to bring the car in it is because the
+part number depends on something you have not mentioned.
+
+6. This board has been running since 2001 on a machine in somebody's spare room. If it is slow, it
+is slow. It has never been down for more than a day.`,
+    source: 'cascadeimports.com/board/rules',
+    surface: 'web',
+    ownerEntityId: null,
+    mentions: ['person.raymond-cott', 'handle.raycott', 'org.portland-auto-parts'],
+    fields: { Running: 'since 2001', Rules: '6' },
+    factId: 'fact.ray-answers-everything',
+  },
+  {
+    id: 'art.pap-used-list',
+    type: 'webPage',
+    date: '2009-01-12',
+    title: 'Used parts — what is on the shelf',
+    body: `USED PARTS · UPDATED WEEKLY · CALL TO HOLD
+
+We did not used to have this page. We do now, and it is the busiest page on this site.
+
+  ALTERNATORS      14 on the shelf, most common applications
+  STARTERS         9
+  FUEL PUMPS       6, two of them European
+  WINDOW MOTORS    11
+  MIRRORS          about thirty, bring the old one
+  WHEELS, STEEL    a great many, $15 each
+  RADIATORS        4
+  ECU / MODULES    ask. We test what we can and we tell you what we could not test.
+
+Everything here came off a car and we will tell you which car and how many miles were on it if we
+know. Sold as is. No returns on electrical, which is not us being difficult, it is that we cannot
+tell whether it failed on your bench or ours.
+
+If you are breaking a car and it is clean, telephone before you drive out here. We are choosy now.`,
+    source: 'portlandautoparts.com/used',
+    surface: 'web',
+    ownerEntityId: 'org.portland-auto-parts',
+    mentions: ['org.portland-auto-parts', 'person.raymond-cott'],
+    fields: { Updated: 'weekly', Terms: 'sold as is, no returns on electrical' },
+    factId: 'fact.parts-trade-down',
+  },
+  {
+    id: 'art.clinic-hours',
+    type: 'webPage',
+    date: '2008-08-01',
+    title: 'Hawthorne Animal Hospital — hours & emergencies',
+    body: `HOURS
+
+  Mon-Fri   8:00 - 6:00
+  Saturday  9:00 - 2:00
+  Sunday    closed
+
+AFTER HOURS. We are not an emergency hospital. If something is wrong at two in the morning, go to
+the emergency hospital on SE Powell — they are open all night, every night, and they are good.
+
+WHAT TO DO FIRST. Telephone us. A great many things that feel like emergencies are not, and a great
+many things that do not feel like emergencies are. We would much rather talk to you for four minutes
+than have you sit up all night deciding.
+
+COSTS. Ask us what something will cost before we do it. We will tell you, we will not be offended,
+and if there is a cheaper way that is nearly as good we will say so. It has been a hard year and we
+have had this conversation a great deal and it is not an awkward one for us.`,
+    source: 'hawthorneanimal.com/hours',
+    surface: 'web',
+    ownerEntityId: null,
+    mentions: ['person.priya-raghunathan'],
+    fields: { Saturday: '9:00 - 2:00', 'After hours': 'not an emergency hospital' },
+    factId: 'fact.priya-vet-tech',
+  },
+  {
+    id: 'art.library-computers',
+    type: 'webPage',
+    date: '2009-01-05',
+    title: 'Using the computers',
+    body: `COMPUTERS AT THE BRANCHES
+
+Sessions are one hour. A second hour is available if nobody is waiting, and at most branches
+somebody is waiting.
+
+  SIGN UP        at the desk, with a library card, or as a guest with any identification
+  PRINTING       10 cents a page, black and white, pay at the desk
+  SAVING         bring a disk or a USB stick. Nothing you save on the machine survives the session.
+  HELP           ask. Staff will help you with a form or an application and will not read it.
+
+APPLYING FOR WORK. Every branch has staff who will sit with you and help with an online
+application, a resume, or an email account. You do not need an appointment and you do not need to
+explain why. This is the single most requested thing we do.
+
+WHAT WE CANNOT DO. We cannot extend a session when somebody is waiting, however important the thing
+is. We are sorry. It is the only fair rule we have found.`,
+    source: 'countylibrary.org/computers',
+    surface: 'web',
+    ownerEntityId: null,
+    mentions: ['org.columbia-register'],
+    fields: { Session: '1 hour', Printing: '10 cents a page' },
+    factId: 'fact.library-hours',
+  },
+  {
+    id: 'art.transit-fares',
+    type: 'webPage',
+    date: '2009-01-04',
+    title: 'Fares, effective 4 January',
+    body: `FARES
+
+  Adult, 2 zones            $1.75
+  Adult, all zones          $2.05
+  Honored citizen           $0.85
+  Youth                     $1.35
+  Day pass, all zones       $4.75
+  Monthly, all zones       $76.00
+
+Fares rose 5 cents in September and are not rising again this year.
+
+TRANSFERS are good for two hours in the direction of travel and are good on any line. Keep it where
+you can reach it.
+
+IF YOU CANNOT PAY. Tell the operator. Operators are not required to refuse you and most of them do
+not. We would rather you got where you were going.`,
+    source: 'portlandtransit.org/fares',
+    surface: 'web',
+    ownerEntityId: null,
+    mentions: ['org.columbia-register'],
+    fields: { 'Adult, all zones': '$2.05', Monthly: '$76.00', Transfer: '2 hours' },
+    amountCents: 205,
+    factId: 'fact.bus-cuts',
+  },
+  {
+    id: 'art.tradepost-safety',
+    type: 'webPage',
+    date: '2008-09-30',
+    title: 'Meeting somebody — please read this',
+    body: `WE DO NOT HANDLE MONEY AND WE CANNOT HELP YOU IF A DEAL GOES WRONG
+
+That is not us avoiding responsibility, it is the actual situation, and you should plan around it.
+
+  MEET IN PUBLIC. A car park with people in it. Not a house, not at night, not the first time.
+  BRING SOMEBODY. For anything above about a hundred dollars, or anything you are unsure about.
+  CASH, IN PERSON, AT THE HANDOVER. Nothing else.
+  NEVER WIRE MONEY. Never, to anybody, for any reason, no matter what the reason is.
+  NEVER ACCEPT A CHEQUE FOR MORE THAN THE PRICE. This is always a fraud. Always.
+
+If somebody will not meet you in public, will not talk on the telephone, or is in a hurry and wants
+you to be in a hurry too, walk away. You will lose a sale. You will not lose anything else.
+
+WE REMOVE listings that are reported and obviously fraudulent, usually within a day, sometimes not.
+We are two people. Report things anyway — it works more often than you would think.`,
+    source: 'tradepost.com/safety',
+    surface: 'web',
+    ownerEntityId: 'org.tradepost',
+    mentions: ['org.tradepost'],
+    fields: { Rule: 'cash, in person, in public', 'Wire money': 'never' },
+    factId: null,
   },
 ]
 
@@ -3355,4 +3744,5 @@ export const artifacts: ArtifactInput[] = [
   ...ordinaryThree,
   ...elsewhere,
   ...pressure,
+  ...later,
 ]

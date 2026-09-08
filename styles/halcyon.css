@@ -2849,7 +2849,7 @@
 .hal-dir__conflict {
   display: grid;
   grid-template-columns: 1fr 14px 1fr;
-  align-items: center;
+  align-items: start;
   gap: 6px;
   padding: 7px 8px;
   border: 1px solid #cdd2d8;
@@ -2999,4 +2999,45 @@
     border-right: none;
     border-bottom: 1px solid var(--hairline);
   }
+}
+
+/* A corpus page's structured detail — an EXIF block, a parking stub's in and out times.
+   Set as a table because in 2009 that is what it would have been. */
+.hal-web__fields {
+  border-collapse: collapse;
+  font-size: 11.5px;
+  margin: 4px 0 0;
+}
+
+.hal-web__fields th {
+  text-align: left;
+  font-weight: 400;
+  color: #6b727c;
+  padding: 2px 14px 2px 0;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.hal-web__fields td {
+  padding: 2px 0;
+  color: var(--body-ink);
+}
+
+/* A document that aligned its own columns — a stub, a log, a printout. The web had plenty of
+   these pasted straight into a <pre>, and the alignment is the information. */
+.hal-web__pre {
+  white-space: pre-wrap;
+  font-family: var(--mono, ui-monospace, Menlo, Monaco, 'Courier New', monospace);
+  font-size: 11.5px;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  color: var(--body-ink);
+}
+
+/* The line at issue, not the file name. Quoted rather than styled, because a quotation mark is
+   the only mark that says "somebody wrote this" without saying whether it is true. */
+.hal-dir__conflictquote {
+  font-size: 11.5px;
+  color: var(--body-ink);
+  line-height: 1.35;
 }

@@ -80,6 +80,14 @@ export const WorldArtifactSchema = z.object({
   source: z.string().min(1).max(200),
   /** Which surface of the OS shows it. */
   surface: z.enum(['mail', 'msg', 'web', 'files', 'bank', 'phone', 'term', 'archive']),
+  /**
+   * Where the player types to reach it, for the artifacts that have an address.
+   *
+   * Left null it is derived from `source` when the source is already URL-shaped, which most of
+   * the web corpus is. Set it when the source reads as a place rather than an address — a forum
+   * whose posts live at a thread number, a paper whose column has its own path.
+   */
+  url: z.string().max(300).nullable().default(null),
   ownerEntityId: id.nullable().default(null),
   /** Entities this artifact is evidence about. The edges of the graph. */
   mentions: z.array(id).default([]),
@@ -113,6 +121,18 @@ export const WorldArtifactSchema = z.object({
    * same number, and not remotely the same state.
    */
   contradicts: z.array(id).default([]),
+  /**
+   * The line of this document that is at issue, quoted.
+   *
+   * `contradicts` points at a whole document, and a document is rarely wholly false. The email
+   * that says "stayed in all evening" also says "call me tomorrow, i have something that pays",
+   * and the second is true and is the hook into the next day. This is what the machine puts on
+   * screen when it sets two documents against each other — the clause, not the file name, so the
+   * player sees the disagreement rather than being told there is one.
+   *
+   * It still never says which side is lying.
+   */
+  disputedClaim: z.string().max(300).nullable().default(null),
   /** Rewritten when the world moves. Same mechanism as a browser page's variants. */
   variants: z
     .array(

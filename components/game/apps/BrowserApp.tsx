@@ -4,17 +4,35 @@ import type { Block } from '@/engine/content-schema'
 import { formatMoney } from '@/engine/money'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import type { AppId } from '@/engine/types'
+import { normalizeUrl } from '@/engine/url'
+import { artifactUrl, displayDate, siblingPages, type WorldArtifact } from '@/engine/world'
 import { useContent, useDispatch, useTimeline } from '../GameContext'
+import { useWorldOptional } from '../WorldContext'
 import { PinButton } from '../PinButton'
 
 export function BrowserApp() {
   const content = useContent()
   const dispatch = useDispatch()
+  const world = useWorldOptional()
   const browser = useTimeline((s) => s.browser)
   const results = useTimeline((s) => selectSearchResults(s, content))
   const page = useTimeline((s) => selectPage(s, content))
 
-  const go = (url: string) => dispatch({ type: 'BROWSER_NAVIGATED', url })
+  /**
+   * The rest of the internet.
+   *
+   * A day authors the pages its story needs. Everything else the world holds — a classified from
+   * November, a forum thread nobody links to, a funeral notice — lives in the corpus, and an
+   * address written in one document has to lead somewhere or the web is a set of props.
+   */
+  const elsewhere = page.found ? null : (world?.index.artifactByUrl.get(browser.url) ?? null)
+
+  const go = (url: string) =>
+    dispatch({
+      type: 'BROWSER_NAVIGATED',
+      url,
+      worldArtifactId: world?.index.artifactByUrl.get(normalizeUrl(url))?.id ?? null,
+    })
   const search = () => {
     if (!browser.query.trim()) return
     dispatch({ type: 'BROWSER_SEARCHED', query: browser.query })
@@ -163,12 +181,98 @@ export function BrowserApp() {
           >
             {page.found ? (
               page.blocks.map((block, i) => <BlockView key={i} block={block} />)
+            ) : elsewhere ? (
+              <CorpusPage artifact={elsewhere} onGo={go} />
             ) : (
               <NotFound url={browser.url} />
             )}
           </div>
         ) : null}
       </div>
+    </div>
+  )
+}
+
+/**
+ * A document from the corpus, rendered as the page it is.
+ *
+ * Deliberately plainer than an authored page. A day's pages are designed — a bank's palette, a
+ * paper's masthead; these are the rest of the web, and in 2009 most of the web was black text on
+ * white with the date at the top. Looking slightly unloved is correct, not a shortcut.
+ */
+function CorpusPage({ artifact, onGo }: { artifact: WorldArtifact; onGo: (url: string) => void }) {
+  const world = useWorldOptional()
+  const fields = Object.entries(artifact.fields)
+  // The rest of the site. A page of somebody's GeoHost is never one page.
+  const siblings = world ? siblingPages(world.index, artifact) : []
+  /*
+   * A receipt keeps its line breaks and a forum post does not.
+   *
+   * Corpus bodies are hard-wrapped in the source file, so honouring every newline would break a
+   * man's account of his band splitting up mid-sentence, at whatever column the author's editor
+   * happened to be set to. Indentation is what separates the two: a parking stub aligns its
+   * columns, prose does not.
+   *
+   * Decided per paragraph, because one page is often both — a man writes two sentences about a
+   * mailing list and then pastes in a table of everybody's pages.
+   */
+  const preformatted = (para: string) => /^[ \t]+\S/m.test(para)
+  return (
+    <div data-testid="web-corpus" data-artifact={artifact.id}>
+      <div className="hal-web__h">{artifact.title || artifact.source}</div>
+      <div className="hal-web__sub">
+        {artifact.source} · {displayDate(artifact.date)}
+      </div>
+      <div className="hal-web__rule" style={{ margin: '12px 0' }} />
+      {artifact.body
+        .split(/\n{2,}/)
+        .filter((para) => para.trim().length > 0)
+        .map((para, i) => (
+          <div
+            key={i}
+            className={preformatted(para) ? 'hal-web__pre' : 'hal-web__p'}
+            style={preformatted(para) ? undefined : { whiteSpace: 'normal' }}
+          >
+            {preformatted(para) ? para : para.replace(/\s*\n\s*/g, ' ')}
+          </div>
+        ))}
+      {siblings.length > 0 ? (
+        <>
+          <div className="hal-web__rule" style={{ margin: '12px 0' }} />
+          <div className="hal-web__sitenav">
+            {siblings.map((page) => {
+              const url = artifactUrl(page)
+              if (!url) return null
+              return (
+                <button
+                  key={page.id}
+                  type="button"
+                  className="hal-web__navlink"
+                  data-href={url}
+                  onClick={() => onGo(url)}
+                >
+                  {page.title || url}
+                </button>
+              )
+            })}
+          </div>
+        </>
+      ) : null}
+      {fields.length > 0 ? (
+        <>
+          <div className="hal-web__rule" style={{ margin: '12px 0' }} />
+          <table className="hal-web__fields">
+            <tbody>
+              {fields.map(([key, value]) => (
+                <tr key={key}>
+                  <th scope="row">{key}</th>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      ) : null}
     </div>
   )
 }

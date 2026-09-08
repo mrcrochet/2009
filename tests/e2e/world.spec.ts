@@ -12,6 +12,9 @@ import { expect, test, type Page } from '@playwright/test'
 async function boot(page: Page) {
   await page.goto('/play')
   await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 20_000 })
+  // Ember opens itself a second into the day and its chunk arrives late; until it does, its
+  // window is a "loading…" box sitting over whatever is underneath and swallowing clicks.
+  await expect(page.getByText('loading…')).toHaveCount(0, { timeout: 20_000 })
 }
 
 async function openApp(page: Page, label: string) {
@@ -79,6 +82,35 @@ test.describe('the world', () => {
     // Nothing has been read that names Marc and anyone else together, so the machine says so
     // rather than reciting the chain the player is meant to build.
     await expect(page_.getByText('No connection recorded.')).toBeVisible()
+  })
+
+  /**
+   * The corpus is the rest of the internet. A day authors the pages its story needs; an address
+   * written in one of them has to lead somewhere, or the web is a set of props.
+   */
+  test('an address the day never authored still goes somewhere', async ({ page }) => {
+    await boot(page)
+    await openApp(page, 'Halcyon Browser')
+
+    const bar = page.getByLabel('Address')
+    await bar.click()
+    await bar.fill('geohost.com/SunsetStrip/8802')
+    await bar.press('Enter')
+
+    const document_ = page.getByTestId('web-corpus')
+    await expect(document_).toBeVisible()
+    await expect(document_).toContainText('so the fenner line is over')
+    // Nothing to do with the case. That is the point of it being there.
+    await expect(document_).not.toContainText(/Aion|Deleon/)
+    // Prose is reflowed rather than kept at whatever column the corpus file wraps at.
+    await expect(document_.locator('.hal-web__p').first()).toBeVisible()
+
+    // And having read it counts as having found it.
+    await page.keyboard.press('Control+k')
+    const search = page.getByRole('dialog', { name: 'Search HALCYON' })
+    await page.keyboard.type('fenner')
+    await search.getByLabel('Only what I have found').check()
+    await expect(search.getByRole('option').first()).toBeVisible()
   })
 
   test('reading something is finding it', async ({ page }) => {

@@ -13,23 +13,34 @@ import { PhoneOverlay } from './PhoneOverlay'
 import { SurveillanceOverlay } from './SurveillanceOverlay'
 import { WindowManager } from './WindowManager'
 import { useDispatch, useTimeline } from './GameContext'
+import { useWorldOptional } from './WorldContext'
+import { DirectoryFocusProvider } from './DirectoryFocus'
+import { artifactUrl } from '@/engine/world'
+import type { SearchHit } from '@/engine/world'
 import type { AppId } from '@/engine/types'
 
-/** Which application shows a given surface. */
+/** Which application shows a given surface. The phone is not one — it is an overlay. */
 const SURFACE_APP: Record<string, AppId> = {
   mail: 'mail',
   msg: 'msg',
   web: 'web',
   files: 'files',
   bank: 'bank',
-  phone: 'files',
   term: 'term',
   archive: 'web',
 }
 
 export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
   const dispatch = useDispatch()
+  const world = useWorldOptional()
   const [searchOpen, setSearchOpen] = useState(false)
+  /**
+   * Which person the Directory is showing, when the search sent the player there.
+   *
+   * React state rather than an event: this is a cursor, like the highlighted row in the search
+   * palette, and a cursor in the event log is noise a replay has to carry forever.
+   */
+  const [directoryFocus, setDirectoryFocus] = useState<string | null>(null)
   const trayOpen = useTimeline((s) => s.ui.trayOpen)
   const boardOpen = useTimeline((s) => s.ui.boardOpen)
   const phoneOpen = useTimeline((s) => s.phone.open)
@@ -58,13 +69,52 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen])
 
+  /**
+   * Opening a result has to arrive at the document, not at the application that happens to hold
+   * it. A search that puts you in the right window and leaves you to find the thing again is a
+   * list of places you have already been.
+   */
+  const openHit = (hit: SearchHit) => {
+    if (hit.kind === 'entity') {
+      dispatch({ type: 'APP_OPENED', app: 'directory' })
+      setDirectoryFocus(hit.id)
+      return
+    }
+
+    const artifact = world?.index.artifactById.get(hit.id) ?? null
+    // A projected day artifact carries the id of the thing the day authored, which is what the
+    // mail and files apps address each other by.
+    const local = artifact ? /^d\d+\.(mail|file|photo|sms|txn|web)\.(.+)$/.exec(artifact.id) : null
+
+    if (hit.surface === 'phone') {
+      if (!phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
+      dispatch({ type: 'PHONE_TAB_CHANGED', tab: local?.[1] === 'photo' ? 'photos' : 'sms' })
+      return
+    }
+
+    const app: AppId = SURFACE_APP[hit.surface] ?? 'files'
+    dispatch({ type: 'APP_OPENED', app })
+    if (!artifact) return
+
+    if (app === 'web') {
+      const url = artifactUrl(artifact)
+      if (url) dispatch({ type: 'BROWSER_NAVIGATED', url, worldArtifactId: artifact.id })
+    } else if (app === 'mail' && local?.[1] === 'mail') {
+      dispatch({ type: 'MAIL_OPENED', mailId: local[2]! })
+    } else if (app === 'files' && local?.[1] === 'file') {
+      dispatch({ type: 'FILE_OPENED', fileId: local[2]! })
+    }
+  }
+
   return (
     <div className="hal-desktop" data-testid="desktop">
       <div className="hal-desktop__bg" />
       <div className="hal-desktop__grid" aria-hidden="true" />
       <MenuBar onEndDay={onEndDay} />
       <DesktopIcons />
-      <WindowManager />
+      <DirectoryFocusProvider value={directoryFocus}>
+        <WindowManager />
+      </DirectoryFocusProvider>
       <PhoneOverlay />
       <EvidenceTray />
       <InvestigationBoard />
@@ -73,10 +123,7 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
         onClose={() => setSearchOpen(false)}
         onOpenHit={(hit) => {
           setSearchOpen(false)
-          // A person opens the Directory; anything else opens the surface it lives on.
-          const app: AppId =
-            hit.surface === 'people' ? 'directory' : (SURFACE_APP[hit.surface] ?? 'files')
-          dispatch({ type: 'APP_OPENED', app })
+          openHit(hit)
         }}
       />
       <Dock />

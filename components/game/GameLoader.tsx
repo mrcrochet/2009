@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
 import type { DayContent } from '@/engine/content-schema'
 import type { EventInput } from '@/engine/events'
-import { contentForDay, WORLD_INDEX } from '@/content'
+import { contentForDay, worldIndexForDay } from '@/content'
 
 /**
  * The whole engine + HALCYON bundle is pulled in here and nowhere else, so `/` stays light.
@@ -36,7 +36,7 @@ export function GameLoader({
       mode={mode}
       advanceEvent={advanceEvent}
       contentForDay={contentForDay}
-      world={WORLD_INDEX}
+      world={worldIndexForDay(content.day)}
     />
   )
 }

@@ -66,6 +66,15 @@ export const MailMessageSchema = z.object({
   meta: z.string(),
   body: z.array(z.string()),
   evidenceId: id.nullable().default(null),
+  /**
+   * The line of this message somebody else's document disagrees with, quoted.
+   *
+   * A day's mail is projected into the world graph, where a corpus document can be declared to
+   * contradict it. A message is rarely wholly false — "stayed in all evening" is a lie and "i
+   * have something that pays" is true and is the hook into tomorrow — so this names the half
+   * that is at issue, and it is what the machine shows when it sets the two side by side.
+   */
+  disputedClaim: z.string().max(300).nullable().default(null),
 })
 
 export const UnknownMailSchema = z.object({
@@ -224,6 +233,8 @@ export const FileDocSchema = z.object({
   body: z.string(),
   bodyWhenDecrypted: z.string().nullable().default(null),
   evidenceId: id.nullable().default(null),
+  /** As on a mail message: the line of this document another document disputes. */
+  disputedClaim: z.string().max(300).nullable().default(null),
   evidenceRequiresDecryption: z.boolean().default(false),
   beat: z.string().nullable().default(null),
 })

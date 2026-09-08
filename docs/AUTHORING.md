@@ -104,6 +104,9 @@ These are not, and are the known cost of the next day:
 
 ## Mysteries
 
+A day is not the world. The corpus every day is searched against — and projected into — is
+authored separately; see [`CORPUS.md`](CORPUS.md).
+
 A mystery is not a day. See [`MYSTERY_AUTHORING.md`](MYSTERY_AUTHORING.md) for the editorial
 framework, what the build enforces about it, and why there is no mode meaning "adapts a real
 unsolved case".

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { WorldSchema } from '@/engine/world/schema'
 import {
+  artifactUrl,
   buildWorldIndex,
   conflictingPairs,
   entityDossier,
@@ -9,6 +10,9 @@ import {
   knownEntities,
   resolveAlias,
   searchWorld,
+  siblingPages,
+  siteOf,
+  worldAsOf,
 } from '@/engine/world'
 import { projectDay, projectedId } from '@/engine/world/project'
 import { content, dispatch, fresh, run } from './helpers'
@@ -302,6 +306,88 @@ describe('discovery', () => {
   })
 })
 
+describe('the world as of a date', () => {
+  it('cannot answer questions about a document that has not been written', () => {
+    // The classified is 5 November; the bank line is the 7th.
+    const early = worldAsOf(world, '2008-11-05')
+    expect(early.artifacts.map((a) => a.id)).toEqual(['a.email-parts', 'a.classified'])
+  })
+
+  it('takes a name away with its documents, rather than leaving it searchable and empty', () => {
+    const early = worldAsOf(world, '2008-11-03')
+    // Aion is mentioned only by the December post, so on 3 November Aion is not a name yet.
+    expect(early.entities.map((e) => e.id)).not.toContain('org.aion-group')
+    expect(searchWorld(buildWorldIndex(early), 'aion').total).toBe(0)
+    // And the rumour that needed that post as its source goes with it.
+    expect(early.relations.map((r) => r.relation)).not.toContain('employedBy')
+  })
+
+  it('keeps a fact only while something still carries it', () => {
+    expect(worldAsOf(world, '2008-11-02').facts).toEqual([])
+    expect(worldAsOf(world, '2008-11-03').facts.map((f) => f.id)).toEqual(['fact.marc-saab'])
+  })
+})
+
+describe('an address leads somewhere', () => {
+  it('takes the explicit url first, and falls back to a url-shaped source', () => {
+    const page = index.world.artifacts.find((a) => a.id === 'a.classified')!
+    // `tradepost.com/pdx/auto` was written as the source and is a real address.
+    expect(artifactUrl(page)).toBe('tradepost.com/pdx/auto')
+    expect(artifactUrl({ ...page, url: 'http://TradePost.com/pdx/auto/' })).toBe(
+      'tradepost.com/pdx/auto',
+    )
+  })
+
+  it('does not put a bank statement on the internet', () => {
+    const txn = index.world.artifacts.find((a) => a.id === 'a.bank-parts')!
+    // Its source is a bank, but even a hostname-shaped one would not make it a web page.
+    expect(artifactUrl(txn)).toBeNull()
+    expect(artifactUrl({ ...txn, url: 'meridiansavings.com/statement' })).toBeNull()
+  })
+
+  it('reads a source that names a place rather than an address as no address at all', () => {
+    const mail = index.world.artifacts.find((a) => a.id === 'a.email-parts')!
+    expect(artifactUrl({ ...mail, surface: 'web', source: 'Cascade Import Owners' })).toBeNull()
+  })
+
+  /**
+   * The host is not the site. A free host in 2009 gave somebody a directory, and everything
+   * under it was theirs; grouping by host puts fourteen strangers in one man's nav bar.
+   */
+  it('reads a site as the folder its pages sit in, not the host', () => {
+    expect(siteOf('geohost.com/Terminal/4417/links.html')).toBe('geohost.com/Terminal/4417')
+    expect(siteOf('geohost.com/Terminal/4417/stock.html')).toBe('geohost.com/Terminal/4417')
+    // A front page has no filename to drop, and lands on its own site.
+    expect(siteOf('geohost.com/Terminal/4417')).toBe('geohost.com/Terminal/4417')
+    // Somebody else entirely.
+    expect(siteOf('geohost.com/Meadow/2210/thanks.html')).toBe('geohost.com/Meadow/2210')
+    expect(siteOf('tradepost.com')).toBe('tradepost.com')
+  })
+
+  it('offers the rest of the site and nobody else', () => {
+    const site = buildWorldIndex(
+      WorldSchema.parse({
+        ...world,
+        artifacts: [
+          { ...world.artifacts[1]!, id: 'p.front', url: 'geohost.com/Terminal/4417' },
+          { ...world.artifacts[1]!, id: 'p.links', url: 'geohost.com/Terminal/4417/links.html' },
+          { ...world.artifacts[1]!, id: 'p.stock', url: 'geohost.com/Terminal/4417/stock.html' },
+          { ...world.artifacts[1]!, id: 'p.other', url: 'geohost.com/Meadow/2210/thanks.html' },
+        ],
+      }),
+    )
+    const links = site.artifactById.get('p.links')!
+    expect(siblingPages(site, links).map((p) => p.id)).toEqual(['p.front', 'p.stock'])
+    // And the neighbour's page keeps to itself.
+    expect(siblingPages(site, site.artifactById.get('p.other')!)).toEqual([])
+  })
+
+  it('answers what lives at an address', () => {
+    expect(index.artifactByUrl.get('tradepost.com/pdx/auto')?.id).toBe('a.classified')
+    expect(index.artifactByUrl.get('nowhere.example')).toBeUndefined()
+  })
+})
+
 describe('reading something is finding it', () => {
   const names = ['Marc', 'Aion']
   const resolve = (name: string) => (name === 'Marc' ? 'person.marc-deleon' : 'org.aion-group')
@@ -351,6 +437,15 @@ describe('reading something is finding it', () => {
     const before = fresh()
     const state = dispatch(before, { type: 'BROWSER_NAVIGATED', url: 'nowhere.example/missing' })
     expect(state.discovered).toEqual(before.discovered)
+  })
+
+  it('records the corpus document the browser found at an address the day never authored', () => {
+    const state = dispatch(fresh(), {
+      type: 'BROWSER_NAVIGATED',
+      url: 'geohost.com/SunsetStrip/8802',
+      worldArtifactId: 'art.fenner-line',
+    })
+    expect(state.discovered).toContain('art.fenner-line')
   })
 
   it('records a page once, however many times it is revisited', () => {

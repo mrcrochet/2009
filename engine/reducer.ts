@@ -10,6 +10,7 @@ import {
   searchIndex,
 } from './rules'
 import { findPage } from './temporal'
+import { normalizeUrl } from './url'
 import { projectedId } from './world/project'
 import {
   DEFAULT_VIEWPORT,
@@ -103,7 +104,12 @@ function revealed(next: TimelineState, event: GameEvent, content: DayContent): r
       // discovered set with addresses the graph has never heard of.
       const url = next.browser.url
       if (next.browser.view !== 'page') return []
-      return content.browser.pages.some((p) => p.url === url) ? [projectedId.web(day, url)] : []
+      if (content.browser.pages.some((p) => p.url === url)) return [projectedId.web(day, url)]
+      // Not a page this day authored — the corpus keeps an internet of its own, and the shell
+      // tells us which document was at the address.
+      return event.type === 'BROWSER_NAVIGATED' && event.worldArtifactId
+        ? [event.worldArtifactId]
+        : []
     }
 
     // A bank statement is one page. Opening it is reading all of it.
@@ -196,27 +202,6 @@ function focusWindows(state: TimelineState, app: AppId): TimelineState {
     nextZ: z,
     windows: state.windows.map((w) => (w.app === app ? { ...w, z, minimized: false } : w)),
   }
-}
-
-/**
- * What a 2009 address bar forgave: a scheme, a `www.`, a trailing slash, stray case in the host.
- * The query string is left exactly as typed so percent-encoding survives.
- */
-export function normalizeUrl(raw: string): string {
-  let url = raw.trim()
-  url = url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
-  url = url.replace(/^www\./i, '')
-  const cut = url.search(/[?#]/)
-  const path = cut === -1 ? url : url.slice(0, cut)
-  const rest = cut === -1 ? '' : url.slice(cut)
-
-  // Only the host is case-insensitive. Lowercasing the path too would make
-  // `geohost.com/Terminal/4417` a different page from the one that was authored — and on a real
-  // 2009 server it was a different page.
-  const slash = path.indexOf('/')
-  const host = (slash === -1 ? path : path.slice(0, slash)).toLowerCase()
-  const rest0 = slash === -1 ? '' : path.slice(slash)
-  return (host + rest0).replace(/\/+$/, '') + rest
 }
 
 function currentEntry(state: TimelineState): BrowserEntry {
