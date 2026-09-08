@@ -8,6 +8,14 @@ import { z } from 'zod'
 const cents = z.number().int()
 const id = z.string().min(1)
 
+/**
+ * Colours authored into content reach the DOM as inline style values. React sets them as style
+ * properties rather than parsing a CSS string, so there is no injection today — but a bare
+ * `z.string()` would let a future contributor smuggle a `url(...)` beacon into a page's
+ * background. A hex colour is all a 2009 page ever needs.
+ */
+const cssColor = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'must be a hex colour')
+
 // --- Evidence & claims -----------------------------------------------------
 
 export const EvidenceSchema = z.object({
@@ -121,9 +129,9 @@ export const ThreadSchema = z.object({
 // --- Browser ---------------------------------------------------------------
 
 export const BlockSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('heading'), text: z.string(), ink: z.string().default('#22262b') }),
+  z.object({ kind: z.literal('heading'), text: z.string(), ink: cssColor.default('#22262b') }),
   z.object({ kind: z.literal('sub'), text: z.string() }),
-  z.object({ kind: z.literal('subheading'), text: z.string(), ink: z.string().default('#22262b') }),
+  z.object({ kind: z.literal('subheading'), text: z.string(), ink: cssColor.default('#22262b') }),
   z.object({ kind: z.literal('rule') }),
   z.object({ kind: z.literal('p'), text: z.string() }),
   z.object({
@@ -164,7 +172,7 @@ export const PageVariantSchema = z.object({
 
 export const BrowserPageSchema = z.object({
   url: z.string().min(1),
-  background: z.string(),
+  background: cssColor,
   /** Pages with a dark background invert their body ink. */
   dark: z.boolean().default(false),
   blocks: z.array(BlockSchema),

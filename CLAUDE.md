@@ -108,6 +108,15 @@ seeded PRNG (`engine/seed.ts`) recorded in the timeline.
 economy opportunities and temporal shifts live under `content/`, validated by Zod. React
 components render content; they never own narrative truth.
 
+**Choices must answer themselves.** A dialogue choice carries its own reply, may hold the
+conversation, may set a world flag, and may require evidence before it is offered. A
+branching-looking script that ignores what was picked is worse than an honest linear one — the
+player learns in ten seconds that nothing they say matters.
+
+**Consequences are content, not meters.** `heat`, `flags`, `watchlist`, `notes` and `inventory`
+all reach the Day 01 ending as authored lines. Anything the game accumulates and never spends is
+a hole a player will feel.
+
 ## 8. Core state model
 
 `engine/types.ts#TimelineState`. Do **not** expose all of it as a permanent HUD.
@@ -168,6 +177,22 @@ Never miniaturize the whole desktop.
 Keyboard access to dock/apps/windows; visible period-appropriate focus states; Escape closes
 overlays when safe; reduced motion; optional sound with a mute state; semantic buttons/inputs
 despite period styling; never rely on color alone for evidence/verdict states.
+
+Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mobile.spec.ts`:
+
+- **Never claim a widget you have not built.** A `role` you cannot back with its keyboard
+  contract is worse than no role: `role="listitem"` on a button destroys the button, `menubar`
+  promises menus, `aria-modal` without a trap is a lie. Windows are regions, not nine dialogs.
+- **Focus is state.** Opening the board or the day-end card moves focus in, traps Tab, makes the
+  desktop `inert`, and returns focus to the opener. Tabbing into a buried window raises it.
+  A control that becomes `disabled` while focused drops focus to `<body>` — use `aria-disabled`.
+- **`prefers-reduced-motion` must reach the JavaScript.** The boot ticker, the typing pause, the
+  resale settle and the surveillance hold are timers, not CSS. `pace()` collapses them. The beats
+  still happen; the waiting does not.
+- **Keyboard routes**: `Ctrl+\`` cycles windows, `Ctrl+D`reaches the dock,`Ctrl+E` the tray.
+  With nine windows open the dock is otherwise ~100 Tab presses away.
+- **Sound** is generated at runtime by `lib/audio/` — no files ship. The mute control lives in
+  the menu bar, where a 2009 machine put it, and the choice persists.
 
 ## 23. Testing
 

@@ -63,6 +63,22 @@ A claim requires an _exact_ evidence set (no extras, no omissions). Verdicts:
 Day 01 claims: `c1`–`c6` (see `content/day01/claims.ts`). `c4` ("Marc works for the Aion
 Group") is the trap: it can never be accepted.
 
+## Dialogue
+
+Every choice answers itself. A choice carries the reply it earns, so asking Marc where he was on
+the 14th gets an answer to _that_ question before he changes the subject. A choice may also:
+
+- **hold the conversation** (`advances: false`), leaving the other option open;
+- **set a world flag** (`setsFlag`), which is how a conversation reaches out and changes a page;
+- **require evidence** (`requiresEvidence`), so an accusation is unavailable until the player is
+  holding the thing that proves it.
+
+The load-bearing example: Lea has already posted about the car parked outside her building. She
+asks what to do. Tell her to write down the plate and the page gains a post; talk her out of it
+and the post comes down — **and `e9` with it, so claim `c5` becomes unprovable**. The player
+deletes the evidence they needed by giving advice that sounded kind. That is the game's thesis
+expressed as a mechanic rather than a meter.
+
 ## Recall
 
 Recall is **not** a chat assistant.
@@ -118,8 +134,12 @@ altered variant — the same URL, different text, plus a line telling the player
 
 Domains at `namewell.com/register` cost $9.95 each and each registration shifts the timeline.
 
-Quoteline is read-only on Day 01: placing orders requires a $2,000 brokerage deposit the player
-does not have.
+Quoteline cannot trade on Day 01: placing orders requires a $2,000 brokerage deposit against a
+balance that peaks at $717.82. It offers the one thing that costs no money — a **watchlist**.
+Writing down what you know raises `heat`, and at 23:41 the unknown sender counts the names back.
+
+A second TradePost listing (`tradepost-parts`, $40 → $15, 155 minutes) exists to lose. One
+opportunity teaches only that future knowledge pays.
 
 ## Day 01 gate
 
@@ -137,11 +157,14 @@ does not have.
 
 1. All windows close, phone closes, tray and board close.
 2. Surveillance overlay: a red pulsing indicator at the top of the screen — someone was watching.
-3. A new mail arrives from `UNKNOWN` (23:39). If the player filed a refused claim, it quotes the
-   claim back at them.
-4. After 3400ms the Day 01 summary card: balance, quota, memory coherence, claims on record,
+3. A new mail arrives from `UNKNOWN` (23:39). It quotes back any claim filed under the player's
+   name, escalates with `heat`, counts the characters typed into Notes (never a word of them),
+   and counts the names on the watchlist.
+4. The summary reports **deeds** as well as numbers — what the player did to 15 January 2009,
+   every line derived from state that already exists.
+5. After 3400ms the Day 01 summary card: balance, quota, memory coherence, claims on record,
    holdings, whether a page changed, and the surveillance line.
-5. `CONTINUE YOUR TIMELINE` → save/auth/entitlement boundary. `Save this timeline — free` →
+6. `CONTINUE YOUR TIMELINE` → save/auth/entitlement boundary. `Save this timeline — free` →
    account creation that claims the local timeline.
 
 ## Commercial boundary

@@ -50,7 +50,8 @@ engine/
   types.ts  events.ts  reducer.ts  rules.ts  selectors.ts
   temporal.ts  content-schema.ts  initial-state.ts  money.ts  seed.ts  clock.ts
 lib/
-  persistence/  db.ts (Dexie)  migrations.ts  local-store.ts
+  audio/        engine.ts (Web Audio synth)  cues.ts   — no audio files ship
+  persistence/  db.ts (Dexie, loaded on demand)  migrations.ts  local-store.ts
   supabase/     client.ts  server.ts  middleware.ts
   billing/      plans.ts  stripe.ts  entitlement.ts
   analytics/    index.ts  events.ts
@@ -85,11 +86,22 @@ and calls `reduce`. Components subscribe with narrow selectors so a window drag 
 the desktop. Drag itself never touches the store until pointerup — `useWindowDrag` writes a
 `translate3d` transform directly to the element.
 
+## Validation at the boundary
+
+The engine's types vanish at compile time, so `engine/timeline-schema.ts` is the runtime shape of
+a `TimelineState`. Anything arriving from IndexedDB, from Postgres, or from a client
+`PUT /api/timelines/:id` passes through it: integer cents, coherence in range, bounded text, and
+a **closed event vocabulary** (`GAME_EVENT_TYPES`, tied to the union by `satisfies`).
+
+The reducer's `default` branch calls `assertNever` and returns the state unchanged, so an event
+type this build does not know leaves the timeline alone rather than replacing it.
+
 ## Persistence
 
 - **Guest**: `lib/persistence/db.ts` (Dexie, database `two009`, table `timelines`). Autosave is
   debounced 600ms after any state-changing event, storing `{ snapshot, events, schemaVersion }`.
-- **Migration**: `lib/persistence/migrations.ts` maps any older `schemaVersion` forward. Unknown
+- **Migration**: `lib/persistence/migrations.ts` maps any older `schemaVersion` forward — the
+  chain currently runs 1 → 6. Unknown
   or corrupt rows are quarantined rather than crashing the boot.
 - **Cloud**: `/api/timelines/[id]` writes through Supabase with RLS. The client never holds the
   service-role key.

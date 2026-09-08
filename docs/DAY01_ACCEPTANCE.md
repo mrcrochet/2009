@@ -72,6 +72,28 @@ Each item maps to an automated test. `E` = `tests/e2e/day01.spec.ts`, `U` = `tes
 30. `U` Replaying the event log from the initial state reproduces the snapshot byte-for-byte.
 31. `E` Reloading mid-day restores the timeline from IndexedDB.
 
+## Dialogue and consequence
+
+34. `U` A choice's reply answers the question that was asked.
+35. `U` `advances: false` holds the conversation, leaving the other option open.
+36. `U` A choice can set a world flag.
+37. `E` "Where were you last night?" is absent until `e6` is pinned, then present.
+38. `U` Talking Lea out of her post removes `e9` from the page, making `c5` unprovable.
+39. `U` A flag-driven variant outranks a shift-driven one, and is not reported as drift.
+
+## What the day remembers
+
+40. `U` The summary reports deeds, and describes a losing trade as a loss.
+41. `U` The unknown mail escalates with `heat`.
+42. `U` It counts the characters typed into Notes and never quotes them.
+43. `U` It counts the watchlist; adding a name raises heat and removing it does not undo that.
+
+## Sound
+
+44. `U` Muting persists, notifies subscribers, and prevents any AudioContext being constructed.
+45. `U` Nothing throws where there is no Web Audio at all.
+46. `U` Only startup and the day-end sting run longer than 0.7s.
+
 ## Non-negotiables
 
 32. `E` No SaaS shell, sidebar, KPI cards or `Phone / Business / Timeline` nav exists anywhere in
