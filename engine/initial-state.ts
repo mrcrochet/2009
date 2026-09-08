@@ -1,7 +1,7 @@
 import type { DayContent } from './content-schema'
-import { WAKE_MINUTE } from './clock'
+import { DEFAULT_WAKE_MINUTE } from './clock'
 import { hashSeed } from './seed'
-import { SCHEMA_VERSION, type Stage, type TimelineState } from './types'
+import { SCHEMA_VERSION, type ChatLine, type Stage, type TimelineState } from './types'
 
 export interface CreateTimelineOptions {
   readonly id: string
@@ -12,6 +12,9 @@ export interface CreateTimelineOptions {
 
 export function createTimeline(content: DayContent, opts: CreateTimelineOptions): TimelineState {
   const now = opts.now ?? new Date(0).toISOString()
+  const threadIds = content.threads.map((t) => t.id)
+  const byThread = <T>(value: T): Record<string, T> =>
+    Object.fromEntries(threadIds.map((id) => [id, value]))
   return {
     id: opts.id,
     ownerId: opts.ownerId ?? null,
@@ -21,7 +24,7 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
     stage: opts.stage ?? 'landing',
     day: content.day,
     dateISO: content.dateISO,
-    minuteOfDay: WAKE_MINUTE,
+    minuteOfDay: content.wakeMinute ?? DEFAULT_WAKE_MINUTE,
 
     cashCents: content.economy.openingCashCents,
     memoryIntegrity: 100,
@@ -48,12 +51,13 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       unknownArrived: false,
     },
     chat: {
-      thread: 'unknown',
-      log: { unknown: [], marc: [], lea: [] },
-      step: { unknown: 0, marc: 0, lea: 0 },
-      waiting: { unknown: false, marc: false, lea: false },
-      pendingReply: { unknown: null, marc: null, lea: null },
-      pendingAdvance: { unknown: true, marc: true, lea: true },
+      // Whatever the day calls its correspondents, not a hard-coded trio.
+      thread: threadIds[0] ?? '',
+      log: byThread<readonly ChatLine[]>([]),
+      step: byThread(0),
+      waiting: byThread(false),
+      pendingReply: byThread<string | null>(null),
+      pendingAdvance: byThread(true),
     },
     browser: {
       view: 'home',

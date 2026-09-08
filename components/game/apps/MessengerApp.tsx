@@ -2,15 +2,18 @@
 
 import { useEffect, useRef } from 'react'
 import { selectChoices } from '@/engine/selectors'
-import type { ThreadId } from '@/engine/types'
+import type { ChatLine, ThreadId } from '@/engine/types'
 import { useContent, useDispatch, useTimeline } from '../GameContext'
 import { useTabList } from '../useTabList'
+
+/** Stable identity, so a thread the day never declared does not remount the log every render. */
+const EMPTY_LOG: readonly ChatLine[] = []
 
 export function MessengerApp() {
   const content = useContent()
   const dispatch = useDispatch()
   const thread = useTimeline((s) => s.chat.thread)
-  const lines = useTimeline((s) => s.chat.log[s.chat.thread])
+  const lines = useTimeline((s) => s.chat.log[s.chat.thread] ?? EMPTY_LOG)
   const waiting = useTimeline((s) => s.chat.waiting[s.chat.thread])
   const choices = useTimeline((s) => selectChoices(s, content))
   const logRef = useRef<HTMLDivElement>(null)

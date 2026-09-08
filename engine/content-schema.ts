@@ -119,7 +119,7 @@ export const ChatNodeSchema = z.object({
 })
 
 export const ThreadSchema = z.object({
-  id: z.enum(['unknown', 'marc', 'lea']),
+  id: z.string().min(1),
   label: z.string().min(1),
   script: z.array(ChatNodeSchema).min(1),
   /** Beat fired when the player replies in this thread. Beats are named by the day. */
@@ -384,6 +384,9 @@ export const DayEndSchema = z.object({
 export const DayContentSchema = z.object({
   day: z.number().int().positive(),
   dateISO: z.string(),
+  /** Minutes since midnight. A day that starts at 04:00 is the obvious escalation. */
+  wakeMinute: z.number().int().min(0).max(1439),
+  endMinute: z.number().int().min(0).max(1439),
   location: z.string(),
   identity: z.string(),
   osName: z.string(),
@@ -396,6 +399,12 @@ export const DayContentSchema = z.object({
   apps: z.array(AppDefinitionSchema).min(1),
   dock: z.array(z.string()).min(1),
   evidence: z.array(EvidenceSchema).min(1),
+  /**
+   * Evidence from earlier days that this day can still display, with **qualified** ids ("1:e3").
+   * A day composes what it inherits explicitly, which keeps the engine a pure function of one
+   * day's content rather than needing a lookup across all thirty.
+   */
+  carriedEvidence: z.array(EvidenceSchema).default([]),
   claims: z.array(ClaimSchema).min(1),
   memories: z.array(MemorySchema).min(1),
   recall: RecallConfigSchema,

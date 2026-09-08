@@ -3,6 +3,7 @@ import { clockString, menuBarClock } from './clock'
 import { formatMoney, formatSigned } from './money'
 import { canEndDay, outstandingBeats } from './rules'
 import { findPage, hasWitnessedShift, resolveBlocks, resolveSearchEntry } from './temporal'
+import { qualifyEvidenceId } from './types'
 import type { AppId, BeatId, Confidence, Evidence, TimelineState } from './types'
 
 /** Derived, framework-free view models. Components render these; they never compute story. */
@@ -149,11 +150,14 @@ export const selectChoices: (state: TimelineState, content: DayContent) => reado
       if (state.chat.waiting[state.chat.thread]) return []
       const thread = content.threads.find((t) => t.id === state.chat.thread)
       if (!thread) return []
-      if (state.chat.log[state.chat.thread].length === 0) return []
-      const node = thread.script[state.chat.step[state.chat.thread]]
+      if ((state.chat.log[state.chat.thread]?.length ?? 0) === 0) return []
+      const node = thread.script[state.chat.step[state.chat.thread] ?? 0]
       if (!node) return []
       const pinned = new Set(state.evidence.map((e) => e.id))
-      return node.choices.filter((c) => !c.requiresEvidence || pinned.has(c.requiresEvidence))
+      return node.choices.filter(
+        (c) =>
+          !c.requiresEvidence || pinned.has(qualifyEvidenceId(content.day, c.requiresEvidence)),
+      )
     },
   )
 // --- Browser ---------------------------------------------------------------
@@ -268,6 +272,8 @@ export const selectLedger: (state: TimelineState, content: DayContent) => readon
 // --- Investigation ---------------------------------------------------------
 
 export interface EvidenceCard extends Evidence {
+  /** The day it was found on. A caseboard on the 16th still shows the 15th's evidence. */
+  readonly day: number
   readonly discoveredAt: number
   readonly selected: boolean
 }
@@ -279,11 +285,17 @@ export const selectEvidenceCards: (
   (s, c) => [s.evidence, s.selectedEvidenceIds, c],
   (state, content) => {
     return state.evidence.flatMap((pinned) => {
-      const def = content.evidence.find((e) => e.id === pinned.id)
+      // Today's evidence is authored with short ids; anything carried from an earlier day
+      // already names its day.
+      const def =
+        content.evidence.find((e) => qualifyEvidenceId(content.day, e.id) === pinned.id) ??
+        content.carriedEvidence.find((e) => e.id === pinned.id)
       if (!def) return []
       return [
         {
           ...(def as Evidence),
+          id: pinned.id,
+          day: pinned.day,
           discoveredAt: pinned.discoveredAt,
           selected: state.selectedEvidenceIds.includes(pinned.id),
         },
@@ -293,7 +305,8 @@ export const selectEvidenceCards: (
 )
 export function isPinned(state: TimelineState, evidenceId: string | null | undefined): boolean {
   if (!evidenceId) return false
-  return state.evidence.some((e) => e.id === evidenceId)
+  const id = qualifyEvidenceId(state.day, evidenceId)
+  return state.evidence.some((e) => e.id === id)
 }
 
 export function pinLabel(state: TimelineState, evidenceId: string | null | undefined): string {

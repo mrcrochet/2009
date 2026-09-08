@@ -27,6 +27,8 @@ export interface GameStore {
 
 export interface CreateStoreOptions {
   readonly content: DayContent
+  /** Supplied by the shell so the store can swap worlds when `DAY_ADVANCED` lands. */
+  readonly contentForDay?: (day: number) => DayContent
   readonly timeline?: TimelineState
   readonly timelineId?: string
   readonly onEvent?: (event: GameEvent, next: TimelineState, prev: TimelineState) => void
@@ -52,6 +54,10 @@ export function createGameStore(options: CreateStoreOptions) {
       const event = stamp(timeline, input)
       const next = reduce(timeline, event, content)
       if (next === timeline) return
+      // The day turned: the world the player is now standing in is a different one.
+      if (next.day !== timeline.day && options.contentForDay) {
+        set({ content: options.contentForDay(next.day) })
+      }
       let withLog = next
       if (isMeaningful(event)) {
         const log = next.eventLog
@@ -87,12 +93,12 @@ export function createGameStore(options: CreateStoreOptions) {
     /** Rebuild state from the log — used by the dev debug panel and by the replay test. */
     replay() {
       const { timeline, content } = get()
-      const base = createTimeline(content, {
+      const base = createTimeline(options.contentForDay?.(1) ?? content, {
         id: timeline.id,
         ownerId: timeline.ownerId,
         now: timeline.createdAt,
       })
-      return applyEvents(base, timeline.eventLog, content)
+      return applyEvents(base, timeline.eventLog, options.contentForDay ?? content)
     },
   }))
 }

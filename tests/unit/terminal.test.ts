@@ -28,7 +28,7 @@ describe('terminal', () => {
     })
     expect(state.files.decrypted).toBe(true)
     expect(state.files.openId).toBe('enc')
-    expect(state.evidence.map((e) => e.id)).toContain('e7')
+    expect(state.evidence.map((e) => e.id)).toContain('1:e7')
     expect(state.heat).toBe(5)
   })
 

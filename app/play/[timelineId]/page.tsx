@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { DAY_01, contentForDay, hasContentForDay } from '@/content'
+import { DAY_01, advanceEventFor, contentForDay, hasContentForDay } from '@/content'
 import { GameLoader } from '@/components/game/GameLoader'
 import { getServerEntitlement } from '@/lib/billing/entitlement'
 import { getCurrentUser } from '@/lib/supabase/server'
@@ -33,5 +33,14 @@ export default async function ResumePage({ params, searchParams }: Props) {
   }
 
   const content = hasContentForDay(requestedDay) ? contentForDay(requestedDay) : DAY_01
-  return <GameLoader content={content} timelineId={timelineId} mode="resume" />
+  // Computed on the server so a replay never has to reach for another day's content mid-log.
+  const advanceEvent = requestedDay > 1 ? advanceEventFor(requestedDay) : undefined
+  return (
+    <GameLoader
+      content={content}
+      timelineId={timelineId}
+      mode="resume"
+      advanceEvent={advanceEvent}
+    />
+  )
 }

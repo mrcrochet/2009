@@ -5,7 +5,7 @@ import {
   selectMail,
   selectOutstandingBeats,
 } from '@/engine/selectors'
-import { DAY_END_MINUTE } from '@/engine/clock'
+import { DEFAULT_END_MINUTE } from '@/engine/clock'
 import { content, dispatch, fresh, run } from './helpers'
 
 function playThroughRequirements() {
@@ -83,7 +83,7 @@ describe('day 01 gate', () => {
     expect(state.ui.trayOpen).toBe(false)
     expect(state.ui.watched).toBe(true)
     expect(state.ui.dayCard).toBe(false)
-    expect(state.minuteOfDay).toBe(DAY_END_MINUTE)
+    expect(state.minuteOfDay).toBe(DEFAULT_END_MINUTE)
 
     state = dispatch(state, { type: 'DAY_CARD_SHOWN' })
     expect(state.ui.dayCard).toBe(true)

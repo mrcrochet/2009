@@ -9,6 +9,7 @@ export function EvidenceTray() {
   const dispatch = useDispatch()
   const open = useTimeline((s) => s.ui.trayOpen)
   const cards = useTimeline((s) => selectEvidenceCards(s, content))
+  const day = useTimeline((s) => s.day)
 
   return (
     <>
@@ -39,7 +40,12 @@ export function EvidenceTray() {
           <div className="hal-tray__list">
             {cards.map((e) => (
               <div key={e.id} className="hal-evcard">
-                <div className="hal-evcard__src">{e.source}</div>
+                <div className="hal-evcard__src">
+                  {e.source}
+                  {e.day !== day ? (
+                    <span className="hal-evcard__day"> · DAY {String(e.day).padStart(2, '0')}</span>
+                  ) : null}
+                </div>
                 <div className="hal-evcard__text">{e.text}</div>
                 <div className="hal-evcard__tags">{e.reliability.toUpperCase()}</div>
               </div>

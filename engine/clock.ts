@@ -1,7 +1,11 @@
 /** In-world clock. `minuteOfDay` is minutes since local midnight on 15 Jan 2009. */
 
-export const WAKE_MINUTE = 7 * 60 + 32 // 07:32
-export const DAY_END_MINUTE = 23 * 60 + 41 // 23:41
+/**
+ * Day 01's hours, kept only as the default a day inherits when it does not say otherwise.
+ * The authoritative values live on `DayContent` — a later day should be able to start at 04:00.
+ */
+export const DEFAULT_WAKE_MINUTE = 7 * 60 + 32 // 07:32
+export const DEFAULT_END_MINUTE = 23 * 60 + 41 // 23:41
 
 export function clockString(minuteOfDay: number): string {
   const m = ((minuteOfDay % 1440) + 1440) % 1440

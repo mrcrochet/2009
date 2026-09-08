@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 8
+export const SCHEMA_VERSION = 9
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -74,12 +74,35 @@ export interface Evidence {
   readonly reliability: Reliability
 }
 
-/** An evidence item once the player has actually pinned it. */
+/**
+ * An evidence item once the player has actually pinned it.
+ *
+ * `id` is **qualified** — `"1:e3"` — because evidence ids were one flat namespace across thirty
+ * days. Reusing a page from an earlier day brought its evidence with it, and a player could pin
+ * something they never encountered. Content still authors short ids; the reducer qualifies them
+ * with the day they were found on.
+ */
 export interface PinnedEvidence {
   readonly id: string
+  readonly day: number
   readonly discoveredBy: EvidenceSourceKind
   /** minuteOfDay at which it was pinned. */
   readonly discoveredAt: number
+}
+
+/** `e3` on day 1 becomes `1:e3`. An id that already carries a day is left alone. */
+export function qualifyEvidenceId(day: number, id: string): string {
+  return id.includes(':') ? id : `${day}:${id}`
+}
+
+export function evidenceDayOf(qualifiedId: string): number {
+  const [day] = qualifiedId.split(':')
+  return Number(day) || 0
+}
+
+export function unqualifyEvidenceId(qualifiedId: string): string {
+  const parts = qualifiedId.split(':')
+  return parts.length > 1 ? parts.slice(1).join(':') : qualifiedId
 }
 
 export type ClaimVerdictKind = 'accepted' | 'insufficient' | 'refused'
@@ -157,7 +180,12 @@ export interface BrowserState extends BrowserEntry {
 // Messenger / terminal / notes
 // ---------------------------------------------------------------------------
 
-export type ThreadId = 'unknown' | 'marc' | 'lea'
+/**
+ * Whatever the day's content calls its correspondents. This was `unknown | marc | lea`, which
+ * meant a later day could not introduce a person — and `initial-state.ts` hard-coded the same
+ * trio in three places.
+ */
+export type ThreadId = string
 
 export interface ChatLine {
   readonly who: string
@@ -215,6 +243,14 @@ export const DEFAULT_VIEWPORT: Viewport = { width: 1280, height: 800 }
 // Timeline
 // ---------------------------------------------------------------------------
 
+/**
+ * A timeline, organised around a single question: **does this survive the night?**
+ *
+ * The lifetime block is who the player has become, and it follows them to the 16th. The per-day
+ * block is the surface of one day and is cleared by `DAY_ADVANCED`. Without that line drawn
+ * explicitly a second day was a separate new game that happened to be dated later — and the
+ * beats, being shared, opened its gate before it had started.
+ */
 export interface TimelineState {
   readonly id: string
   readonly ownerId: string | null
@@ -224,7 +260,8 @@ export interface TimelineState {
   readonly stage: Stage
   readonly day: number
   readonly dateISO: string
-  readonly minuteOfDay: number
+
+  // --- lifetime: carried across days ---------------------------------------
 
   readonly cashCents: Cents
   readonly memoryIntegrity: number
@@ -238,6 +275,30 @@ export interface TimelineState {
   readonly divergence: number
   readonly temporalShift: number
 
+  /** Qualified by the day they were found on, so a later day cannot expose an earlier one's. */
+  readonly evidence: readonly PinnedEvidence[]
+  readonly claimLog: readonly ClaimAttempt[]
+  readonly inventory: readonly InventoryItem[]
+  readonly ledger: readonly LedgerEntry[]
+  readonly domains: readonly string[]
+  /**
+   * Symbols the player has written down. No money moves — they cannot open a brokerage account
+   * on $717.82. It is the act of recording what they know, on a machine someone else is reading.
+   */
+  readonly watchlist: readonly string[]
+  /** A lifetime record of what coherence was spent on, not a per-day log. */
+  readonly recalls: readonly RecallResult[]
+  /** The player's own notebook. It is theirs, and it follows them. */
+  readonly notes: string
+  /**
+   * Consequences of decisions. All flags persist: a game about what your choices did cannot
+   * forget them overnight. A day wanting a transient marker should prefix it with its own day.
+   */
+  readonly flags: Readonly<Record<string, boolean>>
+
+  // --- per day: cleared by DAY_ADVANCED ------------------------------------
+
+  readonly minuteOfDay: number
   readonly bootLine: number
 
   readonly windows: readonly WindowState[]
@@ -245,11 +306,9 @@ export interface TimelineState {
   readonly desktopIcons: readonly string[]
   readonly phone: PhoneState
 
-  readonly evidence: readonly PinnedEvidence[]
   readonly selectedEvidenceIds: readonly string[]
   readonly selectedClaimId: string | null
   readonly lastVerdict: ClaimAttempt | null
-  readonly claimLog: readonly ClaimAttempt[]
 
   readonly mail: {
     readonly openId: string
@@ -276,18 +335,7 @@ export interface TimelineState {
     readonly decryptAttempts: number
   }
   readonly terminal: { readonly lines: readonly TerminalLine[]; readonly input: string }
-  readonly notes: string
-  readonly recalls: readonly RecallResult[]
   readonly recallQuery: string
-
-  readonly inventory: readonly InventoryItem[]
-  readonly ledger: readonly LedgerEntry[]
-  readonly domains: readonly string[]
-  /**
-   * Symbols the player has written down. No money moves — they cannot open a brokerage account
-   * on $717.82. It is the act of recording what they know, on a machine someone else is reading.
-   */
-  readonly watchlist: readonly string[]
 
   readonly ui: {
     readonly trayOpen: boolean
@@ -298,7 +346,6 @@ export interface TimelineState {
 
   /** Cleared when a day advances; a day's gate is about that day. */
   readonly beats: Readonly<Record<string, boolean>>
-  readonly flags: Readonly<Record<string, boolean>>
 
   readonly eventLog: readonly GameEvent[]
   readonly createdAt: string
@@ -367,6 +414,18 @@ export type GameEvent =
   | (Base & { type: 'WATCHLIST_TOGGLED'; symbol: string })
   | (Base & { type: 'DAY_ENDED' })
   | (Base & { type: 'DAY_CARD_SHOWN' })
+  | (Base & {
+      type: 'DAY_ADVANCED'
+      day: number
+      dateISO: string
+      /** Carried on the event so a replay does not need the next day's content to hand. */
+      wakeMinute: number
+      threadIds: readonly ThreadId[]
+      firstMailId: string
+      firstFileId: string
+      browserHome: string
+      terminalBanner: TerminalLine
+    })
   | (Base & { type: 'TIMELINE_CLAIMED'; ownerId: string })
 
 export type GameEventType = GameEvent['type']

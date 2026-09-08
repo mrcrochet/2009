@@ -28,6 +28,8 @@ export const boot = [
 export const day01: z.input<typeof DayContentSchema> = {
   day: 1,
   dateISO: '2009-01-15',
+  wakeMinute: 7 * 60 + 32,
+  endMinute: 23 * 60 + 41,
   location: 'Portland, Oregon',
   identity: 'Owen T. Rask',
   osName: 'HALCYON 4.1',

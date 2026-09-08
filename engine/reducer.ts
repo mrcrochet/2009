@@ -1,5 +1,6 @@
 import type { DayContent } from './content-schema'
-import { DAY_END_MINUTE } from './clock'
+import { DEFAULT_END_MINUTE } from './clock'
+import { qualifyEvidenceId } from './types'
 import {
   cascadePosition,
   clampPhone,
@@ -79,18 +80,29 @@ export function reduce(state: TimelineState, event: GameEvent, content: DayConte
     ...next,
     // A day cannot run past its own end. Without this the clock wraps to 00:12 while the menu
     // bar still says Thursday the 15th, and `DAY_ENDED` then moves the clock backwards.
-    minuteOfDay: Math.min(minuteOfDay, DAY_END_MINUTE),
+    minuteOfDay: Math.min(minuteOfDay, content.endMinute ?? DEFAULT_END_MINUTE),
     divergence:
       next.divergence === state.divergence ? state.divergence + divergence : next.divergence,
   }
 }
 
+/**
+ * Replay. A multi-day log has to be reduced against the content of the day each event belongs
+ * to, so this accepts a resolver as well as a single day — passing one day's content for a log
+ * that crosses midnight would quietly interpret Day 02's events against Day 01's world.
+ */
 export function applyEvents(
   state: TimelineState,
   events: readonly GameEvent[],
-  content: DayContent,
+  content: DayContent | ((day: number) => DayContent),
 ): TimelineState {
-  return events.reduce((acc, e) => reduce(acc, e, content), state)
+  const resolve = typeof content === 'function' ? content : () => content
+  return events.reduce((acc, e) => {
+    // `DAY_ADVANCED` is reduced against the day being *left*; everything after it belongs to the
+    // day being entered.
+    const dayContent = resolve(acc.day)
+    return reduce(acc, e, dayContent)
+  }, state)
 }
 
 // ---------------------------------------------------------------------------
@@ -151,10 +163,13 @@ function pinEvidence(
   via: TimelineState['evidence'][number]['discoveredBy'],
   at: number,
 ): TimelineState {
-  if (state.evidence.some((e) => e.id === evidenceId)) return state
+  // Qualified by the day it was found on. Ids were one flat namespace, so a later day reusing an
+  // earlier day's page could hand the player evidence they never encountered.
+  const id = qualifyEvidenceId(state.day, evidenceId)
+  if (state.evidence.some((e) => e.id === id)) return state
   return {
     ...state,
-    evidence: [...state.evidence, { id: evidenceId, discoveredBy: via, discoveredAt: at }],
+    evidence: [...state.evidence, { id, day: state.day, discoveredBy: via, discoveredAt: at }],
     ui: { ...state.ui, trayOpen: true },
   }
 }
@@ -312,7 +327,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'CHAT_STARTED': {
       const thread = content.threads.find((t) => t.id === event.thread)
       if (!thread) return state
-      if (state.chat.log[event.thread].length > 0) return state
+      if ((state.chat.log[event.thread]?.length ?? 0) > 0) return state
       const node = thread.script[0]
       if (!node) return state
       return {
@@ -347,7 +362,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           log: {
             ...state.chat.log,
             [event.thread]: [
-              ...state.chat.log[event.thread],
+              ...(state.chat.log[event.thread] ?? []),
               { who: 'you', text: event.text, mine: true, time: minuteLabel(state.minuteOfDay) },
             ],
           },
@@ -359,11 +374,11 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'CHAT_ADVANCED': {
       const thread = content.threads.find((t) => t.id === event.thread)
       if (!thread) return state
-      const current = state.chat.step[event.thread]
+      const current = state.chat.step[event.thread] ?? 0
       const time = minuteLabel(state.minuteOfDay)
       const speaker = thread.script[current]?.who ?? thread.label
 
-      const log = [...state.chat.log[event.thread]]
+      const log = [...(state.chat.log[event.thread] ?? [])]
 
       // First: the answer to what was actually asked, in this thread.
       const pendingReply = state.chat.pendingReply[event.thread]
@@ -373,7 +388,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
 
       // Then the script moves on — which is how a person changes the subject. A choice marked
       // `advances: false` holds the conversation where it is, so the other option stays open.
-      const advance = state.chat.pendingAdvance[event.thread]
+      const advance = state.chat.pendingAdvance[event.thread] ?? true
       const step = advance ? current + 1 : current
       const node = advance ? thread.script[step] : undefined
       if (node) log.push({ who: node.who, text: node.text, mine: false, time })
@@ -521,12 +536,13 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return pinEvidence(state, event.evidenceId, event.via, event.at)
 
     case 'EVIDENCE_SELECTION_TOGGLED': {
-      const selected = state.selectedEvidenceIds.includes(event.evidenceId)
+      const id = qualifyEvidenceId(state.day, event.evidenceId)
+      const selected = state.selectedEvidenceIds.includes(id)
       return {
         ...state,
         selectedEvidenceIds: selected
-          ? state.selectedEvidenceIds.filter((id) => id !== event.evidenceId)
-          : [...state.selectedEvidenceIds, event.evidenceId],
+          ? state.selectedEvidenceIds.filter((x) => x !== id)
+          : [...state.selectedEvidenceIds, id],
       }
     }
 
@@ -536,11 +552,15 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'CLAIM_ASSERTED': {
       const claim = content.claims.find((c) => c.id === event.claimId) as Claim | undefined
       if (!claim) return state
-      const outcome = evaluateClaim(claim, event.evidenceIds)
+      // A claim may rest on an earlier day's evidence by naming it outright ("1:e3"); anything
+      // unqualified means today's.
+      const need = claim.need.map((id) => qualifyEvidenceId(content.day, id))
+      const selected = event.evidenceIds.map((id) => qualifyEvidenceId(state.day, id))
+      const outcome = evaluateClaim({ ...claim, need }, selected)
       const attempt = {
         claimId: claim.id,
         claimText: claim.text,
-        evidenceIds: [...event.evidenceIds],
+        evidenceIds: selected,
         verdict: outcome.verdict,
         message: outcome.message,
         at: event.at,
@@ -664,7 +684,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return {
         ...state,
         stage: 'day-end',
-        minuteOfDay: DAY_END_MINUTE,
+        minuteOfDay: content.endMinute ?? DEFAULT_END_MINUTE,
         windows: [],
         phone: { ...state.phone, open: false },
         ui: { trayOpen: false, boardOpen: false, watched: true, dayCard: false },
@@ -675,6 +695,66 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'DAY_CARD_SHOWN':
       if (state.ui.dayCard) return state
       return { ...state, ui: { ...state.ui, dayCard: true } }
+
+    /**
+     * The night. Everything the player *became* survives; everything that was the surface of one
+     * day is cleared. Without this the engine stopped at the summary card and a second day was a
+     * separate new game that happened to be dated later.
+     */
+    case 'DAY_ADVANCED': {
+      if (event.day <= state.day) return state
+      const emptyByThread = <T>(value: T) =>
+        Object.fromEntries(event.threadIds.map((id) => [id, value]))
+
+      return {
+        ...state,
+
+        // Carried: cash, coherence, heat, divergence, shift, evidence, claims on record,
+        // inventory, the ledger, domains, the watchlist, every recall, the notebook, and every
+        // flag a decision set. A game about consequence cannot forget them overnight.
+
+        day: event.day,
+        dateISO: event.dateISO,
+        stage: 'playing',
+
+        // Reset: the surface of a day.
+        minuteOfDay: event.wakeMinute,
+        bootLine: 0,
+        windows: [],
+        nextZ: 20,
+        desktopIcons: [],
+        // Where the player put the phone down is a preference, not a day.
+        phone: { ...state.phone, open: false, tab: 'sms', smsStep: 0 },
+        selectedEvidenceIds: [],
+        selectedClaimId: null,
+        lastVerdict: null,
+        mail: { openId: event.firstMailId, readIds: [event.firstMailId], unknownArrived: false },
+        chat: {
+          thread: event.threadIds[0] ?? state.chat.thread,
+          log: emptyByThread([]),
+          step: emptyByThread(0),
+          waiting: emptyByThread(false),
+          pendingReply: emptyByThread(null),
+          pendingAdvance: emptyByThread(true),
+        },
+        browser: {
+          view: 'home',
+          url: event.browserHome,
+          query: '',
+          resultIds: [],
+          draftUrl: null,
+          history: [],
+          forward: [],
+        },
+        // What was decrypted stays decrypted, and the attempts still count against the player.
+        files: { ...state.files, openId: event.firstFileId },
+        terminal: { lines: [event.terminalBanner], input: '' },
+        recallQuery: '',
+        ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false },
+        // The gate is about *this* day. Sharing them opened a later day's gate before it began.
+        beats: {},
+      }
+    }
 
     case 'TIMELINE_CLAIMED':
       if (state.ownerId === event.ownerId) return state

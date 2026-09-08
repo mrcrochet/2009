@@ -149,8 +149,8 @@ test.describe('HALCYON on a narrow screen', () => {
     await expect(tray(page)).toBeVisible()
     await tray(page).getByRole('button', { name: 'OPEN BOARD' }).press('Enter')
 
-    await expect(board(page).locator('[data-evidence="e1"]')).toBeVisible()
-    await expect(board(page).locator('[data-evidence="e4"]')).toBeVisible()
+    await expect(board(page).locator('[data-evidence="1:e1"]')).toBeVisible()
+    await expect(board(page).locator('[data-evidence="1:e4"]')).toBeVisible()
   })
 
   /**

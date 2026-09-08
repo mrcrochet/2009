@@ -50,7 +50,8 @@ describe('evidence', () => {
       { type: 'EVIDENCE_SELECTION_TOGGLED', evidenceId: 'e3' },
     ])
     const cards = selectEvidenceCards(state, content)
-    expect(cards.map((c) => c.id)).toEqual(['e3', 'e4'])
+    // Qualified by the day they were found on.
+    expect(cards.map((c) => c.id)).toEqual(['1:e3', '1:e4'])
     expect(cards[0]?.selected).toBe(true)
     expect(cards[0]?.reliability).toBe('documentary')
   })

@@ -3,6 +3,8 @@
 import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
 import type { DayContent } from '@/engine/content-schema'
+import type { EventInput } from '@/engine/events'
+import { contentForDay } from '@/content'
 
 /**
  * The whole engine + HALCYON bundle is pulled in here and nowhere else, so `/` stays light.
@@ -18,11 +20,22 @@ export function GameLoader({
   content,
   timelineId,
   mode,
+  advanceEvent,
 }: {
   content: DayContent
   timelineId?: string
   mode: 'new' | 'resume'
+  /** Serialisable, so the server route can hand it across the boundary. */
+  advanceEvent?: EventInput
 }) {
   const id = useMemo(() => timelineId ?? crypto.randomUUID(), [timelineId])
-  return <GameRoot content={content} timelineId={id} mode={mode} />
+  return (
+    <GameRoot
+      content={content}
+      timelineId={id}
+      mode={mode}
+      advanceEvent={advanceEvent}
+      contentForDay={contentForDay}
+    />
+  )
 }

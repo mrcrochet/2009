@@ -73,7 +73,7 @@ describe('choices that answer themselves', () => {
     ])
     state = dispatch(state, { type: 'CHAT_REPLY_SENT', thread: threadId, text, ...extra })
     state = dispatch(state, { type: 'CHAT_ADVANCED', thread: threadId })
-    return state.chat.log[threadId].map((l) => l.text)
+    return (state.chat.log[threadId] ?? []).map((l) => l.text)
   }
 
   it('answers the question that was asked', () => {
@@ -143,11 +143,11 @@ describe('two conversations at once', () => {
     })
     state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'marc' })
 
-    expect(state.chat.log.marc.map((l) => l.text)).toContain('MARC-ANSWER')
-    expect(state.chat.log.marc.map((l) => l.text)).not.toContain('LEA-ANSWER')
+    expect(state.chat.log.marc!.map((l) => l.text)).toContain('MARC-ANSWER')
+    expect(state.chat.log.marc!.map((l) => l.text)).not.toContain('LEA-ANSWER')
 
     state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'lea' })
-    expect(state.chat.log.lea.map((l) => l.text)).toContain('LEA-ANSWER')
+    expect(state.chat.log.lea!.map((l) => l.text)).toContain('LEA-ANSWER')
   })
 
   it('only the thread being answered is waiting', () => {

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { DayContent } from '@/engine/content-schema'
+import type { EventInput } from '@/engine/events'
 import { createTimeline } from '@/engine/initial-state'
 import type { GameEvent, ThreadId, TimelineState } from '@/engine/types'
 import { selectCanEndDay, selectDaySummary } from '@/engine/selectors'
@@ -23,16 +24,20 @@ interface Props {
   readonly timelineId: string
   /** `new` starts at the boot console (the player already pressed WAKE UP). */
   readonly mode: 'new' | 'resume'
+  /** Dispatched when a saved timeline is resumed on a later day than it was left on. */
+  readonly advanceEvent?: EventInput
+  readonly contentForDay?: (day: number) => DayContent
 }
 
 /**
  * Owns everything the pure engine deliberately does not: timers, persistence, viewport and
  * analytics. Every scheduled beat dispatches an ordinary event, so the log stays replayable.
  */
-export function GameRoot({ content, timelineId, mode }: Props) {
+export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDay }: Props) {
   const [api] = useState<GameStoreApi>(() =>
     createGameStore({
       content,
+      contentForDay,
       timeline: createTimeline(content, { id: timelineId, now: new Date().toISOString() }),
       onEvent: (event, next, prev) => {
         trackEvent(event, next, content)
@@ -58,14 +63,24 @@ export function GameRoot({ content, timelineId, mode }: Props) {
     }
     void loadTimeline(timelineId).then((saved) => {
       if (cancelled) return
-      if (saved) api.getState().hydrate(saved)
-      else api.getState().dispatch({ type: 'WOKE_UP' })
+      if (!saved) {
+        api.getState().dispatch({ type: 'WOKE_UP' })
+        setReady(true)
+        return
+      }
+      api.getState().hydrate(saved)
+      // The player finished a day and came back for the next one. This is the only place the
+      // night happens: everything they became carries, everything that was one day's surface
+      // is cleared.
+      if (saved.day < content.day && advanceEvent) {
+        api.getState().dispatch(advanceEvent)
+      }
       setReady(true)
     })
     return () => {
       cancelled = true
     }
-  }, [api, mode, timelineId])
+  }, [api, mode, timelineId, content.day, advanceEvent])
 
   // --- viewport ------------------------------------------------------------
   useEffect(() => {

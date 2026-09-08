@@ -183,8 +183,8 @@ test.describe('Day 01', () => {
     const board = page.getByRole('dialog', { name: 'Investigation board' })
     await expect(board).toBeVisible()
 
-    await board.locator('[data-evidence="e5"]').click()
-    await board.locator('[data-evidence="e6"]').click()
+    await board.locator('[data-evidence="1:e5"]').click()
+    await board.locator('[data-evidence="1:e6"]').click()
     await board.locator('[data-claim="c1"]').click()
     await board.getByRole('button', { name: 'SUBMIT CLAIM' }).click()
     await expect(board.getByRole('status')).toHaveAttribute('data-verdict', 'accepted')

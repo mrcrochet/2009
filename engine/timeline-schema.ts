@@ -20,7 +20,8 @@ const minute = z
   .max(24 * 60)
 
 const AppId = z.enum(['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall'])
-const ThreadId = z.enum(['unknown', 'marc', 'lea'])
+// A day names its own correspondents.
+const ThreadId = z.string().min(1).max(64)
 const SourceKind = z.enum(['mail', 'bank', 'files', 'browser', 'phone', 'terminal', 'messenger'])
 
 const WindowStateSchema = z.object({
@@ -96,7 +97,14 @@ export const TimelineStateSchema = z.object({
   }),
 
   evidence: z
-    .array(z.object({ id: z.string().max(64), discoveredBy: SourceKind, discoveredAt: minute }))
+    .array(
+      z.object({
+        id: z.string().max(64),
+        day: z.number().int().min(1).max(30),
+        discoveredBy: SourceKind,
+        discoveredAt: minute,
+      }),
+    )
     .max(128),
   selectedEvidenceIds: z.array(z.string().max(64)).max(128),
   selectedClaimId: z.string().max(64).nullable(),

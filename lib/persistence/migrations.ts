@@ -115,6 +115,26 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 8,
+    to: 9,
+    describe: 'evidence is namespaced by the day it was found on',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const day = typeof snapshot.day === 'number' ? snapshot.day : 1
+      const evidence = Array.isArray(snapshot.evidence) ? (snapshot.evidence as AnyRecord[]) : []
+      snapshot.evidence = evidence.map((e) => ({
+        ...e,
+        day: typeof e.day === 'number' ? e.day : day,
+        id: typeof e.id === 'string' && !e.id.includes(':') ? `${day}:${e.id}` : e.id,
+      }))
+      const selected = Array.isArray(snapshot.selectedEvidenceIds)
+        ? (snapshot.selectedEvidenceIds as string[])
+        : []
+      snapshot.selectedEvidenceIds = selected.map((id) => (id.includes(':') ? id : `${day}:${id}`))
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

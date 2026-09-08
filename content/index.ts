@@ -21,4 +21,23 @@ export function hasContentForDay(day: number): boolean {
   return day in BY_DAY
 }
 
+/**
+ * Everything `DAY_ADVANCED` needs about the day being entered, carried on the event so a replay
+ * does not have to reach for another day's content mid-log.
+ */
+export function advanceEventFor(day: number) {
+  const next = contentForDay(day)
+  return {
+    type: 'DAY_ADVANCED' as const,
+    day: next.day,
+    dateISO: next.dateISO,
+    wakeMinute: next.wakeMinute,
+    threadIds: next.threads.map((t) => t.id),
+    firstMailId: next.mail[0]?.id ?? '',
+    firstFileId: next.files[0]?.id ?? '',
+    browserHome: next.browser.home,
+    terminalBanner: next.terminal.banner,
+  }
+}
+
 export const MAX_AUTHORED_DAY = Math.max(...Object.keys(BY_DAY).map(Number))

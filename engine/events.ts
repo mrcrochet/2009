@@ -60,6 +60,7 @@ export const GAME_EVENT_TYPES = [
   'WATCHLIST_TOGGLED',
   'DAY_ENDED',
   'DAY_CARD_SHOWN',
+  'DAY_ADVANCED',
   'TIMELINE_CLAIMED',
 ] as const satisfies readonly GameEvent['type'][]
 
