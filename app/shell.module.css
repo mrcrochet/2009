@@ -1,0 +1,57 @@
+/* The product's own surfaces — 404, faults, and anything outside the fiction. Dark and quiet,
+   but not in character: HALCYON is not the thing that failed. */
+
+.root {
+  min-height: 100dvh;
+  background: radial-gradient(120% 90% at 50% 8%, #15181c 0%, #0a0c0e 55%, #07090b 100%);
+  color: var(--ink-bright);
+  font-family: var(--font-display);
+  display: flex;
+  align-items: center;
+  padding: 46px;
+}
+
+.inner {
+  max-width: 560px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-dimmer);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+.body {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--ink-dim);
+}
+
+.row {
+  display: flex;
+  gap: 11px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.detail {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-faint);
+  word-break: break-all;
+}
