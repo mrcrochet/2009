@@ -1,4 +1,4 @@
-import type { Block, DayContent, MailMessage } from './content-schema'
+import type { Block, Choice, DayContent, MailMessage } from './content-schema'
 import { clockString, menuBarClock } from './clock'
 import { formatMoney, formatSigned } from './money'
 import { canEndDay, outstandingBeats } from './rules'
@@ -68,7 +68,17 @@ export interface MailRow extends MailMessage {
 }
 
 export const selectMail: (state: TimelineState, content: DayContent) => readonly MailRow[] = memoBy(
-  (s, c) => [s.mail.unknownArrived, s.mail.readIds, s.mail.openId, s.claimLog, c],
+  // Heat and the note length only reach the inbox once the unknown mail has arrived, so before
+  // then they must not invalidate it — otherwise typing a note re-renders the mail app.
+  (s, c) => [
+    s.mail.unknownArrived,
+    s.mail.readIds,
+    s.mail.openId,
+    s.claimLog,
+    s.mail.unknownArrived ? s.heat : 0,
+    s.mail.unknownArrived ? s.notes.length : 0,
+    c,
+  ],
   (state, content) => {
     const list: MailMessage[] = [...content.mail]
     if (state.mail.unknownArrived) {
@@ -77,13 +87,22 @@ export const selectMail: (state: TimelineState, content: DayContent) => readonly
       const second = lastOnRecord
         ? u.withClaim.replace('{{claim}}', lastOnRecord.claimText)
         : u.withoutClaim
+      const body = [u.opening, second]
+      // Heat is how loud the player was. The first line they have earned is the one they get.
+      const heatLine = u.heatLines.find((line) => state.heat >= line.minHeat)
+      if (heatLine) body.push(heatLine.text)
+      // Length only. Never a word of what they wrote — that rule holds here as it does in
+      // analytics, and it is more frightening this way.
+      if (u.notesLine && state.notes.trim().length > 0) {
+        body.push(u.notesLine.replace('{{count}}', String(state.notes.length)))
+      }
       list.unshift({
         id: u.id,
         from: u.from,
         subject: u.subject,
         time: u.time,
         meta: u.meta,
-        body: [u.opening, second],
+        body,
         evidenceId: null,
       })
     }
@@ -95,7 +114,17 @@ export const selectMail: (state: TimelineState, content: DayContent) => readonly
   },
 )
 export const selectOpenMail: (state: TimelineState, content: DayContent) => MailRow | null = memoBy(
-  (s, c) => [s.mail.unknownArrived, s.mail.readIds, s.mail.openId, s.claimLog, c],
+  // Heat and the note length only reach the inbox once the unknown mail has arrived, so before
+  // then they must not invalidate it — otherwise typing a note re-renders the mail app.
+  (s, c) => [
+    s.mail.unknownArrived,
+    s.mail.readIds,
+    s.mail.openId,
+    s.claimLog,
+    s.mail.unknownArrived ? s.heat : 0,
+    s.mail.unknownArrived ? s.notes.length : 0,
+    c,
+  ],
   (state, content) => {
     const list = selectMail(state, content)
     return list.find((m) => m.id === state.mail.openId) ?? list[0] ?? null
@@ -103,15 +132,23 @@ export const selectOpenMail: (state: TimelineState, content: DayContent) => Mail
 )
 // --- Messenger -------------------------------------------------------------
 
-export const selectChoices: (state: TimelineState, content: DayContent) => readonly string[] =
+/**
+ * What the player can say right now. A choice gated on evidence is simply absent until they are
+ * holding the thing that lets them ask — you cannot accuse someone of lying before you can prove
+ * it, and finding the proof should feel like it opened a door.
+ */
+export const selectChoices: (state: TimelineState, content: DayContent) => readonly Choice[] =
   memoBy(
-    (s, c) => [s.chat.waiting, s.chat.thread, s.chat.step, s.chat.log, c],
+    (s, c) => [s.chat.waiting, s.chat.thread, s.chat.step, s.chat.log, s.evidence, c],
     (state, content) => {
       if (state.chat.waiting) return []
       const thread = content.threads.find((t) => t.id === state.chat.thread)
       if (!thread) return []
       if (state.chat.log[state.chat.thread].length === 0) return []
-      return thread.script[state.chat.step[state.chat.thread]]?.choices ?? []
+      const node = thread.script[state.chat.step[state.chat.thread]]
+      if (!node) return []
+      const pinned = new Set(state.evidence.map((e) => e.id))
+      return node.choices.filter((c) => !c.requiresEvidence || pinned.has(c.requiresEvidence))
     },
   )
 // --- Browser ---------------------------------------------------------------
@@ -146,7 +183,7 @@ export interface PageView {
 }
 
 export const selectPage: (state: TimelineState, content: DayContent) => PageView = memoBy(
-  (s, c) => [s.browser.url, s.temporalShift, c],
+  (s, c) => [s.browser.url, s.temporalShift, s.flags, c],
   (state, content) => {
     const page = findPage(content, state.browser.url)
     if (!page) return { found: false, background: '#fff', dark: false, blocks: [] }
@@ -154,7 +191,7 @@ export const selectPage: (state: TimelineState, content: DayContent) => PageView
       found: true,
       background: page.background,
       dark: page.dark,
-      blocks: resolveBlocks(page, state.temporalShift),
+      blocks: resolveBlocks(page, state.temporalShift, state.flags),
     }
   },
 )
@@ -293,6 +330,8 @@ export const selectOutstandingBeats: (
 
 export interface DaySummary {
   readonly timestamp: string
+  /** What the player actually did to 15 January 2009, in their own ledger. */
+  readonly deeds: readonly string[]
   readonly balance: string
   readonly quota: string
   readonly daysLeft: number
@@ -302,6 +341,46 @@ export interface DaySummary {
   readonly shifted: boolean
   readonly watchedLine: string
   readonly shiftedLine: string
+}
+
+/**
+ * A stats screen reports numbers. This reports what the player did — every line derived from
+ * state that already exists, and every one of them something they chose.
+ */
+function selectDeeds(state: TimelineState): readonly string[] {
+  const deeds: string[] = []
+
+  for (const item of state.inventory) {
+    if (item.state === 'sold' && item.soldFor !== null) {
+      const verb = item.soldFor >= item.acquiredFor ? 'sold it for' : 'let it go for'
+      deeds.push(
+        `You bought ${item.label.toLowerCase()} for ${formatMoney(item.acquiredFor)} and ${verb} ${formatMoney(item.soldFor)}.`,
+      )
+    } else if (item.state !== 'sold') {
+      deeds.push(`You are still holding ${item.label.toLowerCase()}.`)
+    }
+  }
+
+  if (state.files.decrypted) deeds.push('You opened a file that was not addressed to you.')
+  if (state.flags.decryptReported) {
+    deeds.push('You tried three keys on it before that, and it counted.')
+  }
+  for (const domain of state.domains) {
+    deeds.push(`You registered ${domain} in a dead man's name.`)
+  }
+  if (state.flags.leaPostedAgain) {
+    deeds.push('You told someone to put a description of the car on a public page.')
+  }
+  if (state.flags.leaPostRemoved) {
+    deeds.push('You told someone to take down the only public record of what is happening to her.')
+  }
+  if (state.recalls.length > 0) {
+    deeds.push(
+      `You spent ${state.recalls.length === 1 ? 'one memory' : `${state.recalls.length} memories`} finding out what you already knew.`,
+    )
+  }
+
+  return deeds
 }
 
 export const selectDaySummary: (state: TimelineState, content: DayContent) => DaySummary = memoBy(
@@ -314,11 +393,16 @@ export const selectDaySummary: (state: TimelineState, content: DayContent) => Da
     s.browser.url,
     s.temporalShift,
     s.day,
+    s.inventory,
+    s.files,
+    s.flags,
+    s.recalls,
     c,
   ],
   (state, content) => {
     return {
       timestamp: content.dayEnd.timestamp,
+      deeds: selectDeeds(state),
       balance: formatMoney(state.cashCents),
       quota: formatMoney(content.economy.quotaCents),
       daysLeft: content.economy.quotaDays - state.day,

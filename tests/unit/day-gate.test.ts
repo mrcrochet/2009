@@ -114,3 +114,56 @@ describe('day 01 gate', () => {
     expect(summary.claimCount).toBe(0)
   })
 })
+
+describe('what the day remembers', () => {
+  it('reports what the player did, not only what they have', () => {
+    let state = playThroughRequirements()
+    state = run(state, [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 0412' },
+      { type: 'DOMAIN_REGISTERED', domain: 'shortclip.com', amountCents: 995 },
+      { type: 'DAY_ENDED' },
+    ])
+
+    const { deeds } = selectDaySummary(state, content)
+    expect(deeds).toContain('You opened a file that was not addressed to you.')
+    expect(deeds).toContain("You registered shortclip.com in a dead man's name.")
+    expect(deeds.some((d) => d.includes('bought') && d.includes('$340.00'))).toBe(true)
+    expect(deeds.some((d) => d.includes('one memory'))).toBe(true)
+  })
+
+  it('a losing trade is described as a loss', () => {
+    const state = run(fresh(), [
+      { type: 'ITEM_PURCHASED', itemId: 'tradepost-parts', amountCents: 4000, label: 'parts' },
+      { type: 'ITEM_LISTED', itemId: 'tradepost-parts' },
+      { type: 'ITEM_SOLD', itemId: 'tradepost-parts', amountCents: 1500 },
+    ])
+    expect(state.cashCents).toBe(43782 - 4000 + 1500)
+    const { deeds } = selectDaySummary(state, content)
+    expect(deeds.some((d) => d.includes('let it go for $15.00'))).toBe(true)
+  })
+
+  it('the unknown mail gets louder the louder the player was', () => {
+    const quiet = dispatch(playThroughRequirements(), { type: 'DAY_ENDED' })
+    expect(selectMail(quiet, content)[0]?.body.join(' ')).not.toContain('reported')
+
+    let loud = run(playThroughRequirements(), [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 1111' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 2222' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 3333' },
+      { type: 'CLAIM_ASSERTED', claimId: 'c4', evidenceIds: ['e2'] },
+    ])
+    loud = dispatch(loud, { type: 'DAY_ENDED' })
+    expect(loud.heat).toBeGreaterThanOrEqual(40)
+    expect(selectMail(loud, content)[0]?.body.join(' ')).toContain('You were loud today')
+  })
+
+  it('the machine counts what was written in Notes, and never quotes it', () => {
+    let state = run(playThroughRequirements(), [
+      { type: 'NOTES_CHANGED', value: 'the account was opened on the 6th' },
+    ])
+    state = dispatch(state, { type: 'DAY_ENDED' })
+    const body = selectMail(state, content)[0]?.body.join(' ') ?? ''
+    expect(body).toContain('33 characters')
+    expect(body).not.toContain('the account was opened')
+  })
+})

@@ -2268,6 +2268,18 @@
   color: var(--ink);
 }
 
+.hal-daycard__deeds {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.14);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: #a2adb5;
+}
+
 .hal-daycard__rule {
   height: 1px;
   background: rgba(255, 255, 255, 0.12);

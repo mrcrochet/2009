@@ -52,6 +52,8 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       log: { unknown: [], marc: [], lea: [] },
       step: { unknown: 0, marc: 0, lea: 0 },
       waiting: false,
+      pendingReply: null,
+      pendingAdvance: true,
     },
     browser: {
       view: 'home',

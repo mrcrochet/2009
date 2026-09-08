@@ -132,6 +132,15 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         },
         {
           kind: 'listing',
+          title: 'Box of laptop parts — untested',
+          price: '$40',
+          location: 'Beaverton · cash only',
+          text: 'Cleaning out a storage unit. Might be nothing. Might be a whole machine in there. I am not driving it anywhere.',
+          action: 'buy',
+          itemId: 'tradepost-parts',
+        },
+        {
+          kind: 'listing',
           title: 'Snowboard, 158cm',
           price: '$140',
           location: 'Hillsboro',
@@ -482,7 +491,64 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
         { kind: 'p', text: '02 Jan — new year, same four months of runway.' },
         { kind: 'evidence', evidenceId: 'e9' },
       ],
-      variants: [],
+      variants: [
+        {
+          // She wrote it down harder, because you told her to.
+          whenFlag: 'leaPostedAgain',
+          blocks: [
+            { kind: 'heading', text: 'Cluster — lea.voss', ink: '#2b5f96' },
+            { kind: 'sub', text: 'Portland, OR · 41 friends · last updated today, 09:26' },
+            {
+              kind: 'nav',
+              items: [
+                { label: 'Cluster home', url: 'cluster.com' },
+                { label: 'm.deleon', url: 'cluster.com/mdeleon' },
+              ],
+            },
+            { kind: 'rule' },
+            {
+              kind: 'p',
+              text: '09:26 — oregon plate, starts with 4. grey sedan, no front plate. third night. someone told me to write down more than i want to.',
+            },
+            {
+              kind: 'p',
+              text: '04:12 — someone has been parked outside my building for two nights. same car. i am writing this here so it is written somewhere.',
+            },
+            {
+              kind: 'p',
+              text: '11 Jan — demo works in three browsers. it does not work in the one everybody uses.',
+            },
+            { kind: 'evidence', evidenceId: 'e9' },
+          ],
+        },
+        {
+          // And here is what advice costs. The post is gone, and with it the only public record
+          // that any of this happened — including the piece the player needed.
+          whenFlag: 'leaPostRemoved',
+          blocks: [
+            { kind: 'heading', text: 'Cluster — lea.voss', ink: '#2b5f96' },
+            { kind: 'sub', text: 'Portland, OR · 41 friends · last updated today, 09:26' },
+            {
+              kind: 'nav',
+              items: [
+                { label: 'Cluster home', url: 'cluster.com' },
+                { label: 'm.deleon', url: 'cluster.com/mdeleon' },
+              ],
+            },
+            { kind: 'rule' },
+            { kind: 'p', text: '04:12 — (post removed by author)' },
+            {
+              kind: 'p',
+              text: '11 Jan — demo works in three browsers. it does not work in the one everybody uses.',
+            },
+            { kind: 'p', text: '02 Jan — new year, same four months of runway.' },
+            {
+              kind: 'p',
+              text: 'There is nothing on this page about a car. You read it before there was.',
+            },
+          ],
+        },
+      ],
     },
     {
       url: 'cluster.com/mdeleon',

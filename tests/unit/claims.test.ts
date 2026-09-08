@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { evaluateClaim } from '@/engine/rules'
+import { selectChoices } from '@/engine/selectors'
 import type { Claim } from '@/engine/types'
 import { content, dispatch, fresh, run } from './helpers'
 
@@ -61,5 +62,63 @@ describe('claims', () => {
     const before = fresh()
     const after = dispatch(before, { type: 'CLAIM_ASSERTED', claimId: 'c3', evidenceIds: ['e2'] })
     expect(after.minuteOfDay - before.minuteOfDay).toBe(6)
+  })
+})
+
+describe('choices that answer themselves', () => {
+  function ask(threadId: 'marc' | 'lea', text: string, extra: Record<string, unknown> = {}) {
+    let state = run(fresh(), [
+      { type: 'THREAD_SELECTED', thread: threadId },
+      { type: 'CHAT_STARTED', thread: threadId },
+    ])
+    state = dispatch(state, { type: 'CHAT_REPLY_SENT', thread: threadId, text, ...extra })
+    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: threadId })
+    return state.chat.log[threadId].map((l) => l.text)
+  }
+
+  it('answers the question that was asked', () => {
+    const lines = ask('marc', 'What kind of thing?', {
+      reply:
+        'nothing that needs a name. you drive, you hand over cash, you sell it on. thats the whole job',
+    })
+    expect(lines[2]).toContain('nothing that needs a name')
+    // …and then he changes the subject, which is the script moving on.
+    expect(lines[3]).toContain('tradepost')
+  })
+
+  it('a choice can hold the conversation where it is', () => {
+    const held = ask('marc', 'Where were you last night?', {
+      reply: 'home. why',
+      advances: false,
+    })
+    expect(held[2]).toBe('home. why')
+    expect(held).toHaveLength(3)
+  })
+
+  it('a choice can change the world outside the conversation', () => {
+    let state = run(fresh(), [
+      { type: 'THREAD_SELECTED', thread: 'lea' },
+      { type: 'CHAT_STARTED', thread: 'lea' },
+    ])
+    expect(state.flags.leaPostRemoved).toBeUndefined()
+    state = dispatch(state, {
+      type: 'CHAT_REPLY_SENT',
+      thread: 'lea',
+      text: 'Take the post down.',
+      reply: 'ok. taken down.',
+      setsFlag: 'leaPostRemoved',
+    })
+    expect(state.flags.leaPostRemoved).toBe(true)
+  })
+
+  it('withholds the accusation until the player can prove it', () => {
+    const before = run(fresh(), [
+      { type: 'THREAD_SELECTED', thread: 'marc' },
+      { type: 'CHAT_STARTED', thread: 'marc' },
+    ])
+    expect(selectChoices(before, content).map((c) => c.text)).toEqual(['What kind of thing?'])
+
+    const after = dispatch(before, { type: 'EVIDENCE_PINNED', evidenceId: 'e6', via: 'phone' })
+    expect(selectChoices(after, content).map((c) => c.text)).toContain('Where were you last night?')
   })
 })

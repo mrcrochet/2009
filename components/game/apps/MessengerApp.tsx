@@ -63,14 +63,23 @@ export function MessengerApp() {
           {waiting ? <div className="hal-msg__typing">typing…</div> : null}
         </div>
         <div className="hal-msg__composer">
-          {choices.map((text) => (
+          {choices.map((choice) => (
             <button
-              key={text}
+              key={choice.text}
               type="button"
               className="hal-msg__choice"
-              onClick={() => dispatch({ type: 'CHAT_REPLY_SENT', thread, text })}
+              onClick={() =>
+                dispatch({
+                  type: 'CHAT_REPLY_SENT',
+                  thread,
+                  text: choice.text,
+                  reply: choice.reply,
+                  advances: choice.advances,
+                  setsFlag: choice.setsFlag,
+                })
+              }
             >
-              {text}
+              {choice.text}
             </button>
           ))}
         </div>

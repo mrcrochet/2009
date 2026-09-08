@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import { searchIndex } from '@/engine/rules'
 import { normalizeUrl } from '@/engine/reducer'
-import { resolveBlocks } from '@/engine/temporal'
+import { isPageAltered, resolveBlocks } from '@/engine/temporal'
 import { content, dispatch, fresh, run } from './helpers'
 
 describe('fictional browser', () => {
@@ -177,5 +177,39 @@ describe('the web is actually a web', () => {
       { type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/obits/rask' },
     ])
     expect(after.minuteOfDay - before.minuteOfDay).toBe(3)
+  })
+})
+
+describe('a choice that rewrites a page', () => {
+  const leaPage = content.browser.pages.find((p) => p.url === 'cluster.com/leavoss')!
+
+  it('leaves her post alone by default, and the evidence with it', () => {
+    const blocks = resolveBlocks(leaPage, 0, {})
+    expect(blocks.some((b) => b.kind === 'evidence' && b.evidenceId === 'e9')).toBe(true)
+  })
+
+  it('records the plate when the player tells her to write it down', () => {
+    const blocks = resolveBlocks(leaPage, 0, { leaPostedAgain: true })
+    expect(blocks.some((b) => b.kind === 'p' && b.text.includes('oregon plate'))).toBe(true)
+    expect(blocks.some((b) => b.kind === 'evidence' && b.evidenceId === 'e9')).toBe(true)
+  })
+
+  it('deletes the evidence when the player talks her out of it', () => {
+    const blocks = resolveBlocks(leaPage, 0, { leaPostRemoved: true })
+    expect(blocks.some((b) => b.kind === 'evidence')).toBe(false)
+    expect(blocks.some((b) => b.kind === 'p' && b.text.includes('(post removed by author)'))).toBe(
+      true,
+    )
+  })
+
+  it('a decision outranks drift — the page the player changed stays changed', () => {
+    const blocks = resolveBlocks(leaPage, 9, { leaPostRemoved: true })
+    expect(blocks.some((b) => b.kind === 'evidence')).toBe(false)
+  })
+
+  it('does not report a decision as the timeline drifting under the player', () => {
+    // The Lea page changed because they asked for it. That is not the same thing as a page
+    // rewriting itself, and the day-end summary must not conflate them.
+    expect(isPageAltered(leaPage, 9)).toBe(false)
   })
 })

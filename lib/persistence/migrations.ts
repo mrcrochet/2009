@@ -58,6 +58,19 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 4,
+    to: 5,
+    describe: 'dialogue choices carry their own reply',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const chat = { ...((snapshot.chat as AnyRecord) ?? {}) }
+      if (chat.pendingReply === undefined) chat.pendingReply = null
+      if (typeof chat.pendingAdvance !== 'boolean') chat.pendingAdvance = true
+      snapshot.chat = chat
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

@@ -28,6 +28,23 @@ export const economy: z.input<typeof EconomySchema> = {
       sellLedgerLabel: 'DEPOSIT — CASH (RESALE)',
       beat: 'money',
     },
+    {
+      // TradePost's own front page wrote the moral: if a deal seems too good, it is because
+      // someone does not know what they have. Sometimes that person is you. Future knowledge
+      // does not cover a cardboard box in Beaverton — and this one costs two and a half hours
+      // of a finite day as well as the money.
+      id: 'tradepost-parts',
+      label: 'Box of laptop parts — untested',
+      buyCents: parseCents('40.00'),
+      sellCents: parseCents('15.00'),
+      buyMinutes: 95,
+      listMinutes: 60,
+      settleMs: 2200,
+      shiftOnSell: 0,
+      buyLedgerLabel: 'CASH WITHDRAWAL — BEAVERTON MEET',
+      sellLedgerLabel: 'DEPOSIT — CASH (PARTS, SALVAGE)',
+      beat: null,
+    },
   ],
   quotes: [
     { symbol: 'AAPL', name: 'Apple Inc.', price: '82.33', change: '-1.74', direction: 'down' },

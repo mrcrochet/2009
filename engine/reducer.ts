@@ -313,9 +313,13 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       if (!thread) return state
       const withLine: TimelineState = {
         ...state,
+        // A choice can reach out of the conversation and change the world.
+        flags: event.setsFlag ? { ...state.flags, [event.setsFlag]: true } : state.flags,
         chat: {
           ...state.chat,
           waiting: true,
+          pendingReply: event.reply ? event.reply : null,
+          pendingAdvance: event.advances !== false,
           log: {
             ...state.chat.log,
             [event.thread]: [
@@ -331,19 +335,30 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'CHAT_ADVANCED': {
       const thread = content.threads.find((t) => t.id === event.thread)
       if (!thread) return state
-      const step = state.chat.step[event.thread] + 1
-      const node = thread.script[step]
-      const log = node
-        ? [
-            ...state.chat.log[event.thread],
-            { who: node.who, text: node.text, mine: false, time: minuteLabel(state.minuteOfDay) },
-          ]
-        : state.chat.log[event.thread]
+      const current = state.chat.step[event.thread]
+      const time = minuteLabel(state.minuteOfDay)
+      const speaker = thread.script[current]?.who ?? thread.label
+
+      const log = [...state.chat.log[event.thread]]
+
+      // First: the answer to what was actually asked.
+      if (state.chat.pendingReply) {
+        log.push({ who: speaker, text: state.chat.pendingReply, mine: false, time })
+      }
+
+      // Then the script moves on — which is how a person changes the subject. A choice marked
+      // `advances: false` holds the conversation where it is, so the other option stays open.
+      const step = state.chat.pendingAdvance ? current + 1 : current
+      const node = state.chat.pendingAdvance ? thread.script[step] : undefined
+      if (node) log.push({ who: node.who, text: node.text, mine: false, time })
+
       return {
         ...state,
         chat: {
           ...state.chat,
           waiting: false,
+          pendingReply: null,
+          pendingAdvance: true,
           step: { ...state.chat.step, [event.thread]: Math.min(step, thread.script.length - 1) },
           log: { ...state.chat.log, [event.thread]: log },
         },
@@ -653,24 +668,34 @@ function runTerminal(
     return { ...nextState, terminal: { lines: [...state.terminal.lines, ...out], input: '' } }
   }
 
-  if (lower === 'clear') {
+  if (lower.split(/\s+/)[0] === 'clear') {
     return { ...nextState, terminal: { lines: [content.terminal.banner], input: '' } }
   }
 
-  const staticOut = cfg.statics[lower]
-  if (staticOut) {
+  // Match on the first token, so `ls -l` is a listing rather than "command not found" — a
+  // whole-line match reads as a bug, not as a period detail.
+  const verb = lower.split(/\s+/)[0] ?? ''
+  const staticOut = cfg.statics[verb]
+
+  if (verb === 'whoami') {
+    out.push(...cfg.whoami)
+    const contradiction = cfg.whoamiAfterEvidence
+    if (state.evidence.some((e) => e.id === contradiction.evidenceId)) {
+      out.push(...contradiction.lines)
+    }
+  } else if (staticOut) {
     out.push(...staticOut)
-  } else if (lower === 'date') {
+  } else if (verb === 'date') {
     out.push({
       text: cfg.dateTemplate.replace('{{clock}}', minuteLabel(state.minuteOfDay)),
       tone: 'out',
     })
-  } else if (lower.startsWith('cat')) {
+  } else if (verb === 'cat') {
     const arg = lower.slice(3).trim()
     const fileId = cfg.catTargets[arg]
     const doc = fileId ? content.files.find((f) => f.id === fileId) : undefined
     out.push(doc ? { text: doc.body, tone: 'out' } : { text: cfg.catBinary, tone: 'out' })
-  } else if (lower.startsWith('decrypt')) {
+  } else if (verb === 'decrypt') {
     const d = cfg.decrypt
     if (state.files.decrypted) {
       out.push({ text: d.success, tone: 'ok' })

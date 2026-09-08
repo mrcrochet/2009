@@ -51,6 +51,13 @@ export function DayEndCard() {
           {summary.shifted ? <span className="shifted">{summary.shiftedLine}</span> : null}
           <span className="watched">{summary.watchedLine}</span>
         </div>
+        {summary.deeds.length > 0 ? (
+          <div className="hal-daycard__deeds">
+            {summary.deeds.map((deed) => (
+              <span key={deed}>{deed}</span>
+            ))}
+          </div>
+        ) : null}
         <div className="hal-daycard__rule" />
         <div className="hal-daycard__block">
           <div className="hal-daycard__headline">{content.dayEnd.saveHeadline}</div>

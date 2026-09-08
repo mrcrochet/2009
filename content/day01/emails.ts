@@ -57,4 +57,12 @@ export const unknownMail: z.input<typeof UnknownMailSchema> = {
   withClaim:
     'And you should be more careful what you put your name to. “{{claim}}” is now on record as yours.',
   withoutClaim: 'We read the quiet ones too.',
+  heatLines: [
+    {
+      minHeat: 40,
+      text: 'You were loud today. The file reported at 09:14. Twenty-nine days left, and you are already easy to find.',
+    },
+    { minHeat: 20, text: 'The encrypted file reported you. We were going to tell you tomorrow.' },
+  ],
+  notesLine: 'You wrote {{count}} characters into an unsaved document. It was not unsaved.',
 }

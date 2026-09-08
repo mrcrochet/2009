@@ -115,6 +115,8 @@ export const TimelineStateSchema = z.object({
     log: z.record(ThreadId, z.array(ChatLineSchema).max(256)),
     step: z.record(ThreadId, z.number().int().min(0).max(64)),
     waiting: z.boolean(),
+    pendingReply: z.string().max(4096).nullable(),
+    pendingAdvance: z.boolean(),
   }),
   browser: BrowserEntrySchema.extend({
     history: z.array(BrowserEntrySchema).max(64),

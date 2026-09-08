@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -219,7 +219,13 @@ export interface TimelineState {
 
   readonly cashCents: Cents
   readonly memoryIntegrity: number
+  /** How loud the player has been. Read by the day-end mail, and by later days. */
   readonly heat: number
+  /**
+   * Reserved. Accumulates alongside `temporalShift` but nothing reads it yet — the world's
+   * content keys off `temporalShift` only. Kept so later days can distinguish "how far the
+   * timeline has moved" from "how many thresholds it has crossed".
+   */
   readonly divergence: number
   readonly temporalShift: number
 
@@ -246,6 +252,9 @@ export interface TimelineState {
     readonly log: Readonly<Record<ThreadId, readonly ChatLine[]>>
     readonly step: Readonly<Record<ThreadId, number>>
     readonly waiting: boolean
+    /** What the other person is about to say back, and whether the script moves on after it. */
+    readonly pendingReply: string | null
+    readonly pendingAdvance: boolean
   }
   readonly browser: BrowserState
   readonly files: {
@@ -304,7 +313,14 @@ export type GameEvent =
   | (Base & { type: 'MAIL_OPENED'; mailId: string })
   | (Base & { type: 'MAIL_UNKNOWN_ARRIVED' })
   | (Base & { type: 'THREAD_SELECTED'; thread: ThreadId })
-  | (Base & { type: 'CHAT_REPLY_SENT'; thread: ThreadId; text: string })
+  | (Base & {
+      type: 'CHAT_REPLY_SENT'
+      thread: ThreadId
+      text: string
+      reply?: string
+      advances?: boolean
+      setsFlag?: string | null
+    })
   | (Base & { type: 'CHAT_STARTED'; thread: ThreadId })
   | (Base & { type: 'CHAT_ADVANCED'; thread: ThreadId })
   | (Base & { type: 'BROWSER_QUERY_CHANGED'; query: string })

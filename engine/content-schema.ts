@@ -70,14 +70,42 @@ export const UnknownMailSchema = z.object({
   /** `{{claim}}` is replaced with the last claim filed under the player's name. */
   withClaim: z.string(),
   withoutClaim: z.string(),
+  /**
+   * Read in order; the first line whose `minHeat` the player has reached is appended. Heat is
+   * how loud they were — a file that reported, a claim filed under a name they did not earn.
+   */
+  heatLines: z
+    .array(z.object({ minHeat: z.number().int().nonnegative(), text: z.string().min(1) }))
+    .default([]),
+  /** Appended when the player wrote in Notes. Length only — never a word of it. */
+  notesLine: z.string().nullable().default(null),
 })
 
 // --- Messenger -------------------------------------------------------------
 
+/**
+ * A choice the player can make, and what it actually costs.
+ *
+ * `reply` is what the other person says back — without it, a dialogue tree is a linear script
+ * wearing the costume of a branching one, and the player notices the first time they ask Marc
+ * where he was and get a sales pitch about a telephone.
+ */
+export const ChoiceSchema = z.object({
+  text: z.string().min(1),
+  /** The answer to *this* question. Empty means the script's next line already answers it. */
+  reply: z.string().default(''),
+  /** False keeps the conversation on the same node, so the other option stays open. */
+  advances: z.boolean().default(true),
+  /** Sets a world flag. This is how a choice reaches out of the conversation. */
+  setsFlag: z.string().nullable().default(null),
+  /** Offered only once the player has pinned this piece of evidence. */
+  requiresEvidence: id.nullable().default(null),
+})
+
 export const ChatNodeSchema = z.object({
   who: z.string().min(1),
   text: z.string().min(1),
-  choices: z.array(z.string()).default([]),
+  choices: z.array(ChoiceSchema).default([]),
 })
 
 export const ThreadSchema = z.object({
@@ -126,7 +154,9 @@ export const BlockSchema = z.discriminatedUnion('kind', [
 ])
 
 export const PageVariantSchema = z.object({
-  minShift: z.number().int().nonnegative(),
+  minShift: z.number().int().nonnegative().default(0),
+  /** Applies only while this world flag is set — how a decision rewrites a page. */
+  whenFlag: z.string().nullable().default(null),
   blocks: z.array(BlockSchema),
 })
 
@@ -202,6 +232,9 @@ export const TerminalConfigSchema = z.object({
   dateTemplate: z.string(),
   catTargets: z.record(z.string(), id),
   catBinary: z.string(),
+  whoami: z.array(TerminalLineSchema),
+  /** The machine only contradicts itself once the player can see the contradiction. */
+  whoamiAfterEvidence: z.object({ evidenceId: id, lines: z.array(TerminalLineSchema) }),
   notFound: z.string(),
   decrypt: z.object({
     key: z.string().min(1),
@@ -363,3 +396,4 @@ export type Contact = z.infer<typeof ContactSchema>
 export type LedgerEntryContent = z.infer<typeof LedgerEntrySchema>
 export type Thread = z.infer<typeof ThreadSchema>
 export type ChatNode = z.infer<typeof ChatNodeSchema>
+export type Choice = z.infer<typeof ChoiceSchema>

@@ -7,20 +7,29 @@ import type { TimelineState } from './types'
  * not as a meter.
  */
 
-export function resolveBlocks(page: BrowserPage, temporalShift: number): readonly Block[] {
+export function resolveBlocks(
+  page: BrowserPage,
+  temporalShift: number,
+  flags: Readonly<Record<string, boolean>> = {},
+): readonly Block[] {
   let best: readonly Block[] = page.blocks
-  let bestShift = -1
+  let bestRank = -1
   for (const variant of page.variants) {
-    if (temporalShift >= variant.minShift && variant.minShift > bestShift) {
+    if (variant.whenFlag && !flags[variant.whenFlag]) continue
+    if (temporalShift < variant.minShift) continue
+    // A flag is a decision the player made; it outranks a drift threshold.
+    const rank = (variant.whenFlag ? 1000 : 0) + variant.minShift
+    if (rank > bestRank) {
       best = variant.blocks
-      bestShift = variant.minShift
+      bestRank = rank
     }
   }
   return best
 }
 
+/** True when the page no longer says what it said — by drift alone, not by the player's own hand. */
 export function isPageAltered(page: BrowserPage, temporalShift: number): boolean {
-  return page.variants.some((v) => temporalShift >= v.minShift)
+  return page.variants.some((v) => !v.whenFlag && v.minShift > 0 && temporalShift >= v.minShift)
 }
 
 export function resolveSearchEntry(
