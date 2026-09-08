@@ -6,6 +6,7 @@ type FileInput = z.input<typeof FileDocSchema>
 export const files: FileInput[] = [
   {
     id: 'readme',
+    icon: 'document',
     name: 'READ_ME.txt',
     meta: '1 KB',
     metaWhenDecrypted: null,
@@ -31,6 +32,7 @@ export const files: FileInput[] = [
   },
   {
     id: 'contacts',
+    icon: 'document',
     name: 'contacts.txt',
     meta: '—',
     metaWhenDecrypted: null,
@@ -47,6 +49,7 @@ export const files: FileInput[] = [
   },
   {
     id: 'enc',
+    icon: 'encrypted',
     name: 'cibles.enc',
     meta: 'locked',
     metaWhenDecrypted: 'decrypted',
@@ -77,6 +80,7 @@ export const files: FileInput[] = [
   },
   {
     id: 'pics',
+    icon: 'folder',
     name: 'Pictures',
     meta: 'folder',
     metaWhenDecrypted: null,

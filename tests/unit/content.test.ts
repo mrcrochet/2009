@@ -26,7 +26,10 @@ describe('day 01 content', () => {
   })
 
   it('ships no emoji anywhere in the authored copy', () => {
-    const emoji = /\p{Extended_Pictographic}/u
+    // Emoji-by-default code points, plus any character explicitly asking for emoji
+    // presentation. Text-presentation symbols a 2009 page would really print — (c), (r) —
+    // are not emoji and are allowed.
+    const emoji = /\p{Emoji_Presentation}|\uFE0F/u
     expect(emoji.test(JSON.stringify(content))).toBe(false)
   })
 

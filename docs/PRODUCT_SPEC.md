@@ -75,9 +75,25 @@ Recall is **not** a chat assistant.
 
 ## Fictional Browser
 
-A closed 2009 internet simulation: internal search index, authored pages, period-inconsistent
-site styles, working history/back/URL field. It never calls a real search engine. Pages may
-resolve to a different variant after temporal shifts.
+A closed 2009 internet simulation — and an actual *web*, not a set of islands.
+
+- **Search** runs against an internal index only. It never calls a real search engine.
+- **Every site has a front page**, and sites link to each other: the Register's business article
+  links to Lea's Cluster page, Namewell's WHOIS links to the Meridian branch listing that shares
+  its address, nullcache threads link to each other.
+- **The Corvid Directory** (`corvid.com/directory`) is the way in when the player does not know
+  what to search for. An empty result set points there rather than dead-ending.
+- **A bookmarks bar** carries what was already on this machine when the player woke up —
+  including `aion-group.com`, which nobody explains.
+- **Back, forward and the address bar** all work. The address bar forgives a scheme, a `www.`,
+  a trailing slash and stray case. An unknown host gets a period error page.
+- **A link can hand the player back to the machine**: "Online Banking" on the Meridian site opens
+  the Meridian Savings application rather than faking a login.
+- Pages may resolve to a different variant after temporal shifts. When the business article
+  changes, the Register's own front page changes with it.
+
+`tests/unit/browser.test.ts` walks the link graph and fails if any page becomes an island or any
+link points at a page that does not exist.
 
 ## Temporal engine
 

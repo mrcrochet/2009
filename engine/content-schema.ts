@@ -93,6 +93,7 @@ export const ThreadSchema = z.object({
 export const BlockSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('heading'), text: z.string(), ink: z.string().default('#22262b') }),
   z.object({ kind: z.literal('sub'), text: z.string() }),
+  z.object({ kind: z.literal('subheading'), text: z.string(), ink: z.string().default('#22262b') }),
   z.object({ kind: z.literal('rule') }),
   z.object({ kind: z.literal('p'), text: z.string() }),
   z.object({
@@ -105,6 +106,23 @@ export const BlockSchema = z.discriminatedUnion('kind', [
     itemId: z.string().nullable().default(null),
   }),
   z.object({ kind: z.literal('evidence'), evidenceId: id }),
+  // A period site's own navigation row: "Business · Markets · Real Estate".
+  z.object({
+    kind: z.literal('nav'),
+    items: z.array(z.object({ label: z.string(), url: z.string() })).min(1),
+  }),
+  // A standalone link. `opensApp` lets a page hand the player back to the machine
+  // itself — clicking "Online Banking" opens Meridian Savings rather than faking it.
+  z.object({
+    kind: z.literal('link'),
+    label: z.string(),
+    url: z.string().nullable().default(null),
+    note: z.string().nullable().default(null),
+    opensApp: z
+      .enum(['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall'])
+      .nullable()
+      .default(null),
+  }),
 ])
 
 export const PageVariantSchema = z.object({
@@ -138,6 +156,13 @@ export const BrowserConfigSchema = z.object({
   home: z.string().min(1),
   engineName: z.string().min(1),
   emptyResults: z.string().min(1),
+  /** Where an empty result set points the player instead of a dead end. */
+  directoryUrl: z.string().min(1),
+  directoryLabel: z.string().min(1),
+  notFoundTitle: z.string().min(1),
+  notFoundBody: z.string().min(1),
+  /** Whoever set this machine up left these behind. */
+  bookmarks: z.array(z.object({ label: z.string(), url: z.string() })).default([]),
   pages: z.array(BrowserPageSchema).min(1),
   index: z.array(SearchEntrySchema).min(1),
 })
@@ -147,6 +172,7 @@ export const BrowserConfigSchema = z.object({
 export const FileDocSchema = z.object({
   id,
   name: z.string().min(1),
+  icon: z.enum(['document', 'encrypted', 'folder', 'image']),
   meta: z.string(),
   metaWhenDecrypted: z.string().nullable().default(null),
   body: z.string(),
@@ -245,6 +271,8 @@ export const PhotoSchema = z.object({
   id,
   label: z.string(),
   meta: z.string(),
+  /** Which frame to draw. A 2009 phone camera, not a stock photo. */
+  subject: z.enum(['parking-structure', 'interior-night', 'scanned-page']),
   evidenceId: id.nullable().default(null),
 })
 

@@ -145,6 +145,7 @@ export const selectPage: (state: TimelineState, content: DayContent) => PageView
 export interface FileRow {
   readonly id: string
   readonly name: string
+  readonly icon: DayContent['files'][number]['icon']
   readonly meta: string
   readonly selected: boolean
 }
@@ -153,6 +154,7 @@ export const selectFiles: (state: TimelineState, content: DayContent) => readonl
   return content.files.map((f) => ({
     id: f.id,
     name: f.name,
+    icon: f.icon,
     meta: state.files.decrypted && f.metaWhenDecrypted ? f.metaWhenDecrypted : f.meta,
     selected: state.files.openId === f.id,
   }))

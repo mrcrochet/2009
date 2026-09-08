@@ -17,6 +17,21 @@ Each item maps to an automated test. `E` = `tests/e2e/day01.spec.ts`, `U` = `tes
 8. `E` Windows drag, stack by z-order, focus on click, and close.
 9. `U` Window positions clamp to the usable viewport and cascade on open.
 
+## The web
+
+7a. `E` The bookmarks bar carries `aion-group.com` from before the player woke up.
+7b. `E` The obituary is reachable by links alone — bookmark, section nav, then headline.
+7c. `E` Back and forward are a real history stack.
+7d. `U` An unknown host renders a period error page that offers the directory.
+7e. `U` Every `nav` and `link` on every page resolves to a page that exists, in both variants.
+7f. `U` Every page is reachable without typing a URL — no islands.
+7g. `U` The address bar forgives `http://`, `www.`, a trailing slash and stray case.
+
+## Icons
+
+7h. `U` No emoji appears in the authored copy or the dock, at any presentation.
+7i. `E` Desktop and Files show a drawn icon per file type — document, sealed, folder.
+
 ## Investigation
 
 10. `E` Pinning evidence from Mail, Bank and the Browser fills the evidence tray.

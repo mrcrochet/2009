@@ -121,6 +121,6 @@ describe('the browser is the computer', () => {
     }
     // Icons are hand-drawn SVG, never emoji.
     expect(within(dock).getAllByRole('button')[0]?.querySelector('svg')).toBeTruthy()
-    expect(/\p{Extended_Pictographic}/u.test(dock.textContent ?? '')).toBe(false)
+    expect(/\p{Emoji_Presentation}|\uFE0F/u.test(dock.textContent ?? '')).toBe(false)
   })
 })

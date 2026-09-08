@@ -85,20 +85,43 @@ test.describe('Day 01', () => {
     await phone.getByLabel('Put the phone down').click()
     await expect(phone).toHaveCount(0)
 
-    // --- the fictional browser -------------------------------------------
+    // --- the fictional browser is a browsable web -------------------------
     await openApp(page, 'Halcyon Browser')
     const web = page.locator('[data-app="web"]')
     await expect(web).toBeVisible()
-    await web.getByLabel('Search the web').fill('owen rask')
-    await web.getByRole('button', { name: 'Search' }).click()
-    await expect(web).toContainText('Obituaries — December 2008')
-    await web.getByRole('button', { name: /Obituaries — December 2008/ }).click()
+
+    // The machine came with bookmarks. One of them should worry the player.
+    await expect(web.locator('[data-bookmark="aion-group.com"]')).toBeVisible()
+
+    // Reach the obituary purely by following links — no search, no typed URL.
+    await web.locator('[data-bookmark="columbia-register.com"]').click()
+    await expect(web).toContainText('STATE JOBLESS RATE')
+    await web.locator('[data-href="columbia-register.com/obits"]').first().click()
+    await expect(web).toContainText('MORAN, Julia B.')
+    await web.locator('[data-href="columbia-register.com/obits/rask"]').click()
     await expect(web).toContainText('died Friday, December 19, 2008')
     await web.locator('[data-evidence="e3"]').click()
 
-    // Back works, and it is a real history stack.
+    // Back and forward are a real history stack.
     await web.getByLabel('Back').click()
-    await expect(web).toContainText('Results for')
+    await expect(web).toContainText('MORAN, Julia B.')
+    await web.getByLabel('Forward').click()
+    await expect(web).toContainText('died Friday, December 19, 2008')
+
+    // Search still works, and reaches pages the links do not advertise.
+    await web.getByLabel('Home').click()
+    await web.getByLabel('Search the web').fill('bitcoin')
+    await web.getByRole('button', { name: 'Search' }).click()
+    await web.getByRole('button', { name: /P2P e-cash/ }).click()
+    await expect(web).toContainText('Bitcoin v0.1 released')
+    await expect(web).toContainText('there is nowhere to buy it')
+
+    // A dead address gets a period error page, not a crash.
+    await web.getByLabel('Address').fill('google.com')
+    await web.getByLabel('Address').press('Enter')
+    await expect(web.getByTestId('web-404')).toBeVisible()
+    await web.getByRole('button', { name: /Browse the Corvid Directory/ }).click()
+    await expect(web).toContainText('Corvid Directory')
 
     // --- Recall costs something ------------------------------------------
     await openApp(page, 'Recall')
@@ -118,8 +141,10 @@ test.describe('Day 01', () => {
     await expect(messenger).toContainText('guy on tradepost is dumping a phone', { timeout: 10_000 })
 
     await openApp(page, 'Halcyon Browser')
-    await web.getByLabel('Address').fill('tradepost.com/pdx/electronics')
-    await web.getByLabel('Address').press('Enter')
+    // Straight off the directory, following the classifieds category.
+    await web.locator('[data-href="tradepost.com"]').first().click()
+    await expect(web).toContainText('free classified ads')
+    await web.locator('[data-href="tradepost.com/pdx/electronics"]').click()
     await expect(web).toContainText('Nokora N90 — unlocked, boxed')
 
     await web.locator('[data-listing="tradepost-n90"]').click()

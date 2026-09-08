@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import { searchIndex } from '@/engine/rules'
+import { normalizeUrl } from '@/engine/reducer'
+import { resolveBlocks } from '@/engine/temporal'
 import { content, dispatch, fresh, run } from './helpers'
 
 describe('fictional browser', () => {
@@ -35,6 +37,134 @@ describe('fictional browser', () => {
   it('typing an unknown address gives a period-appropriate not-found, not a crash', () => {
     const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'google.com' })
     expect(selectPage(state, content).found).toBe(false)
+  })
+
+  it('forgives the things a 2009 address bar forgave', () => {
+    expect(normalizeUrl('http://www.TradePost.com/')).toBe('tradepost.com')
+    expect(normalizeUrl('  HTTPS://cluster.com/leavoss  ')).toBe('cluster.com/leavoss')
+    expect(normalizeUrl('corvid.com/search?q=Owen%20Rask')).toBe('corvid.com/search?q=Owen%20Rask')
+
+    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'http://www.tradepost.com/' })
+    expect(state.browser.url).toBe('tradepost.com')
+    expect(selectPage(state, content).found).toBe(true)
+  })
+
+  it('goes forward again after going back, and drops the stack on a new destination', () => {
+    let state = run(fresh(), [
+      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' },
+      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com/pdx/electronics' },
+    ])
+    expect(state.browser.forward).toHaveLength(0)
+
+    state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
+    expect(state.browser.url).toBe('tradepost.com')
+    expect(state.browser.forward).toHaveLength(1)
+
+    state = dispatch(state, { type: 'BROWSER_WENT_FORWARD' })
+    expect(state.browser.url).toBe('tradepost.com/pdx/electronics')
+    expect(state.browser.forward).toHaveLength(0)
+
+    state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
+    state = dispatch(state, { type: 'BROWSER_NAVIGATED', url: 'cluster.com' })
+    expect(state.browser.forward).toEqual([])
+  })
+
+  it('back at the very start of the session does nothing', () => {
+    const state = fresh()
+    expect(dispatch(state, { type: 'BROWSER_WENT_BACK' })).toBe(state)
+    expect(dispatch(state, { type: 'BROWSER_WENT_FORWARD' })).toBe(state)
+  })
+
+  it('the home button returns to the search page, not to a dead URL', () => {
+    const state = run(fresh(), [
+      { type: 'BROWSER_NAVIGATED', url: 'aion-group.com' },
+      { type: 'BROWSER_NAVIGATED', url: content.browser.home },
+    ])
+    expect(state.browser.view).toBe('home')
+  })
+})
+
+describe('the web is actually a web', () => {
+  const pageUrls = new Set(content.browser.pages.map((p) => p.url))
+
+  it('every link and nav item on every page resolves to a page that exists', () => {
+    for (const page of content.browser.pages) {
+      for (const shift of [0, 2]) {
+        for (const block of resolveBlocks(page, shift)) {
+          if (block.kind === 'nav') {
+            for (const item of block.items) {
+              expect(pageUrls.has(item.url), `${page.url} → ${item.url}`).toBe(true)
+            }
+          }
+          if (block.kind === 'link' && block.url) {
+            expect(pageUrls.has(block.url), `${page.url} → ${block.url}`).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
+  it('every bookmark goes somewhere', () => {
+    for (const b of content.browser.bookmarks) {
+      expect(pageUrls.has(b.url) || b.url === content.browser.home, b.url).toBe(true)
+    }
+  })
+
+  it('the directory exists and reaches every site in the simulation', () => {
+    const directory = content.browser.pages.find((p) => p.url === content.browser.directoryUrl)
+    expect(directory).toBeDefined()
+
+    const listed = new Set(
+      directory!.blocks.flatMap((b) => (b.kind === 'nav' ? b.items.map((i) => i.url) : [])),
+    )
+    // Every distinct host in the simulation is reachable from the directory, except the
+    // search engine itself and the archive you can only find by knowing what to look for.
+    const hosts = new Set([...pageUrls].map((u) => u.split('/')[0]))
+    for (const host of hosts) {
+      if (host === 'corvid.com' || host === 'metzdowd.archive') continue
+      expect([...listed].some((u) => u.split('/')[0] === host), `directory misses ${host}`).toBe(true)
+    }
+  })
+
+  it('every page except the search home can be reached without typing a URL', () => {
+    const reachable = new Set<string>([content.browser.directoryUrl])
+    for (const entry of content.browser.index) if (entry.go) reachable.add(entry.go)
+    for (const b of content.browser.bookmarks) reachable.add(b.url)
+
+    // Walk the link graph until it stops growing.
+    let grew = true
+    while (grew) {
+      grew = false
+      for (const page of content.browser.pages) {
+        if (!reachable.has(page.url)) continue
+        for (const shift of [0, 2]) {
+          for (const block of resolveBlocks(page, shift)) {
+            const urls =
+              block.kind === 'nav'
+                ? block.items.map((i) => i.url)
+                : block.kind === 'link' && block.url
+                  ? [block.url]
+                  : []
+            for (const url of urls) {
+              if (!reachable.has(url)) {
+                reachable.add(url)
+                grew = true
+              }
+            }
+          }
+        }
+      }
+    }
+
+    for (const page of content.browser.pages) {
+      expect(reachable.has(page.url), `${page.url} is an island`).toBe(true)
+    }
+  })
+
+  it('an empty search still offers the player the directory', () => {
+    const state = dispatch(fresh(), { type: 'BROWSER_SEARCHED', query: 'nothing at all' })
+    expect(selectSearchResults(state, content)).toEqual([])
+    expect(content.browser.directoryLabel.length).toBeGreaterThan(0)
   })
 
   it('costs time to browse', () => {

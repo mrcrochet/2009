@@ -1,6 +1,6 @@
 import type { Cents } from './money'
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -151,6 +151,8 @@ export interface BrowserEntry {
 export interface BrowserState extends BrowserEntry {
   /** Real back-stack. The URL field and the back button both operate on it. */
   readonly history: readonly BrowserEntry[]
+  /** Everything the player has stepped back past, until they navigate somewhere new. */
+  readonly forward: readonly BrowserEntry[]
 }
 
 // ---------------------------------------------------------------------------
@@ -304,6 +306,7 @@ export type GameEvent =
   | (Base & { type: 'BROWSER_SEARCHED'; query: string })
   | (Base & { type: 'BROWSER_NAVIGATED'; url: string })
   | (Base & { type: 'BROWSER_WENT_BACK' })
+  | (Base & { type: 'BROWSER_WENT_FORWARD' })
   | (Base & { type: 'FILE_OPENED'; fileId: string })
   | (Base & { type: 'TERMINAL_INPUT_CHANGED'; value: string })
   | (Base & { type: 'TERMINAL_COMMAND_RUN'; command: string })

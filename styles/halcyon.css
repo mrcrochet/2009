@@ -176,41 +176,15 @@
   padding: 0;
 }
 
-.hal-icon__doc {
-  width: 44px;
-  height: 54px;
-  background: linear-gradient(170deg, #f6f6f2, #d3d3cb);
-  border: 1px solid #9a9a92;
-  border-radius: 2px;
-  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.5);
-  position: relative;
-  overflow: hidden;
-}
-
-.hal-icon__fold {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 15px;
-  height: 15px;
-  background: linear-gradient(225deg, #b9b9b0 50%, transparent 50%);
-}
-
-.hal-icon__lines {
-  padding: 11px 7px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.hal-icon__lines span {
+.hal-icon__art {
   display: block;
-  height: 1.5px;
-  background: #a8a8a0;
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.5));
+  line-height: 0;
 }
 
-.hal-icon__lines span:last-child {
-  width: 70%;
+.hal-icon:hover .hal-icon__art,
+.hal-icon:focus-visible .hal-icon__art {
+  filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.5)) brightness(1.08);
 }
 
 .hal-icon__label {
@@ -587,7 +561,7 @@
   border-bottom: 1px solid #a9a9a2;
 }
 
-.hal-web__back {
+.hal-web__nav {
   appearance: none;
   width: 23px;
   height: 20px;
@@ -599,11 +573,64 @@
   font-size: 11px;
   line-height: 1;
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
-.hal-web__back:disabled {
-  opacity: 0.45;
+.hal-web__nav:hover:not(:disabled) {
+  border-color: #6f7680;
+  background: linear-gradient(180deg, #fff, #e6e6e0);
+}
+
+.hal-web__nav:disabled {
+  opacity: 0.4;
   cursor: default;
+}
+
+.hal-web__bookmarks {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 9px 5px;
+  background: linear-gradient(180deg, #eeeee8, #e2e2dc);
+  border-bottom: 1px solid #b9b9b2;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.hal-web__bookmarks::-webkit-scrollbar {
+  display: none;
+}
+
+.hal-web__bookmarkslabel {
+  flex: none;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: #8a8a84;
+  margin-right: 4px;
+  text-transform: uppercase;
+}
+
+.hal-web__bookmark {
+  appearance: none;
+  flex: none;
+  border: 1px solid transparent;
+  background: none;
+  padding: 2px 6px;
+  font-family: var(--font-web);
+  font-size: 10.5px;
+  color: #1f4e79;
+  cursor: pointer;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.hal-web__bookmark:hover {
+  border-color: #a9a9a2;
+  background: #fbfbf9;
 }
 
 .hal-web__url {
@@ -750,6 +777,12 @@
   letter-spacing: 0.04em;
 }
 
+.hal-web__h2 {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
 .hal-web__p {
   font-size: 12.5px;
   line-height: 1.65;
@@ -797,6 +830,85 @@
   font-size: 12px;
   line-height: 1.55;
   color: #3a3a3a;
+}
+
+.hal-web__sitenav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+}
+
+.hal-web__navlink,
+.hal-web__pagelink,
+.hal-web__inlinelink,
+.hal-web__homelink {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  color: #1f4e79;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hal-web__navlink {
+  font-size: 11.5px;
+}
+
+.hal-web__pagelink {
+  font-size: 13px;
+}
+
+.hal-web__inlinelink,
+.hal-web__homelink {
+  font-family: var(--font-web);
+  font-size: 11.5px;
+}
+
+.hal-web__homelink {
+  margin-top: -6px;
+}
+
+.hal-web__navlink:hover,
+.hal-web__pagelink:hover,
+.hal-web__inlinelink:hover,
+.hal-web__homelink:hover {
+  color: #8a3b2c;
+}
+
+.hal-web__pagelink:disabled {
+  color: #8a8a84;
+  text-decoration: none;
+  cursor: default;
+}
+
+.hal-web__page--dark .hal-web__navlink,
+.hal-web__page--dark .hal-web__pagelink {
+  color: #8fb6d4;
+}
+
+.hal-web__page--dark .hal-web__sitenav {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.hal-web__linknote {
+  display: block;
+  margin-top: 2px;
+  font-size: 10.5px;
+  color: #777;
+}
+
+.hal-web__page--dark .hal-web__linknote {
+  color: #6f8391;
+}
+
+.hal-web__empty > div {
+  margin-top: 12px;
 }
 
 .hal-web__act {
@@ -878,14 +990,31 @@
   background: var(--selected);
 }
 
+.hal-files__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.hal-files__icon {
+  flex: none;
+  line-height: 0;
+}
+
 .hal-files__name {
   font-size: 11.5px;
   color: var(--titlebar-front-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .hal-files__meta {
   font-size: 10px;
   color: #9a9a92;
+  flex: none;
+  align-self: center;
 }
 
 .hal-files__body {
@@ -1465,14 +1594,40 @@
 }
 
 .hal-phone__thumb {
+  position: relative;
   height: 78px;
-  background: repeating-linear-gradient(135deg, #c9ced4 0 8px, #bfc5cc 8px 16px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: #6c757e;
+  background: #c9ced4;
+  overflow: hidden;
+}
+
+.hal-phone__frame {
+  display: block;
+  width: 100%;
+  height: 78px;
+}
+
+/* The camera burned the filename into the corner, the way they did. A scrim keeps it
+   legible over a bright frame without lighting up a dark one. */
+.hal-phone__thumb::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20px;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+
+.hal-phone__stamp {
+  position: absolute;
+  right: 5px;
+  bottom: 4px;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.82);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  z-index: 1;
 }
 
 .hal-phone__photometa {

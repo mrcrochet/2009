@@ -23,6 +23,7 @@ describe('save migration', () => {
     delete snapshot.heat
     delete snapshot.divergence
     delete (snapshot.browser as Record<string, unknown>).history
+    delete (snapshot.browser as Record<string, unknown>).forward
     snapshot.windows = [{ app: 'mail', x: 10, y: 20, z: 21 }]
 
     const migrated = migrateStored(legacy)
@@ -31,6 +32,7 @@ describe('save migration', () => {
     expect(back.heat).toBe(0)
     expect(back.divergence).toBe(0)
     expect(back.browser.history).toEqual([])
+    expect(back.browser.forward).toEqual([])
     expect(back.windows[0]).toMatchObject({ app: 'mail', x: 10, y: 20, minimized: false, zoomed: false })
     expect(back.cashCents).toBe(state.cashCents)
   })

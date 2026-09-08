@@ -3,6 +3,7 @@
 import type { Block } from '@/engine/content-schema'
 import { formatMoney } from '@/engine/money'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
+import type { AppId } from '@/engine/types'
 import { useContent, useDispatch, useTimeline } from '../GameContext'
 import { PinButton } from '../PinButton'
 
@@ -13,6 +14,7 @@ export function BrowserApp() {
   const results = useTimeline((s) => selectSearchResults(s, content))
   const page = useTimeline((s) => selectPage(s, content))
 
+  const go = (url: string) => dispatch({ type: 'BROWSER_NAVIGATED', url })
   const search = () => {
     if (!browser.query.trim()) return
     dispatch({ type: 'BROWSER_SEARCHED', query: browser.query })
@@ -23,24 +25,67 @@ export function BrowserApp() {
       <div className="hal-web__toolbar">
         <button
           type="button"
-          className="hal-web__back"
+          className="hal-web__nav"
           aria-label="Back"
-          disabled={browser.history.length === 0 && browser.view === 'home'}
+          disabled={browser.history.length === 0}
           onClick={() => dispatch({ type: 'BROWSER_WENT_BACK' })}
         >
           ‹
         </button>
+        <button
+          type="button"
+          className="hal-web__nav"
+          aria-label="Forward"
+          disabled={browser.forward.length === 0}
+          onClick={() => dispatch({ type: 'BROWSER_WENT_FORWARD' })}
+        >
+          ›
+        </button>
+        <button
+          type="button"
+          className="hal-web__nav hal-web__nav--home"
+          aria-label="Home"
+          onClick={() => go(content.browser.home)}
+        >
+          <svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true" focusable="false">
+            <path
+              d="M1 6L6 1.6L11 6M2.6 5.4V10.4H9.4V5.4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.2"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
         <input
           className="hal-web__url"
           aria-label="Address"
+          spellCheck={false}
           value={browser.url}
           onChange={(e) => dispatch({ type: 'BROWSER_URL_CHANGED', url: e.target.value })}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') dispatch({ type: 'BROWSER_NAVIGATED', url: browser.url })
+            if (e.key === 'Enter') go(browser.url)
           }}
         />
         <span className="hal-web__engine">{content.browser.engineName}</span>
       </div>
+
+      {content.browser.bookmarks.length > 0 ? (
+        <div className="hal-web__bookmarks">
+          <span className="hal-web__bookmarkslabel">Bookmarks</span>
+          {content.browser.bookmarks.map((b) => (
+            <button
+              key={b.url}
+              type="button"
+              className="hal-web__bookmark"
+              data-bookmark={b.url}
+              onClick={() => go(b.url)}
+            >
+              {b.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="hal-scroll">
         {browser.view === 'home' ? (
@@ -62,6 +107,13 @@ export function BrowserApp() {
                 Search
               </button>
             </div>
+            <button
+              type="button"
+              className="hal-web__homelink"
+              onClick={() => go(content.browser.directoryUrl)}
+            >
+              {content.browser.directoryLabel}
+            </button>
             <div className="hal-web__homefoot">
               Web · Images · Groups · News · Mail — © 2009 Corvid Inc.
             </div>
@@ -79,7 +131,7 @@ export function BrowserApp() {
                   type="button"
                   className="hal-web__resulttitle"
                   disabled={!r.go}
-                  onClick={() => r.go && dispatch({ type: 'BROWSER_NAVIGATED', url: r.go })}
+                  onClick={() => r.go && go(r.go)}
                 >
                   {r.title}
                 </button>
@@ -88,7 +140,18 @@ export function BrowserApp() {
               </div>
             ))}
             {results.length === 0 ? (
-              <div className="hal-web__empty">{content.browser.emptyResults}</div>
+              <div className="hal-web__empty">
+                {content.browser.emptyResults}
+                <div>
+                  <button
+                    type="button"
+                    className="hal-web__inlinelink"
+                    onClick={() => go(content.browser.directoryUrl)}
+                  >
+                    {content.browser.directoryLabel}
+                  </button>
+                </div>
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -101,11 +164,7 @@ export function BrowserApp() {
             {page.found ? (
               page.blocks.map((block, i) => <BlockView key={i} block={block} />)
             ) : (
-              <div className="hal-web__p">
-                {'The server at '}
-                {browser.url}
-                {' could not be found.\nCheck the address and try again.'}
-              </div>
+              <NotFound url={browser.url} />
             )}
           </div>
         ) : null}
@@ -114,7 +173,33 @@ export function BrowserApp() {
   )
 }
 
+function NotFound({ url }: { url: string }) {
+  const content = useContent()
+  const dispatch = useDispatch()
+  return (
+    <div data-testid="web-404">
+      <div className="hal-web__h" style={{ color: '#7a0f0f' }}>
+        {content.browser.notFoundTitle}
+      </div>
+      <div className="hal-web__sub">{url}</div>
+      <div className="hal-web__rule" style={{ margin: '12px 0' }} />
+      <div className="hal-web__p">{content.browser.notFoundBody}</div>
+      <div style={{ marginTop: 12 }}>
+        <button
+          type="button"
+          className="hal-web__inlinelink"
+          onClick={() => dispatch({ type: 'BROWSER_NAVIGATED', url: content.browser.directoryUrl })}
+        >
+          {content.browser.directoryLabel}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function BlockView({ block }: { block: Block }) {
+  const dispatch = useDispatch()
+
   switch (block.kind) {
     case 'heading':
       return (
@@ -130,6 +215,14 @@ function BlockView({ block }: { block: Block }) {
           <div className="hal-web__sub">{block.text}</div>
         </div>
       )
+    case 'subheading':
+      return (
+        <div className="hal-web__block">
+          <div className="hal-web__h2" style={{ color: block.ink }}>
+            {block.text}
+          </div>
+        </div>
+      )
     case 'rule':
       return (
         <div className="hal-web__block">
@@ -142,6 +235,47 @@ function BlockView({ block }: { block: Block }) {
           <div className="hal-web__p">{block.text}</div>
         </div>
       )
+    case 'nav':
+      return (
+        <div className="hal-web__block">
+          <div className="hal-web__sitenav">
+            {block.items.map((item) => (
+              <button
+                key={item.url}
+                type="button"
+                className="hal-web__navlink"
+                data-href={item.url}
+                onClick={() => dispatch({ type: 'BROWSER_NAVIGATED', url: item.url })}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )
+    case 'link': {
+      const dead = !block.url && !block.opensApp
+      return (
+        <div className="hal-web__block">
+          <button
+            type="button"
+            className="hal-web__pagelink"
+            data-href={block.url ?? block.opensApp ?? 'dead'}
+            disabled={dead}
+            onClick={() => {
+              if (block.opensApp) {
+                dispatch({ type: 'APP_OPENED', app: block.opensApp as AppId, viewport: measure() })
+                return
+              }
+              if (block.url) dispatch({ type: 'BROWSER_NAVIGATED', url: block.url })
+            }}
+          >
+            {block.label}
+          </button>
+          {block.note ? <span className="hal-web__linknote">{block.note}</span> : null}
+        </div>
+      )
+    }
     case 'evidence':
       return (
         <div className="hal-web__block">
@@ -230,4 +364,9 @@ function Listing({ block }: { block: Extract<Block, { kind: 'listing' }> }) {
       </div>
     </div>
   )
+}
+
+function measure() {
+  if (typeof window === 'undefined') return undefined
+  return { width: window.innerWidth, height: window.innerHeight }
 }

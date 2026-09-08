@@ -3,15 +3,100 @@ import type { BrowserConfigSchema } from '@/engine/content-schema'
 
 /**
  * A closed 2009 internet. No page here reaches the real network, and the index only knows what
- * exists inside this simulation. Pages carry `variants` keyed on temporal shift — the same URL
- * resolves to different text once the player has moved the timeline far enough.
+ * exists inside this simulation.
+ *
+ * It is a *web*: every site has a front page, sites link to each other, and the Corvid directory
+ * is the way in when the player does not know what to search for. Pages carry `variants` keyed on
+ * temporal shift — the same URL resolves to different text once the player has moved the timeline
+ * far enough.
  */
 export const browser: z.input<typeof BrowserConfigSchema> = {
   home: 'corvid.com',
   engineName: 'CORVID',
   emptyResults:
     'Your search did not match any documents.\nTry different keywords. Remember: this index only knows what exists now.',
+  directoryUrl: 'corvid.com/directory',
+  directoryLabel: 'Browse the Corvid Directory',
+  notFoundTitle: 'The page cannot be displayed',
+  notFoundBody:
+    'The site you are looking for could not be found. It may be down, or it may not exist yet.\n\nCheck the address, search from the Corvid home page, or browse the directory.',
+  bookmarks: [
+    { label: 'Corvid', url: 'corvid.com' },
+    { label: 'Directory', url: 'corvid.com/directory' },
+    { label: 'Meridian', url: 'meridiansavings.com' },
+    { label: 'TradePost', url: 'tradepost.com' },
+    { label: 'The Register', url: 'columbia-register.com' },
+    // Left in this machine's bookmarks by whoever set it up.
+    { label: 'aion-group.com', url: 'aion-group.com' },
+  ],
   pages: [
+    // ---------------------------------------------------------------- Corvid
+    {
+      url: 'corvid.com/directory',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Corvid Directory', ink: '#1f4e79' },
+        { kind: 'sub', text: 'A catalogue of the web, sorted by hand · 14,206 sites listed' },
+        { kind: 'rule' },
+        { kind: 'subheading', text: 'News & Media', ink: '#7a0f0f' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'The Columbia Register', url: 'columbia-register.com' },
+            { label: 'nullcache', url: 'nullcache.org' },
+          ],
+        },
+        { kind: 'subheading', text: 'Money & Banking', ink: '#7a0f0f' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Meridian Savings & Loan', url: 'meridiansavings.com' },
+            { label: 'Namewell — domain registration', url: 'namewell.com' },
+          ],
+        },
+        { kind: 'subheading', text: 'Classifieds', ink: '#7a0f0f' },
+        { kind: 'nav', items: [{ label: 'TradePost', url: 'tradepost.com' }] },
+        { kind: 'subheading', text: 'Community', ink: '#7a0f0f' },
+        { kind: 'nav', items: [{ label: 'Cluster', url: 'cluster.com' }] },
+        { kind: 'subheading', text: 'Business Services', ink: '#7a0f0f' },
+        { kind: 'nav', items: [{ label: 'Aion Group', url: 'aion-group.com' }] },
+        { kind: 'rule' },
+        {
+          kind: 'sub',
+          text: 'Suggest a site · Add a category · © 2009 Corvid Inc. All rights reserved.',
+        },
+      ],
+      variants: [],
+    },
+
+    // ------------------------------------------------------------- TradePost
+    {
+      url: 'tradepost.com',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'TradePost', ink: '#7a0f0f' },
+        { kind: 'sub', text: 'free classified ads · no fees · meet in public · portland metro' },
+        { kind: 'rule' },
+        { kind: 'subheading', text: 'Portland / Vancouver', ink: '#1f4e79' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'electronics', url: 'tradepost.com/pdx/electronics' },
+            { label: 'furniture', url: 'tradepost.com/pdx/furniture' },
+            { label: 'jobs', url: 'tradepost.com/pdx/jobs' },
+            { label: 'housing', url: 'tradepost.com/pdx/housing' },
+          ],
+        },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: 'TradePost is run by two people and a server in a closet. Do not wire money to anyone. Do not meet at their house. If a deal seems too good, it is because someone does not know what they have.',
+        },
+      ],
+      variants: [],
+    },
     {
       url: 'tradepost.com/pdx/electronics',
       background: '#fff',
@@ -19,6 +104,13 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       blocks: [
         { kind: 'heading', text: 'TradePost — Portland / electronics', ink: '#7a0f0f' },
         { kind: 'sub', text: 'posted today · 4 items · flag as spam' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'all of portland', url: 'tradepost.com' },
+            { label: 'furniture', url: 'tradepost.com/pdx/furniture' },
+          ],
+        },
         { kind: 'rule' },
         {
           kind: 'listing',
@@ -51,12 +143,194 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       variants: [],
     },
     {
+      url: 'tradepost.com/pdx/furniture',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'TradePost — Portland / furniture', ink: '#7a0f0f' },
+        { kind: 'sub', text: 'posted this week · 2 items' },
+        { kind: 'nav', items: [{ label: 'all of portland', url: 'tradepost.com' }] },
+        { kind: 'rule' },
+        {
+          kind: 'listing',
+          title: 'Desk, particle board',
+          price: '$15',
+          location: 'SE Portland',
+          text: 'One drawer sticks. Moving out of the apartment on the 20th, must go before then.',
+          action: 'none',
+          itemId: null,
+        },
+        {
+          kind: 'listing',
+          title: 'Filing cabinet, two drawer, locking',
+          price: '$30',
+          location: 'SE Morrison',
+          text: 'Key included. Came from an office that closed in December.',
+          action: 'none',
+          itemId: null,
+        },
+      ],
+      variants: [],
+    },
+    {
+      url: 'tradepost.com/pdx/jobs',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'TradePost — Portland / jobs', ink: '#7a0f0f' },
+        { kind: 'sub', text: '3 posts · January 2009' },
+        { kind: 'nav', items: [{ label: 'all of portland', url: 'tradepost.com' }] },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: 'WAREHOUSE, SWING SHIFT — $9.25/hr, no experience. Apply in person.\n\nDATA ENTRY, TEMP — three weeks, $11/hr. Must type 50wpm.\n\nRECOVERY AGENT — discreet. Own vehicle. Flexible hours, generous per-file rate. Enquiries to settlements@aion-group.com.',
+        },
+        {
+          kind: 'p',
+          text: 'Nobody is hiring this month. There were forty of these in October.',
+        },
+      ],
+      variants: [],
+    },
+    {
+      url: 'tradepost.com/pdx/housing',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'TradePost — Portland / housing', ink: '#7a0f0f' },
+        { kind: 'sub', text: '61 posts · rent is falling' },
+        { kind: 'nav', items: [{ label: 'all of portland', url: 'tradepost.com' }] },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: 'STUDIO, SE — $475/mo, first month free.\nTWO BED, INNER SE — $690/mo, will negotiate.\nHOUSE, ST JOHNS — $1,100/mo. Bank owned. Available immediately.',
+        },
+      ],
+      variants: [],
+    },
+
+    // ------------------------------------------------------ Columbia Register
+    {
+      url: 'columbia-register.com',
+      background: '#fbfbf5',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'The Columbia Register', ink: '#1a1a1a' },
+        { kind: 'sub', text: 'Portland, Oregon · Thursday, 15 January 2009 · 50 cents' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Business', url: 'columbia-register.com/business' },
+            { label: 'Obituaries', url: 'columbia-register.com/obits' },
+            { label: 'Classifieds', url: 'tradepost.com' },
+          ],
+        },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: 'STATE JOBLESS RATE REACHES 9.9 PERCENT — the highest since 1983. The governor called the figure "a floor we have not found yet."',
+        },
+        { kind: 'rule' },
+        {
+          kind: 'link',
+          label: 'Portland developer to demo plugin-free video at Ace Hotel',
+          url: 'columbia-register.com/business',
+          note: 'Business · today',
+          opensApp: null,
+        },
+        {
+          kind: 'link',
+          label: 'Obituaries — December 2008',
+          url: 'columbia-register.com/obits',
+          note: 'Archive',
+          opensApp: null,
+        },
+        { kind: 'rule' },
+        { kind: 'sub', text: 'Subscribe · Place an ad · Archives back to 1994' },
+      ],
+      variants: [
+        {
+          minShift: 2,
+          blocks: [
+            { kind: 'heading', text: 'The Columbia Register', ink: '#1a1a1a' },
+            { kind: 'sub', text: 'Portland, Oregon · Thursday, 15 January 2009 · 50 cents' },
+            {
+              kind: 'nav',
+              items: [
+                { label: 'Business', url: 'columbia-register.com/business' },
+                { label: 'Obituaries', url: 'columbia-register.com/obits' },
+                { label: 'Classifieds', url: 'tradepost.com' },
+              ],
+            },
+            { kind: 'rule' },
+            {
+              kind: 'p',
+              text: 'STATE JOBLESS RATE REACHES 9.9 PERCENT — the highest since 1983. The governor called the figure "a floor we have not found yet."',
+            },
+            { kind: 'rule' },
+            {
+              kind: 'link',
+              label: 'Local video startup folds before demo; founder unreachable',
+              url: 'columbia-register.com/business',
+              note: 'Business · corrected 3 hours ago',
+              opensApp: null,
+            },
+            {
+              kind: 'link',
+              label: 'Obituaries — December 2008',
+              url: 'columbia-register.com/obits',
+              note: 'Archive',
+              opensApp: null,
+            },
+            { kind: 'rule' },
+            { kind: 'sub', text: 'Subscribe · Place an ad · Archives back to 1994' },
+          ],
+        },
+      ],
+    },
+    {
+      url: 'columbia-register.com/obits',
+      background: '#fbfbf5',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Obituaries — December 2008', ink: '#1a1a1a' },
+        { kind: 'sub', text: 'The Columbia Register · archived index' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Front page', url: 'columbia-register.com' },
+            { label: 'Business', url: 'columbia-register.com/business' },
+          ],
+        },
+        { kind: 'rule' },
+        { kind: 'link', label: 'MORAN, Julia B., 41 — 04 December 2008', url: null, note: 'no page archived', opensApp: null },
+        { kind: 'link', label: 'OKONKWO, Adaeze, 38 — 11 December 2008', url: null, note: 'no page archived', opensApp: null },
+        {
+          kind: 'link',
+          label: 'RASK, Owen T., 34 — 19 December 2008',
+          url: 'columbia-register.com/obits/rask',
+          note: 'full notice',
+          opensApp: null,
+        },
+        { kind: 'rule' },
+        { kind: 'p', text: 'Three notices this month were filed by the same funeral home. None list a service.' },
+      ],
+      variants: [],
+    },
+    {
       url: 'columbia-register.com/obits/rask',
       background: '#fbfbf5',
       dark: false,
       blocks: [
         { kind: 'heading', text: 'Obituaries — December 2008', ink: '#1a1a1a' },
         { kind: 'sub', text: 'The Columbia Register · archived page' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Front page', url: 'columbia-register.com' },
+            { label: 'All December notices', url: 'columbia-register.com/obits' },
+          ],
+        },
         { kind: 'rule' },
         {
           kind: 'p',
@@ -68,15 +342,177 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       variants: [],
     },
     {
-      url: 'aion-group.com',
-      background: '#f2f2ee',
+      url: 'columbia-register.com/business',
+      background: '#fbfbf5',
       dark: false,
       blocks: [
-        { kind: 'heading', text: 'AION GROUP', ink: '#22262b' },
-        { kind: 'sub', text: 'Settlements · Recovery · Actuarial' },
+        {
+          kind: 'heading',
+          text: 'Portland developer to demo plugin-free video at Ace Hotel',
+          ink: '#1a1a1a',
+        },
+        { kind: 'sub', text: 'The Columbia Register · Business · 15 January 2009' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Front page', url: 'columbia-register.com' },
+            { label: 'Obituaries', url: 'columbia-register.com/obits' },
+            { label: 'Classifieds', url: 'tradepost.com' },
+          ],
+        },
         { kind: 'rule' },
-        { kind: 'p', text: 'This domain is registered and in use. No public information is available.' },
-        { kind: 'p', text: 'Correspondence is outbound only.' },
+        {
+          kind: 'p',
+          text: 'A developer working out of an apartment in Southeast Portland says she has built a way to play short video clips in a web page without additional software. Industry observers were skeptical, noting that few users have expressed interest in watching video in a browser window.',
+        },
+        {
+          kind: 'link',
+          label: 'The developer keeps a page on Cluster',
+          url: 'cluster.com/leavoss',
+          note: 'lea.voss',
+          opensApp: null,
+        },
+      ],
+      variants: [
+        {
+          minShift: 2,
+          blocks: [
+            {
+              kind: 'heading',
+              text: 'Local video startup folds before demo; founder unreachable',
+              ink: '#1a1a1a',
+            },
+            { kind: 'sub', text: 'The Columbia Register · Business · corrected 3 hours ago' },
+            {
+              kind: 'nav',
+              items: [
+                { label: 'Front page', url: 'columbia-register.com' },
+                { label: 'Obituaries', url: 'columbia-register.com/obits' },
+                { label: 'Classifieds', url: 'tradepost.com' },
+              ],
+            },
+            { kind: 'rule' },
+            {
+              kind: 'p',
+              text: 'A local software project that had been scheduled to demonstrate in-browser video this month has been withdrawn. The developer did not respond to messages. An earlier version of this article named a different company and described a different outcome. We regret the error.',
+            },
+            {
+              kind: 'link',
+              label: 'The developer keeps a page on Cluster',
+              url: 'cluster.com/leavoss',
+              note: 'lea.voss',
+              opensApp: null,
+            },
+            { kind: 'p', text: 'You have read this page before. It did not say this.' },
+          ],
+        },
+      ],
+    },
+
+    // ---------------------------------------------------------------- Cluster
+    {
+      url: 'cluster.com',
+      background: '#eef2f6',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Cluster', ink: '#2b5f96' },
+        { kind: 'sub', text: 'stay in touch with the people you already know · 41 million people' },
+        { kind: 'rule' },
+        { kind: 'p', text: 'Find someone by name. Everyone here uses their real one.' },
+        {
+          kind: 'link',
+          label: 'lea.voss — Portland, OR',
+          url: 'cluster.com/leavoss',
+          note: '41 friends · updated today',
+          opensApp: null,
+        },
+        {
+          kind: 'link',
+          label: 'm.deleon — Portland, OR',
+          url: 'cluster.com/mdeleon',
+          note: '3 friends · updated December',
+          opensApp: null,
+        },
+        { kind: 'rule' },
+        { kind: 'sub', text: 'Privacy · Terms · Cluster is free and always will be.' },
+      ],
+      variants: [],
+    },
+    {
+      url: 'cluster.com/leavoss',
+      background: '#eef2f6',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Cluster — lea.voss', ink: '#2b5f96' },
+        { kind: 'sub', text: 'Portland, OR · 41 friends · last updated today, 04:12' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Cluster home', url: 'cluster.com' },
+            { label: 'm.deleon', url: 'cluster.com/mdeleon' },
+          ],
+        },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: '04:12 — someone has been parked outside my building for two nights. same car. i am writing this here so it is written somewhere.',
+        },
+        { kind: 'p', text: '11 Jan — demo works in three browsers. it does not work in the one everybody uses.' },
+        { kind: 'p', text: '02 Jan — new year, same four months of runway.' },
+        { kind: 'evidence', evidenceId: 'e9' },
+      ],
+      variants: [],
+    },
+    {
+      url: 'cluster.com/mdeleon',
+      background: '#eef2f6',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Cluster — m.deleon', ink: '#2b5f96' },
+        { kind: 'sub', text: 'Portland, OR · 3 friends · last updated 22 December 2008' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Cluster home', url: 'cluster.com' },
+            { label: 'lea.voss', url: 'cluster.com/leavoss' },
+          ],
+        },
+        { kind: 'rule' },
+        { kind: 'p', text: '22 Dec — new job. cant say much about it. pays weekly, cash.' },
+        { kind: 'p', text: '02 Dec — anybody know somebody hiring' },
+        {
+          kind: 'p',
+          text: 'Friends: lea.voss · o.rask · (1 private)',
+        },
+      ],
+      variants: [],
+    },
+
+    // -------------------------------------------------------------- nullcache
+    {
+      url: 'nullcache.org',
+      background: '#0f1216',
+      dark: true,
+      blocks: [
+        { kind: 'heading', text: 'nullcache', ink: '#8fb6d4' },
+        { kind: 'sub', text: 'no accounts · no logs · no names · you were never here' },
+        { kind: 'rule' },
+        {
+          kind: 'link',
+          label: '› general › “anyone else lose a week?”',
+          url: 'nullcache.org/thread/3312',
+          note: '12 replies · last post 09 Jan 2009',
+          opensApp: null,
+        },
+        {
+          kind: 'link',
+          label: '› general › “dumping ground for weird collection letters”',
+          url: 'nullcache.org/thread/3290',
+          note: '48 replies · last post 13 Jan 2009',
+          opensApp: null,
+        },
+        { kind: 'rule' },
+        { kind: 'p', text: 'Board rules: one. Do not use your real name. That is the whole list.' },
       ],
       variants: [],
     },
@@ -87,6 +523,13 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       blocks: [
         { kind: 'heading', text: 'nullcache › general › “anyone else lose a week?”', ink: '#8fb6d4' },
         { kind: 'sub', text: '12 replies · last post 09 Jan 2009' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'board index', url: 'nullcache.org' },
+            { label: 'next thread', url: 'nullcache.org/thread/3290' },
+          ],
+        },
         { kind: 'rule' },
         {
           kind: 'p',
@@ -101,20 +544,89 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       variants: [],
     },
     {
-      url: 'cluster.com/leavoss',
-      background: '#eef2f6',
-      dark: false,
+      url: 'nullcache.org/thread/3290',
+      background: '#0f1216',
+      dark: true,
       blocks: [
-        { kind: 'heading', text: 'Cluster — lea.voss', ink: '#2b5f96' },
-        { kind: 'sub', text: 'Portland, OR · 41 friends · last updated today, 04:12' },
+        {
+          kind: 'heading',
+          text: 'nullcache › general › “dumping ground for weird collection letters”',
+          ink: '#8fb6d4',
+        },
+        { kind: 'sub', text: '48 replies · last post 13 Jan 2009' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'board index', url: 'nullcache.org' },
+            { label: 'previous thread', url: 'nullcache.org/thread/3312' },
+          ],
+        },
         { kind: 'rule' },
         {
           kind: 'p',
-          text: '04:12 — someone has been parked outside my building for two nights. same car. i am writing this here so it is written somewhere.',
+          text: '>> 3290  anon\npost the strange ones here. not the normal ones. the ones where the amount is round and the deadline is exactly thirty days',
         },
-        { kind: 'p', text: '11 Jan — demo works in three browsers. it does not work in the one everybody uses.' },
-        { kind: 'p', text: '02 Jan — new year, same four months of runway.' },
-        { kind: 'evidence', evidenceId: 'e9' },
+        {
+          kind: 'p',
+          text: '>> 3301  anon\nmine said "origin of funds is your problem". no letterhead. no phone number. an address on SE Morrison that is a bank branch',
+        },
+        {
+          kind: 'p',
+          text: '>> 3344  anon\nthe morrison address comes up a lot in this thread and nobody wants to say why',
+        },
+      ],
+      variants: [],
+    },
+
+    // --------------------------------------------------------------- Meridian
+    {
+      url: 'meridiansavings.com',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Meridian Savings & Loan', ink: '#1f4e79' },
+        { kind: 'sub', text: 'Serving Portland since 1961 · Member FDIC · 4 branches' },
+        { kind: 'rule' },
+        {
+          kind: 'link',
+          label: 'Online Banking — sign in',
+          url: null,
+          note: 'opens the Meridian Savings application on this machine',
+          opensApp: 'bank',
+        },
+        { kind: 'rule' },
+        {
+          kind: 'p',
+          text: 'BRANCHES\n\n1140 SE Morrison St, Portland — Mon–Fri 9:00–17:00\n2200 NE Sandy Blvd, Portland — Mon–Fri 9:00–17:00\n8814 SW Barbur Blvd, Portland — Mon–Fri 9:00–16:00\n404 Main St, Gresham — Mon–Thu 9:00–16:00',
+        },
+        {
+          kind: 'p',
+          text: 'Accounts may be opened in person at any branch with two forms of identification. Same-day activation available at our SE Morrison location.',
+        },
+      ],
+      variants: [],
+    },
+
+    // --------------------------------------------------------------- Namewell
+    {
+      url: 'namewell.com',
+      background: '#fdfdf8',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'NAMEWELL', ink: '#1f4e79' },
+        { kind: 'sub', text: 'domain names · hosting · $9.95 a year, no renewal tricks' },
+        { kind: 'rule' },
+        {
+          kind: 'link',
+          label: 'Register a domain · check availability · WHOIS lookup',
+          url: 'namewell.com/register',
+          note: 'instant activation',
+          opensApp: null,
+        },
+        {
+          kind: 'p',
+          text: 'A name costs less than a pizza and lasts a year. Most of them will never be worth anything. A few of them will be worth more than the company that eventually buys them.',
+        },
       ],
       variants: [],
     },
@@ -125,6 +637,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       blocks: [
         { kind: 'heading', text: 'NAMEWELL — domain registration', ink: '#1f4e79' },
         { kind: 'sub', text: '$9.95 per year · instant activation · WHOIS lookup below' },
+        { kind: 'nav', items: [{ label: 'Namewell home', url: 'namewell.com' }] },
         { kind: 'rule' },
         {
           kind: 'listing',
@@ -154,58 +667,73 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           itemId: 'socialgraph.net',
         },
         { kind: 'rule' },
-        { kind: 'heading', text: 'WHOIS: aion-group.com', ink: '#22262b' },
+        { kind: 'subheading', text: 'WHOIS: aion-group.com', ink: '#22262b' },
         {
           kind: 'p',
           text: 'Registered: 11 Dec 2008\nRegistrant: AION GROUP LLC\nAddress: 1140 SE MORRISON ST, PORTLAND OR\nNameservers: ns1.aion-group.com, ns2.aion-group.com',
+        },
+        {
+          kind: 'link',
+          label: 'That address is a Meridian Savings branch',
+          url: 'meridiansavings.com',
+          note: 'branch listing',
+          opensApp: null,
         },
         { kind: 'evidence', evidenceId: 'e10' },
       ],
       variants: [],
     },
+
+    // ------------------------------------------------------------- Aion Group
     {
-      url: 'columbia-register.com/business',
-      background: '#fbfbf5',
+      url: 'aion-group.com',
+      background: '#f2f2ee',
       dark: false,
       blocks: [
-        {
-          kind: 'heading',
-          text: 'Portland developer to demo plugin-free video at Ace Hotel',
-          ink: '#1a1a1a',
-        },
-        { kind: 'sub', text: 'The Columbia Register · Business · 15 January 2009' },
+        { kind: 'heading', text: 'AION GROUP', ink: '#22262b' },
+        { kind: 'sub', text: 'Settlements · Recovery · Actuarial' },
+        { kind: 'rule' },
+        { kind: 'p', text: 'This domain is registered and in use. No public information is available.' },
+        { kind: 'p', text: 'Correspondence is outbound only.' },
+      ],
+      variants: [],
+    },
+
+    // ----------------------------------------------------------- the archive
+    {
+      url: 'metzdowd.archive/crypto/2009-01',
+      background: '#fff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Cryptography mailing list — January 2009 archive', ink: '#22262b' },
+        { kind: 'sub', text: 'plain text · threaded by date · 214 messages' },
         { kind: 'rule' },
         {
           kind: 'p',
-          text: 'A developer working out of an apartment in Southeast Portland says she has built a way to play short video clips in a web page without additional software. Industry observers were skeptical, noting that few users have expressed interest in watching video in a browser window.',
+          text: '[Subject]  Bitcoin v0.1 released\n[Date]     Thu, 08 Jan 2009 14:27:40 -0800\n\nAnnouncing the first release of a new electronic cash system that uses a peer-to-peer network to prevent double-spending. It is completely decentralized with no server or central authority.\n\nThe software is still alpha and experimental. There is no exchange rate because there is no exchange.',
         },
-        { kind: 'p', text: 'Business · Markets · Real Estate · Classifieds' },
-      ],
-      variants: [
+        { kind: 'rule' },
         {
-          minShift: 2,
-          blocks: [
-            {
-              kind: 'heading',
-              text: 'Local video startup folds before demo; founder unreachable',
-              ink: '#1a1a1a',
-            },
-            { kind: 'sub', text: 'The Columbia Register · Business · corrected 3 hours ago' },
-            { kind: 'rule' },
-            {
-              kind: 'p',
-              text: 'A local software project that had been scheduled to demonstrate in-browser video this month has been withdrawn. The developer did not respond to messages. An earlier version of this article named a different company and described a different outcome. We regret the error.',
-            },
-            { kind: 'p', text: 'You have read this page before. It did not say this.' },
-          ],
+          kind: 'p',
+          text: 'Two replies. One asks about scaling. One says it will never work because nothing without a government behind it ever has.\n\nYou know exactly what this becomes. You cannot buy it: there is nowhere to buy it, no one to buy it from, and no price. It is nine days old and it is free, and that is the problem.',
         },
       ],
+      variants: [],
     },
   ],
   index: [
     {
+      id: 'idx-directory',
+      keys: ['directory', 'browse', 'what is out there', 'index', 'sites', 'catalogue', 'catalog'],
+      title: 'Corvid Directory — the web, sorted by hand',
+      url: 'corvid.com/directory',
+      snippet: 'A catalogue of the web, sorted by hand. 14,206 sites listed across news, money, classifieds and community.',
+      go: 'corvid.com/directory',
+      variants: [],
+    },
+    {
       id: 'idx-tradepost',
-      keys: ['phone', 'nokora', 'sell', 'flip', 'tradepost', 'classified', 'cash', 'money'],
+      keys: ['phone', 'nokora', 'sell', 'flip', 'tradepost', 'classified', 'cash', 'money', 'electronics'],
       title: 'TradePost — Portland classifieds — electronics',
       url: 'tradepost.com/pdx/electronics',
       snippet: 'Free classified ads for the Portland metro area. Electronics posted today. Cash only, meet in public.',
@@ -213,8 +741,17 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       variants: [],
     },
     {
+      id: 'idx-jobs',
+      keys: ['job', 'jobs', 'work', 'hiring', 'employment', 'recovery agent'],
+      title: 'TradePost — Portland / jobs',
+      url: 'tradepost.com/pdx/jobs',
+      snippet: 'Three posts this month. Warehouse swing shift, temporary data entry, and one that does not say what it is.',
+      go: 'tradepost.com/pdx/jobs',
+      variants: [],
+    },
+    {
       id: 'idx-obit',
-      keys: ['owen rask', 'rask', 'o. rask', 'who am i', 'my name', 'obituary', 'owen'],
+      keys: ['owen rask', 'rask', 'o. rask', 'who am i', 'my name', 'obituary', 'obituaries', 'owen'],
       title: 'Obituaries — December 2008 — The Columbia Register',
       url: 'columbia-register.com/obits/rask',
       snippet: 'RASK, Owen T., 34, of Portland, died Friday, December 19, 2008, following a short illness…',
@@ -223,7 +760,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
     },
     {
       id: 'idx-aion',
-      keys: ['aion', 'aion group', 'quota', 'settlement'],
+      keys: ['aion', 'aion group', 'quota', 'settlement', 'settlements'],
       title: 'AION GROUP',
       url: 'aion-group.com',
       snippet: 'Settlements · Recovery · Actuarial. No public information is available.',
@@ -232,7 +769,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
     },
     {
       id: 'idx-nullcache',
-      keys: ['thirty days', '30 days', 'woke up', 'lost week', 'time travel', 'not my apartment'],
+      keys: ['thirty days', '30 days', 'woke up', 'lost week', 'time travel', 'not my apartment', 'nullcache'],
       title: 'nullcache › “anyone else lose a week?”',
       url: 'nullcache.org/thread/3312',
       snippet: 'woke up tuesday and it was tuesday but the whole apartment was someone elses…',
@@ -240,12 +777,21 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       variants: [],
     },
     {
+      id: 'idx-letters',
+      keys: ['collection letter', 'debt', 'creditor', 'morrison', 'se morrison', '1140'],
+      title: 'nullcache › “dumping ground for weird collection letters”',
+      url: 'nullcache.org/thread/3290',
+      snippet: 'the morrison address comes up a lot in this thread and nobody wants to say why…',
+      go: 'nullcache.org/thread/3290',
+      variants: [],
+    },
+    {
       id: 'idx-btc',
-      keys: ['bitcoin', 'btc'],
+      keys: ['bitcoin', 'btc', 'e-cash', 'peer to peer cash'],
       title: 'P2P e-cash — mailing list archive',
       url: 'metzdowd.archive/crypto/2009-01',
       snippet: 'Announcing the first release of a new electronic cash system that uses a peer-to-peer network…',
-      go: null,
+      go: 'metzdowd.archive/crypto/2009-01',
       variants: [],
     },
     {
@@ -255,6 +801,24 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       url: 'cluster.com/leavoss',
       snippet: 'someone has been parked outside my building for two nights. same car…',
       go: 'cluster.com/leavoss',
+      variants: [],
+    },
+    {
+      id: 'idx-marc',
+      keys: ['marc', 'deleon', 'marc deleon', 'm.deleon'],
+      title: 'Cluster — m.deleon',
+      url: 'cluster.com/mdeleon',
+      snippet: 'new job. cant say much about it. pays weekly, cash.',
+      go: 'cluster.com/mdeleon',
+      variants: [],
+    },
+    {
+      id: 'idx-meridian',
+      keys: ['meridian', 'meridian savings', 'bank', 'branch', 'banking'],
+      title: 'Meridian Savings & Loan',
+      url: 'meridiansavings.com',
+      snippet: 'Serving Portland since 1961. Member FDIC. Four branches, including 1140 SE Morrison St.',
+      go: 'meridiansavings.com',
       variants: [],
     },
     {
@@ -268,7 +832,7 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
     },
     {
       id: 'idx-business',
-      keys: ['news', 'business', 'portland', 'headline', 'register', 'demo'],
+      keys: ['news', 'business', 'portland', 'headline', 'register', 'demo', 'newspaper'],
       title: 'Portland developer to demo plugin-free video — The Columbia Register',
       url: 'columbia-register.com/business',
       snippet: 'A developer working out of an apartment in Southeast Portland says she has built…',

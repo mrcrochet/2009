@@ -1,5 +1,6 @@
 'use client'
 
+import { FileIcon } from './FileIcon'
 import { useContent, useDispatch, useTimeline } from './GameContext'
 
 /** The README appears on the desktop a beat after the machine settles. */
@@ -20,16 +21,12 @@ export function DesktopIcons() {
             key={iconId}
             type="button"
             className="hal-icon"
+            data-file={iconId}
             onDoubleClick={() => open(iconId)}
             onClick={() => open(iconId)}
           >
-            <span className="hal-icon__doc" aria-hidden="true">
-              <span className="hal-icon__fold" />
-              <span className="hal-icon__lines">
-                <span />
-                <span />
-                <span />
-              </span>
+            <span className="hal-icon__art">
+              <FileIcon kind={doc.icon} size={54} />
             </span>
             <span className="hal-icon__label">{doc.name}</span>
           </button>

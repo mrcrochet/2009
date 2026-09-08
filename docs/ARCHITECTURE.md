@@ -36,6 +36,7 @@ components/
     HalcyonDesktop.tsx  MenuBar.tsx  Dock.tsx  DesktopIcons.tsx
     WindowManager.tsx  WindowFrame.tsx  useWindowDrag.ts
     PhoneOverlay.tsx  EvidenceTray.tsx  InvestigationBoard.tsx
+    FileIcon.tsx  PhotoFrame.tsx      drawn SVG art — no icon library, no emoji
     DayEndCard.tsx  SurveillanceOverlay.tsx  BootSequence.tsx
     GameErrorBoundary.tsx  DebugPanel.tsx
     apps/  MailApp MessengerApp BrowserApp FilesApp BankApp

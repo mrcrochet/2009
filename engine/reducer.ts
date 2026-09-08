@@ -94,13 +94,31 @@ function focusWindows(state: TimelineState, app: AppId): TimelineState {
   }
 }
 
-function pushHistory(state: TimelineState): readonly BrowserEntry[] {
-  const current: BrowserEntry = {
+/**
+ * What a 2009 address bar forgave: a scheme, a `www.`, a trailing slash, stray case in the host.
+ * The query string is left exactly as typed so percent-encoding survives.
+ */
+export function normalizeUrl(raw: string): string {
+  let url = raw.trim()
+  url = url.replace(/^[a-z][a-z0-9+.-]*:\/\//i, '')
+  url = url.replace(/^www\./i, '')
+  const cut = url.search(/[?#]/)
+  const path = cut === -1 ? url : url.slice(0, cut)
+  const rest = cut === -1 ? '' : url.slice(cut)
+  return path.toLowerCase().replace(/\/+$/, '') + rest
+}
+
+function currentEntry(state: TimelineState): BrowserEntry {
+  return {
     view: state.browser.view,
     url: state.browser.url,
     query: state.browser.query,
     resultIds: state.browser.resultIds,
   }
+}
+
+function pushHistory(state: TimelineState): readonly BrowserEntry[] {
+  const current = currentEntry(state)
   const last = state.browser.history[state.browser.history.length - 1]
   if (last && last.view === current.view && last.url === current.url) return state.browser.history
   return [...state.browser.history, current].slice(-40)
@@ -327,40 +345,56 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           query,
           resultIds,
           history: pushHistory(state),
+          forward: [],
         },
       }
     }
 
     case 'BROWSER_NAVIGATED': {
-      const url = event.url.trim()
+      const url = normalizeUrl(event.url)
       if (!url) return state
       const history = pushHistory(state)
       const page = findPage(content, url)
       return {
         ...state,
         browser: {
-          view: page ? 'page' : url === content.browser.home ? 'home' : 'page',
+          view: !page && url === content.browser.home ? 'home' : 'page',
           url,
           query: state.browser.query,
           resultIds: state.browser.resultIds,
           history,
+          // Going somewhere new is what discards the forward stack, exactly as a
+          // period browser did.
+          forward: [],
         },
       }
     }
 
     case 'BROWSER_WENT_BACK': {
-      const history = state.browser.history
+      const { history, forward } = state.browser
       const prev = history[history.length - 1]
-      if (!prev) {
-        if (state.browser.view === 'home') return state
-        return {
-          ...state,
-          browser: { view: 'home', url: content.browser.home, query: state.browser.query, resultIds: [], history: [] },
-        }
-      }
+      if (!prev) return state
       return {
         ...state,
-        browser: { ...prev, history: history.slice(0, -1) },
+        browser: {
+          ...prev,
+          history: history.slice(0, -1),
+          forward: [currentEntry(state), ...forward].slice(0, 40),
+        },
+      }
+    }
+
+    case 'BROWSER_WENT_FORWARD': {
+      const { history, forward } = state.browser
+      const next = forward[0]
+      if (!next) return state
+      return {
+        ...state,
+        browser: {
+          ...next,
+          history: [...history, currentEntry(state)].slice(-40),
+          forward: forward.slice(1),
+        },
       }
     }
 

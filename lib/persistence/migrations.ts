@@ -46,6 +46,18 @@ const STEPS: readonly MigrationStep[] = [
       return { ...row, snapshot }
     },
   },
+  {
+    from: 3,
+    to: 4,
+    describe: 'give the browser a forward stack',
+    migrate(row) {
+      const snapshot = { ...((row.snapshot as AnyRecord) ?? {}) }
+      const browser = { ...((snapshot.browser as AnyRecord) ?? {}) }
+      if (!Array.isArray(browser.forward)) browser.forward = []
+      snapshot.browser = browser
+      return { ...row, snapshot }
+    },
+  },
 ]
 
 export class MigrationError extends Error {

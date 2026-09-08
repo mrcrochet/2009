@@ -1,6 +1,7 @@
 'use client'
 
 import { selectFileBody, selectFileEvidenceId, selectFiles } from '@/engine/selectors'
+import { FileIcon } from '../FileIcon'
 import { useContent, useDispatch, useTimeline } from '../GameContext'
 import { PinButton } from '../PinButton'
 
@@ -30,7 +31,12 @@ export function FilesApp() {
             aria-current={f.selected}
             onClick={() => dispatch({ type: 'FILE_OPENED', fileId: f.id })}
           >
-            <span className="hal-files__name">{f.name}</span>
+            <span className="hal-files__label">
+              <span className="hal-files__icon">
+                <FileIcon kind={f.icon} size={18} />
+              </span>
+              <span className="hal-files__name">{f.name}</span>
+            </span>
             <span className="hal-files__meta">{f.meta}</span>
           </button>
         ))}

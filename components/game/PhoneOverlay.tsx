@@ -5,6 +5,7 @@ import { clockString } from '@/engine/clock'
 import type { PhoneTab } from '@/engine/types'
 import { defaultPhonePosition } from '@/engine/rules'
 import { useContent, useDispatch, useGame, useTimeline } from './GameContext'
+import { PhotoFrame } from './PhotoFrame'
 import { PinButton } from './PinButton'
 import { useDragMove, useIsCompact } from './useDragMove'
 
@@ -122,7 +123,10 @@ function Photos() {
     <div className="hal-phone__photos">
       {content.phone.photos.map((p) => (
         <div key={p.id} className="hal-phone__photo">
-          <div className="hal-phone__thumb">{p.label}</div>
+          <div className="hal-phone__thumb">
+            <PhotoFrame subject={p.subject} label={p.label} />
+            <span className="hal-phone__stamp">{p.label}</span>
+          </div>
           <div className="hal-phone__photometa">{p.meta}</div>
           {p.evidenceId ? (
             <div className="hal-phone__photopin">
