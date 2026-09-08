@@ -194,6 +194,38 @@ test.describe('HALCYON on a narrow screen', () => {
     // File / Edit / View are period scenery and are not worth the width here.
     await expect(page.locator('.hal-menubar__menu').first()).toBeHidden()
   })
+
+  test('the search stacks its filters instead of shrinking them out of reach', async ({ page }) => {
+    await boot(page)
+    await page.keyboard.press('Control+k')
+    const search = page.getByRole('dialog', { name: 'Search HALCYON' })
+    await expect(search).toBeVisible()
+    await page.keyboard.type('marc')
+
+    const panel = page.locator('.hal-search__panel')
+    const box = (await panel.boundingBox())!
+    // The window fits the screen rather than hanging off the side of it.
+    expect(box.width).toBeLessThanOrEqual(390)
+    expect(box.x).toBeGreaterThanOrEqual(0)
+
+    // Filters and results both survive; on a phone the filters become a row you can swipe.
+    await expect(search.getByRole('group', { name: 'Filter by source' })).toBeVisible()
+    await expect(search.getByRole('option').first()).toBeVisible()
+  })
+
+  test('the directory gives the page the width, not the list', async ({ page }) => {
+    await boot(page)
+    await openApp(page, 'Directory')
+    const list = page.getByRole('listbox', { name: 'Directory' })
+    await expect(list).toBeVisible()
+    await list.getByRole('option').first().click()
+
+    const dossier = page.locator('.hal-dir__page')
+    const box = (await dossier.boundingBox())!
+    // A two-column dossier at 390px would give each column 190px and neither would be readable.
+    expect(box.width).toBeGreaterThan(300)
+    await expect(dossier).toContainText(/\d+ found/)
+  })
 })
 
 // -------------------------------------------------------------- keyboard ---
