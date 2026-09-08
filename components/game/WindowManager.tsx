@@ -16,6 +16,7 @@ const load = {
   notes: () => import('./apps/NotesApp'),
   term: () => import('./apps/TerminalApp'),
   recall: () => import('./apps/RecallApp'),
+  directory: () => import('./apps/DirectoryApp'),
 } satisfies Record<AppId, () => Promise<unknown>>
 
 const REGISTRY: Record<AppId, ComponentType> = {
@@ -28,6 +29,7 @@ const REGISTRY: Record<AppId, ComponentType> = {
   notes: lazy(() => load.notes().then((m) => ({ default: m.NotesApp }))),
   term: lazy(() => load.term().then((m) => ({ default: m.TerminalApp }))),
   recall: lazy(() => load.recall().then((m) => ({ default: m.RecallApp }))),
+  directory: lazy(() => load.directory().then((m) => ({ default: m.DirectoryApp }))),
 }
 
 /**

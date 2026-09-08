@@ -34,7 +34,8 @@ test.describe('Day 01', () => {
     // No SaaS shell anywhere in the playing surface. Anchored positively first, so this cannot
     // pass by virtue of nothing having rendered.
     const dockItems = page.getByRole('navigation', { name: 'Dock' }).getByRole('button')
-    await expect(dockItems).toHaveCount(10)
+    // Nine apps from the design handoff, the Directory we added, and the phone.
+    await expect(dockItems).toHaveCount(11)
     await expect(page.locator('.hal-desktop')).toBeVisible()
     // The tray is the only aside, and it stays collapsed until something is pinned.
     await expect(page.locator('aside')).toHaveCount(0)

@@ -1,6 +1,7 @@
 import type { DayContent } from './content-schema'
 import { DEFAULT_WAKE_MINUTE } from './clock'
 import { hashSeed } from './seed'
+import { projectedId } from './world/project'
 import { SCHEMA_VERSION, type ChatLine, type Stage, type TimelineState } from './types'
 
 export interface CreateTimelineOptions {
@@ -39,7 +40,12 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
     desktopIcons: [],
     phone: { open: false, tab: 'sms', x: null, y: null, smsStep: 0 },
 
-    discovered: [],
+    // The machine wakes with a message already open and a file already on screen. They have been
+    // read whether or not the player ever clicks anything, so the world has to know that.
+    discovered: [
+      ...(content.mail[0] ? [projectedId.mail(content.day, content.mail[0].id)] : []),
+      ...(content.files[0] ? [projectedId.file(content.day, content.files[0].id)] : []),
+    ],
     evidence: [],
     selectedEvidenceIds: [],
     selectedClaimId: null,

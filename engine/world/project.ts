@@ -12,6 +12,22 @@ import type { WorldArtifact } from './schema'
  * things in it.
  */
 
+/**
+ * The identity of a projected artifact.
+ *
+ * Exported because the reducer marks these discovered as the player opens things, and an id it
+ * builds differently from the one the projection builds is an artifact nobody can ever find.
+ * One definition, two callers.
+ */
+export const projectedId = {
+  mail: (day: number, id: string) => `d${day}.mail.${id}`,
+  file: (day: number, id: string) => `d${day}.file.${id}`,
+  photo: (day: number, id: string) => `d${day}.photo.${id}`,
+  sms: (day: number, time: string) => `d${day}.sms.${time.replace(/[^0-9]/g, '')}`,
+  txn: (day: number, id: string) => `d${day}.txn.${id}`,
+  web: (day: number, url: string) => `d${day}.web.${url.replace(/[^a-z0-9]/gi, '-')}`,
+} as const
+
 /** `@/content` owns the mapping from an author's short name to a graph entity. */
 export type EntityResolver = (name: string) => string | null
 
@@ -54,7 +70,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
     const text = `${mail.from} ${mail.subject} ${mail.body.join(' ')}`
     artifacts.push({
       ...base(),
-      id: `d${day}.mail.${mail.id}`,
+      id: projectedId.mail(day, mail.id),
       type: 'email',
       date,
       title: mail.subject,
@@ -69,7 +85,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
   for (const file of content.files) {
     artifacts.push({
       ...base(),
-      id: `d${day}.file.${file.id}`,
+      id: projectedId.file(day, file.id),
       type: 'document',
       date,
       title: file.name,
@@ -83,7 +99,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
   for (const photo of content.phone.photos) {
     artifacts.push({
       ...base(),
-      id: `d${day}.photo.${photo.id}`,
+      id: projectedId.photo(day, photo.id),
       type: 'photo',
       date,
       title: photo.label,
@@ -99,7 +115,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
   for (const sms of content.phone.sms) {
     artifacts.push({
       ...base(),
-      id: `d${day}.sms.${sms.time.replace(/[^0-9]/g, '')}`,
+      id: projectedId.sms(day, sms.time),
       type: 'sms',
       date,
       title: `${sms.who} — ${sms.time}`,
@@ -114,7 +130,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
   for (const entry of content.economy.openingLedger) {
     artifacts.push({
       ...base(),
-      id: `d${day}.txn.${entry.id}`,
+      id: projectedId.txn(day, entry.id),
       type: 'transaction',
       date,
       title: entry.label,
@@ -133,7 +149,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
       .join(' ')
     artifacts.push({
       ...base(),
-      id: `d${day}.web.${page.url.replace(/[^a-z0-9]/gi, '-')}`,
+      id: projectedId.web(day, page.url),
       type: 'webPage',
       date,
       title: page.url,

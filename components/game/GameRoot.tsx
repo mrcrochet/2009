@@ -5,6 +5,7 @@ import type { DayContent } from '@/engine/content-schema'
 import type { EventInput } from '@/engine/events'
 import { createTimeline } from '@/engine/initial-state'
 import type { GameEvent, ThreadId, TimelineState } from '@/engine/types'
+import type { WorldIndex } from '@/engine/world'
 import { selectCanEndDay, selectDaySummary } from '@/engine/selectors'
 import { track } from '@/lib/analytics'
 import { createAutosave, loadTimeline } from '@/lib/persistence/local-store'
@@ -14,6 +15,7 @@ import { GameErrorBoundary } from './GameErrorBoundary'
 import { GameProvider } from './GameContext'
 import { HalcyonDesktop } from './HalcyonDesktop'
 import { prefetchApp } from './WindowManager'
+import { WorldGate } from './WorldContext'
 import { useAudioUnlock, playEventCue } from './useGameSound'
 import { useDesktopKeys } from './useDesktopKeys'
 import { pace, useReducedMotion } from './useReducedMotion'
@@ -27,13 +29,18 @@ interface Props {
   /** Dispatched when a saved timeline is resumed on a later day than it was left on. */
   readonly advanceEvent?: EventInput
   readonly contentForDay?: (day: number) => DayContent
+  /**
+   * The world graph. Optional so a test can mount a day without one; when it is absent the
+   * search and the directory simply are not on this machine, rather than being broken on it.
+   */
+  readonly world?: WorldIndex
 }
 
 /**
  * Owns everything the pure engine deliberately does not: timers, persistence, viewport and
  * analytics. Every scheduled beat dispatches an ordinary event, so the log stays replayable.
  */
-export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDay }: Props) {
+export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDay, world }: Props) {
   const [api] = useState<GameStoreApi>(() =>
     createGameStore({
       content,
@@ -273,7 +280,15 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
     <GameProvider value={api}>
       <GameErrorBoundary onReset={() => api.getState().dispatch({ type: 'BOOT_COMPLETED' })}>
         <div className="hal-root">
-          {stage === 'boot' ? <BootSequence /> : <HalcyonDesktop onEndDay={endDay} />}
+          {stage === 'boot' ? (
+            <BootSequence />
+          ) : world ? (
+            <WorldGate index={world}>
+              <HalcyonDesktop onEndDay={endDay} />
+            </WorldGate>
+          ) : (
+            <HalcyonDesktop onEndDay={endDay} />
+          )}
         </div>
       </GameErrorBoundary>
     </GameProvider>

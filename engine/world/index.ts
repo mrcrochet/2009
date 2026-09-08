@@ -121,6 +121,11 @@ export function searchWorld(
   const hits: SearchHit[] = []
 
   for (const entity of index.world.entities) {
+    // A name always matches, so without this a discovered-only search would surface a person the
+    // player has never met — the most spoiling leak the search can produce. Somebody is known
+    // once at least one thing mentioning them has been found.
+    if (options.discovered && !isEntityKnown(index, entity.id, options.discovered)) continue
+
     const score = Math.max(
       scoreText(entity.canonicalName, query),
       ...entity.aliases.map((a) => scoreText(a, query)),
@@ -156,7 +161,7 @@ export function searchWorld(
         kind: 'artifact',
         id: artifact.id,
         title: artifact.title || artifact.source,
-        detail: `${artifact.date} · ${artifact.source}`,
+        detail: `${displayDate(artifact.date)} · ${artifact.source}`,
         surface: artifact.surface,
         score,
       })
@@ -176,6 +181,56 @@ export function searchWorld(
   }
 }
 
+/** Somebody exists for the player once one thing mentioning them has been found. */
+export function isEntityKnown(
+  index: WorldIndex,
+  entityId: string,
+  discovered: ReadonlySet<string>,
+): boolean {
+  const artifacts = index.artifactsByEntity.get(entityId) ?? []
+  return artifacts.some((a) => discovered.has(a.id))
+}
+
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const
+
+/**
+ * An ISO date as this machine writes one.
+ *
+ * Artifacts are stored ISO so they sort; a screen in 2009 never showed you `2008-11-30T23:40`.
+ * The format matches the menu bar, so a date in a search result and the date in the corner of
+ * the screen are recognisably the same kind of thing.
+ */
+export function displayDate(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}:\d{2}))?$/.exec(iso)
+  if (!match) return iso
+  const [, year, month, day, time] = match
+  const name = MONTHS[Number(month) - 1]
+  if (!name) return iso
+  const date = `${Number(day)} ${name} ${year}`
+  return time ? `${date} · ${time}` : date
+}
+
+/** Everyone the player has met, for a directory that does not list strangers. */
+export function knownEntities(
+  index: WorldIndex,
+  discovered: ReadonlySet<string>,
+): readonly WorldEntity[] {
+  return index.world.entities.filter((e) => isEntityKnown(index, e.id, discovered))
+}
+
 // -------------------------------------------------------------------- dossier
 
 export interface EntityDossier {
@@ -191,6 +246,40 @@ export interface EntityDossier {
   readonly relations: readonly { relation: WorldRelation; other: WorldEntity | null }[]
   readonly firstSeen: string | null
   readonly lastSeen: string | null
+}
+
+/**
+ * Whether the player has anything that puts this connection within reach.
+ *
+ * Without this the entity page is a cheat sheet: open one file, and the machine lists the serial
+ * number linking a handset to its previous owner under a heading that says "Documented. You have
+ * seen where each of these comes from" — which would be a lie, and the most expensive kind, since
+ * it hands over the chain the whole investigation is meant to be.
+ *
+ * The rule follows the grammar the page already uses. Something *documented* needs a document
+ * the player holds that names both ends. Something *inferred* is the player's own work: they
+ * need only have met both ends, which is exactly what working it out means. `sources` overrides
+ * either, for the cases where an author knows better than a name match does.
+ */
+export function isRelationGrounded(
+  index: WorldIndex,
+  relation: WorldRelation,
+  discovered: ReadonlySet<string>,
+): boolean {
+  if (relation.sources.length > 0) return relation.sources.some((id) => discovered.has(id))
+
+  if (relation.confidence === 'inferred')
+    return (
+      isEntityKnown(index, relation.from, discovered) &&
+      isEntityKnown(index, relation.to, discovered)
+    )
+
+  return (index.artifactsByEntity.get(relation.from) ?? []).some(
+    (artifact) =>
+      discovered.has(artifact.id) &&
+      artifact.mentions.includes(relation.from) &&
+      artifact.mentions.includes(relation.to),
+  )
 }
 
 export function entityDossier(
@@ -211,10 +300,12 @@ export function entityDossier(
     else known[artifact.surface] = [artifact]
   }
 
-  const relations = (index.relationsByEntity.get(entityId) ?? []).map((relation) => ({
-    relation,
-    other: index.entityById.get(relation.from === entityId ? relation.to : relation.from) ?? null,
-  }))
+  const relations = (index.relationsByEntity.get(entityId) ?? [])
+    .filter((relation) => isRelationGrounded(index, relation, discovered))
+    .map((relation) => ({
+      relation,
+      other: index.entityById.get(relation.from === entityId ? relation.to : relation.from) ?? null,
+    }))
 
   return {
     entity,

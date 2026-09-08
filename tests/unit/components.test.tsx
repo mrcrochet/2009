@@ -125,6 +125,7 @@ describe('the browser is the computer', () => {
       'Notes',
       'Terminal',
       'Recall',
+      'Directory',
       'NOKORA N90',
     ])
     for (const forbidden of ['Business', 'Timeline', 'Dashboard', 'Settings', 'Computer']) {

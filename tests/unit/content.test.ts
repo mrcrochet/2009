@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DayContentSchema } from '@/engine/content-schema'
 import { day01 } from '@/content/day01'
-import { BY_DAY } from '@/content'
+import { BY_DAY, GAME_WORLD } from '@/content'
 import { resolveBlocks } from '@/engine/temporal'
 import { content } from './helpers'
 
@@ -105,5 +105,72 @@ describe('day 01 content', () => {
     expect(content.economy.openingCashCents + opp.sellCents).toBeLessThan(
       content.economy.quotaCents,
     )
+  })
+})
+
+/**
+ * The world corpus, checked the way the day content is checked.
+ *
+ * These are the invariants a content file can break silently. A relation nothing supports does
+ * not throw and does not fail to render — it simply never appears, and the author never learns
+ * that the connection they wrote is unreachable.
+ */
+describe('the world corpus holds together', () => {
+  const ids = new Set(GAME_WORLD.artifacts.map((a) => a.id))
+  const entities = new Set(GAME_WORLD.entities.map((e) => e.id))
+
+  it('every relation can reach the player through something they could hold', () => {
+    for (const relation of GAME_WORLD.relations) {
+      const label = `${relation.from} -${relation.relation}-> ${relation.to}`
+
+      if (relation.sources.length > 0) {
+        for (const source of relation.sources)
+          expect(ids.has(source), `${label} cites a missing artifact "${source}"`).toBe(true)
+        continue
+      }
+
+      const mentions = (id: string) => GAME_WORLD.artifacts.some((a) => a.mentions.includes(id))
+      const grounded =
+        relation.confidence === 'inferred'
+          ? mentions(relation.from) && mentions(relation.to)
+          : GAME_WORLD.artifacts.some(
+              (a) => a.mentions.includes(relation.from) && a.mentions.includes(relation.to),
+            )
+
+      expect(grounded, `nothing in the world supports ${label}`).toBe(true)
+    }
+  })
+
+  it('every endpoint, mention and owner names an entity that exists', () => {
+    for (const relation of GAME_WORLD.relations) {
+      expect(entities.has(relation.from), `unknown entity ${relation.from}`).toBe(true)
+      expect(entities.has(relation.to), `unknown entity ${relation.to}`).toBe(true)
+    }
+    for (const artifact of GAME_WORLD.artifacts) {
+      for (const mention of artifact.mentions)
+        expect(entities.has(mention), `${artifact.id} mentions unknown ${mention}`).toBe(true)
+      if (artifact.ownerEntityId)
+        expect(entities.has(artifact.ownerEntityId), `${artifact.id} has an unknown owner`).toBe(
+          true,
+        )
+    }
+  })
+
+  it('gives no artifact the same id twice, including the projected days', () => {
+    expect(ids.size).toBe(GAME_WORLD.artifacts.length)
+  })
+
+  /**
+   * One fact, many surfaces. A fact carried by a single artifact is a key: lose it and the
+   * chain is dead, find it and there was nothing to work out.
+   */
+  it('carries every fact on at least two traces', () => {
+    for (const fact of GAME_WORLD.facts) {
+      const traces = GAME_WORLD.artifacts.filter((a) => a.factId === fact.id)
+      expect(
+        traces.length,
+        `"${fact.statement}" rests on ${traces.length} trace(s)`,
+      ).toBeGreaterThan(1)
+    }
   })
 })

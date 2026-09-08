@@ -157,7 +157,7 @@ export const BlockSchema = z.discriminatedUnion('kind', [
     url: z.string().nullable().default(null),
     note: z.string().nullable().default(null),
     opensApp: z
-      .enum(['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall'])
+      .enum(['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall', 'directory'])
       .nullable()
       .default(null),
   }),
@@ -338,7 +338,18 @@ export const PhoneConfigSchema = z.object({
 // --- Apps ------------------------------------------------------------------
 
 export const AppDefinitionSchema = z.object({
-  id: z.enum(['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall']),
+  id: z.enum([
+    'mail',
+    'msg',
+    'web',
+    'files',
+    'bank',
+    'mkt',
+    'notes',
+    'term',
+    'recall',
+    'directory',
+  ]),
   title: z.string().min(1),
   mono: z.string().length(1),
   width: z.number().int().positive(),

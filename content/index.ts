@@ -1,5 +1,26 @@
 import { DayContentSchema, type DayContent } from '@/engine/content-schema'
+import { buildWorldIndex, type WorldIndex } from '@/engine/world'
+import type { World } from '@/engine/world/schema'
+import { projectDay } from '@/engine/world/project'
 import { day01 as day01Raw } from './day01'
+import { WORLD } from './world'
+
+/**
+ * Names the projection looks for in an artifact's text, and the entity each resolves to.
+ *
+ * Authored here rather than inferred, because a substring match on a short name finds the wrong
+ * person, and the corpus is the thing that knows its own cast.
+ */
+const ENTITY_BY_NAME: Readonly<Record<string, string>> = Object.fromEntries(
+  WORLD.entities.flatMap((entity) =>
+    [entity.canonicalName, ...entity.aliases]
+      // Two characters is a coincidence, not a mention.
+      .filter((name) => name.length >= 4)
+      .map((name) => [name, entity.id] as const),
+  ),
+)
+
+const PROJECTION_NAMES: readonly string[] = Object.keys(ENTITY_BY_NAME)
 
 /**
  * Content is validated once, at module load. A malformed content module fails the build rather
@@ -41,3 +62,23 @@ export function advanceEventFor(day: number) {
 }
 
 export const MAX_AUTHORED_DAY = Math.max(...Object.keys(BY_DAY).map(Number))
+
+/**
+ * The world the player can search: the authored corpus, plus every day projected into the same
+ * graph.
+ *
+ * The projection is what stops there being two worlds — a graph nobody's story happens in, and a
+ * story the graph has never heard of. A player who searches "Marc" reaches the mail they actually
+ * read on the 15th, not a second Marc who exists only in a corpus file.
+ */
+export const GAME_WORLD: World = {
+  ...WORLD,
+  artifacts: [
+    ...WORLD.artifacts,
+    ...Object.values(BY_DAY).flatMap((day) =>
+      projectDay(day, { resolve: (name) => ENTITY_BY_NAME[name] ?? null, names: PROJECTION_NAMES }),
+    ),
+  ],
+}
+
+export const WORLD_INDEX: WorldIndex = buildWorldIndex(GAME_WORLD)

@@ -63,6 +63,13 @@ const GLYPHS: Record<DockId, ReactElement> = {
       <circle cx="10" cy="10" r=".9" fill="currentColor" stroke="none" />
     </g>
   ),
+  directory: (
+    <g>
+      <rect x="3.5" y="3" width="13" height="14" rx="1.4" />
+      <path d="M6.4 7h7.2M6.4 10h7.2M6.4 13h4.4" opacity=".7" />
+      <path d="M3.5 6.2h-1.4M3.5 10h-1.4M3.5 13.8h-1.4" />
+    </g>
+  ),
   phone: (
     <g>
       <rect x="6" y="3.2" width="8" height="13.6" rx="1.3" />
@@ -82,6 +89,7 @@ export const DOCK_TINT: Record<DockId, readonly [string, string]> = {
   notes: ['#d6c77e', '#8a7a34'],
   term: ['#5c666f', '#23292e'],
   recall: ['#9a8cc4', '#4c3f78'],
+  directory: ['#8fa4b8', '#4d6076'],
   phone: ['#8a97a4', '#4a545e'],
 }
 

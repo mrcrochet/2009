@@ -10,6 +10,7 @@ import {
   searchIndex,
 } from './rules'
 import { findPage } from './temporal'
+import { projectedId } from './world/project'
 import {
   DEFAULT_VIEWPORT,
   type AppId,
@@ -69,6 +70,67 @@ const DIVERGENCE: Partial<Record<GameEvent['type'], number>> = {
   ITEM_SOLD: 4,
 }
 
+/**
+ * What this transition put in front of the player, named the way the world graph names it.
+ *
+ * Discovery is derived here rather than dispatched by each screen, for two reasons. A component
+ * that forgets to dispatch leaves an artifact permanently unfindable — the search would hold a
+ * document the player has demonstrably read and refuse to admit it. And a discovery that only
+ * happens because a React tree rendered is not in the event log, so a replay would produce a
+ * different world from the one that was played.
+ */
+function revealed(next: TimelineState, event: GameEvent, content: DayContent): readonly string[] {
+  const day = next.day
+  switch (event.type) {
+    case 'MAIL_OPENED':
+      return [projectedId.mail(day, event.mailId)]
+
+    // The night reopens a message and a file on the new day's desktop, the same way waking up
+    // for the first time does.
+    case 'DAY_ADVANCED':
+      return [
+        ...(event.firstMailId ? [projectedId.mail(event.day, event.firstMailId)] : []),
+        ...(event.firstFileId ? [projectedId.file(event.day, event.firstFileId)] : []),
+      ]
+
+    case 'FILE_OPENED':
+      return [projectedId.file(day, event.fileId)]
+
+    case 'BROWSER_NAVIGATED':
+    case 'BROWSER_WENT_BACK':
+    case 'BROWSER_WENT_FORWARD': {
+      // A URL that resolves to nothing is a 404, not a document. Recording it would fill the
+      // discovered set with addresses the graph has never heard of.
+      const url = next.browser.url
+      if (next.browser.view !== 'page') return []
+      return content.browser.pages.some((p) => p.url === url) ? [projectedId.web(day, url)] : []
+    }
+
+    // A bank statement is one page. Opening it is reading all of it.
+    case 'APP_OPENED':
+      return event.app === 'bank'
+        ? content.economy.openingLedger.map((entry) => projectedId.txn(day, entry.id))
+        : []
+
+    case 'PHONE_TOGGLED':
+    case 'PHONE_TAB_CHANGED':
+    case 'SMS_ADVANCED': {
+      if (!next.phone.open) return []
+      if (next.phone.tab === 'photos')
+        return content.phone.photos.map((photo) => projectedId.photo(day, photo.id))
+      if (next.phone.tab === 'sms')
+        // Only as far down the thread as the player has actually scrolled.
+        return content.phone.sms
+          .slice(0, next.phone.smsStep + 1)
+          .map((sms) => projectedId.sms(day, sms.time))
+      return []
+    }
+
+    default:
+      return []
+  }
+}
+
 export function reduce(state: TimelineState, event: GameEvent, content: DayContent): TimelineState {
   const next = apply(state, event, content)
   if (next === state) return state
@@ -79,8 +141,14 @@ export function reduce(state: TimelineState, event: GameEvent, content: DayConte
   const minuteOfDay =
     next.minuteOfDay === state.minuteOfDay ? state.minuteOfDay + tick : next.minuteOfDay
 
+  const fresh = revealed(next, event, content).filter((id) => !next.discovered.includes(id))
+
   return {
     ...next,
+    discovered:
+      fresh.length === 0
+        ? next.discovered
+        : [...next.discovered, ...fresh].slice(-LIMITS.discovered),
     // A day cannot run past its own end. Without this the clock wraps to 00:12 while the menu
     // bar still says Thursday the 15th, and `DAY_ENDED` then moves the clock backwards.
     minuteOfDay: Math.min(minuteOfDay, content.endMinute ?? DEFAULT_END_MINUTE),

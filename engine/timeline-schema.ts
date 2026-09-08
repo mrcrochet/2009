@@ -19,7 +19,18 @@ const minute = z
   .min(0)
   .max(24 * 60)
 
-const AppId = z.enum(['mail', 'msg', 'web', 'files', 'bank', 'mkt', 'notes', 'term', 'recall'])
+const AppId = z.enum([
+  'mail',
+  'msg',
+  'web',
+  'files',
+  'bank',
+  'mkt',
+  'notes',
+  'term',
+  'recall',
+  'directory',
+])
 // A day names its own correspondents.
 const ThreadId = z.string().min(1).max(64)
 const SourceKind = z.enum(['mail', 'bank', 'files', 'browser', 'phone', 'terminal', 'messenger'])

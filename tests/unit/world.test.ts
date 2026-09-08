@@ -4,11 +4,13 @@ import {
   buildWorldIndex,
   entityDossier,
   factCoverage,
+  isEntityKnown,
+  knownEntities,
   resolveAlias,
   searchWorld,
 } from '@/engine/world'
-import { projectDay } from '@/engine/world/project'
-import { content, dispatch, fresh } from './helpers'
+import { projectDay, projectedId } from '@/engine/world/project'
+import { content, dispatch, fresh, run } from './helpers'
 
 /** A small world, so these tests do not depend on how much corpus has been authored yet. */
 const world = WorldSchema.parse({
@@ -65,6 +67,16 @@ const world = WorldSchema.parse({
       amountCents: -21400,
       factId: 'fact.marc-saab',
     },
+    {
+      id: 'a.rumour',
+      type: 'forumPost',
+      date: '2008-12-01',
+      title: 'who is aion group anyway',
+      body: 'somebody i drink with says he does settlements for them. no idea if that is true.',
+      source: 'nullcache.org',
+      surface: 'web',
+      mentions: ['org.aion-group'],
+    },
   ],
   relations: [
     {
@@ -78,6 +90,9 @@ const world = WorldSchema.parse({
       relation: 'employedBy',
       to: 'org.aion-group',
       confidence: 'rumoured',
+      // Nothing names them together. The rumour lives in one post, and that post is the only
+      // reason the player ever hears it.
+      sources: ['a.rumour'],
     },
   ],
 })
@@ -216,12 +231,15 @@ describe('the day is part of the world', () => {
 })
 
 describe('discovery', () => {
+  /** What the desktop is already showing at wake. Every count below is on top of it. */
+  const AT_WAKE = ['d1.mail.m1', 'd1.file.readme']
+
   it('records what the player met, once', () => {
     let state = dispatch(fresh(), {
       type: 'WORLD_ARTIFACTS_SEEN',
       artifactIds: ['a.email-parts', 'a.classified'],
     })
-    expect(state.discovered).toEqual(['a.email-parts', 'a.classified'])
+    expect(state.discovered).toEqual([...AT_WAKE, 'a.email-parts', 'a.classified'])
 
     const before = state
     state = dispatch(state, { type: 'WORLD_ARTIFACTS_SEEN', artifactIds: ['a.email-parts'] })
@@ -241,6 +259,98 @@ describe('discovery', () => {
       browserHome: 'corvid.com',
       terminalBanner: content.terminal.banner,
     })
-    expect(state.discovered).toEqual(['a.email-parts'])
+    // Day 02's opening mail and file join it; nothing from Day 01 is taken away.
+    expect(state.discovered).toEqual([...AT_WAKE, 'a.email-parts', 'd2.mail.m1', 'd2.file.readme'])
+  })
+})
+
+describe('reading something is finding it', () => {
+  const names = ['Marc', 'Aion']
+  const resolve = (name: string) => (name === 'Marc' ? 'person.marc-deleon' : 'org.aion-group')
+  const projected = new Set(projectDay(content, { resolve, names }).map((a) => a.id))
+
+  /**
+   * The invariant the whole surface rests on. Discovery is derived in the reducer from the id
+   * builders the projection uses; if the two ever drifted, the search would hold a document the
+   * player has demonstrably read and refuse to admit it — and nothing else would fail.
+   */
+  it('names artifacts the projection actually built', () => {
+    const state = run(fresh(), [
+      { type: 'MAIL_OPENED', mailId: content.mail[0]!.id },
+      { type: 'FILE_OPENED', fileId: 'readme' },
+      { type: 'APP_OPENED', app: 'bank' },
+      { type: 'PHONE_TOGGLED' },
+      { type: 'PHONE_TAB_CHANGED', tab: 'photos' },
+      { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
+      { type: 'BROWSER_NAVIGATED', url: content.browser.pages[0]!.url },
+    ])
+
+    expect(state.discovered.length).toBeGreaterThan(5)
+    for (const id of state.discovered) expect(projected.has(id)).toBe(true)
+  })
+
+  it('finds the mail that was opened and not the mail that was not', () => {
+    const first = content.mail[0]!
+    const state = dispatch(fresh(), { type: 'MAIL_OPENED', mailId: first.id })
+    expect(state.discovered).toContain(projectedId.mail(1, first.id))
+    for (const other of content.mail.slice(1))
+      expect(state.discovered).not.toContain(projectedId.mail(1, other.id))
+  })
+
+  it('reveals the SMS thread only as far as it has been read', () => {
+    const sms = (state: { discovered: readonly string[] }) =>
+      state.discovered.filter((id) => id.startsWith('d1.sms.'))
+
+    let state = run(fresh(), [{ type: 'PHONE_TOGGLED' }, { type: 'PHONE_TAB_CHANGED', tab: 'sms' }])
+    expect(sms(state)).toHaveLength(1)
+
+    state = dispatch(state, { type: 'SMS_ADVANCED' })
+    expect(sms(state)).toHaveLength(2)
+    expect(sms(state).length).toBeLessThan(content.phone.sms.length)
+  })
+
+  it('does not record an address that resolves to nothing', () => {
+    const before = fresh()
+    const state = dispatch(before, { type: 'BROWSER_NAVIGATED', url: 'nowhere.example/missing' })
+    expect(state.discovered).toEqual(before.discovered)
+  })
+
+  it('records a page once, however many times it is revisited', () => {
+    const url = content.browser.pages[0]!.url
+    const state = run(fresh(), [
+      { type: 'BROWSER_NAVIGATED', url },
+      { type: 'BROWSER_NAVIGATED', url: content.browser.pages[1]!.url },
+      { type: 'BROWSER_WENT_BACK' },
+      { type: 'BROWSER_NAVIGATED', url },
+    ])
+    expect(state.discovered.filter((id) => id === projectedId.web(1, url))).toHaveLength(1)
+  })
+})
+
+describe('a name is not a licence to know somebody', () => {
+  it('a discovered-only search does not surface a stranger', () => {
+    // A name always matches a text search, so without a guard the palette would happily reveal
+    // everyone in the world to a player who has met nobody. It is the most spoiling leak the
+    // search can produce.
+    const metNobody = new Set<string>()
+    expect(searchWorld(index, 'marc', { discovered: metNobody }).total).toBe(0)
+    expect(isEntityKnown(index, 'person.marc-deleon', metNobody)).toBe(false)
+  })
+
+  it('somebody exists once one thing mentioning them has been found', () => {
+    const seen = new Set(['a.email-parts'])
+    expect(isEntityKnown(index, 'person.marc-deleon', seen)).toBe(true)
+    expect(searchWorld(index, 'marc', { discovered: seen }).hits[0]?.kind).toBe('entity')
+
+    // Aion is mentioned by nothing that has been found, so Aion is still a stranger.
+    expect(isEntityKnown(index, 'org.aion-group', seen)).toBe(false)
+    expect(knownEntities(index, seen).map((e) => e.id)).toEqual([
+      'person.marc-deleon',
+      'vehicle.saab-900',
+    ])
+  })
+
+  it('an unfiltered search still sees the whole world, for authoring', () => {
+    expect(searchWorld(index, 'aion').total).toBeGreaterThan(0)
   })
 })

@@ -8,8 +8,15 @@ const FOCUSABLE =
 /**
  * Makes `aria-modal` true rather than merely asserted: focus moves in on open, Tab cannot leave,
  * the rest of the desktop is inert, and focus returns to whatever opened it on close.
+ *
+ * `initialFocus` names where focus should land, because the first focusable element is often the
+ * close button and almost never the thing the player opened the window to use.
  */
-export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean): void {
+export function useFocusTrap(
+  ref: RefObject<HTMLElement | null>,
+  active: boolean,
+  initialFocus?: RefObject<HTMLElement | null>,
+): void {
   useEffect(() => {
     if (!active) return
     const node = ref.current
@@ -28,7 +35,7 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
     for (const el of outside) el.setAttribute('inert', '')
 
     const focusables = () => Array.from(node.querySelectorAll<HTMLElement>(FOCUSABLE))
-    const first = focusables()[0]
+    const first = initialFocus?.current ?? focusables()[0]
     ;(first ?? node).focus()
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -58,5 +65,5 @@ export function useFocusTrap(ref: RefObject<HTMLElement | null>, active: boolean
       })
       if (opener && document.contains(opener)) opener.focus()
     }
-  }, [ref, active])
+  }, [ref, active, initialFocus])
 }

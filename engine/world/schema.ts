@@ -64,8 +64,16 @@ export const ArtifactTypeSchema = z.enum([
 export const WorldArtifactSchema = z.object({
   id,
   type: ArtifactTypeSchema,
-  /** ISO date, or a date-time when the hour matters — which for an alibi it usually does. */
-  date: z.string().min(4).max(32),
+  /**
+   * ISO date, or a date-time when the hour matters — which for an alibi it usually does.
+   *
+   * The shape is enforced because artifacts are ordered with `localeCompare`, and a single
+   * `14/01/2009` among the ISO dates sorts to the wrong decade without anything failing. What
+   * the player sees is never this string: `displayDate` renders it in the machine's own format.
+   */
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/, 'artifact dates are ISO: YYYY-MM-DD[THH:MM]'),
   title: z.string().max(300).default(''),
   body: z.string().max(8000).default(''),
   /** Where it lives, so a player can be told how to reach it. */
@@ -121,6 +129,15 @@ export const WorldRelationSchema = z.object({
    * not present the third as the first.
    */
   confidence: z.enum(['asserted', 'inferred', 'rumoured']).default('asserted'),
+  /**
+   * The documents that put this within the player's reach, when no single artifact names both
+   * ends of it — an anonymous post everybody knows is Marc, a rumour repeated in one thread.
+   *
+   * Left empty, a relation is grounded by the artifacts themselves: see `entityDossier`. It is
+   * never grounded by nothing. A connection the player cannot trace back to something they hold
+   * is the entity page telling them the answer, which is the one thing it must not do.
+   */
+  sources: z.array(id).default([]),
 })
 
 /**
@@ -151,4 +168,5 @@ export type WorldRelation = z.infer<typeof WorldRelationSchema>
 export type WorldFact = z.infer<typeof WorldFactSchema>
 export type World = z.infer<typeof WorldSchema>
 export type EntityType = z.infer<typeof EntityTypeSchema>
+export type RelationType = z.infer<typeof RelationTypeSchema>
 export type ArtifactType = z.infer<typeof ArtifactTypeSchema>

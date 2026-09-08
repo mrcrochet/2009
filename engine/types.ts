@@ -6,7 +6,18 @@ export const SCHEMA_VERSION = 11
 // Apps & windows
 // ---------------------------------------------------------------------------
 
-export type AppId = 'mail' | 'msg' | 'web' | 'files' | 'bank' | 'mkt' | 'notes' | 'term' | 'recall'
+export type AppId =
+  | 'mail'
+  | 'msg'
+  | 'web'
+  | 'files'
+  | 'bank'
+  | 'mkt'
+  | 'notes'
+  | 'term'
+  | 'recall'
+  /** People and companies. Not in the design handoff — a deliberate product addition. */
+  | 'directory'
 
 export const APP_IDS: readonly AppId[] = [
   'mail',
@@ -18,6 +29,7 @@ export const APP_IDS: readonly AppId[] = [
   'notes',
   'term',
   'recall',
+  'directory',
 ] as const
 
 export type DockId = AppId | 'phone'

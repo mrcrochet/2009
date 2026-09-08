@@ -2477,3 +2477,477 @@
     opacity: 1;
   }
 }
+
+/* ------------------------------------------------------------ search palette */
+
+/*
+ * A Find window, not a command palette. It sits in the same chrome as every other window in
+ * HALCYON — hard edges, a real titlebar, the period greys — because a translucent rounded card
+ * floating in a blur is 2020, and this machine is not.
+ */
+
+.hal-search {
+  position: absolute;
+  inset: var(--menubar-height) 0 0 0;
+  z-index: var(--z-board);
+  background: rgba(6, 8, 10, 0.72);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 56px 26px 26px;
+  animation: fadein 0.14s both;
+}
+
+.hal-search__panel {
+  width: min(680px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--win-bg);
+  border: 1px solid var(--win-border);
+  border-radius: 5px 5px 3px 3px;
+  box-shadow: var(--win-shadow);
+  overflow: hidden;
+}
+
+.hal-search__bar {
+  height: var(--titlebar-height);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 9px;
+  background: var(--titlebar-front);
+  border-bottom: 1px solid var(--titlebar-rule);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  user-select: none;
+}
+
+.hal-search__title {
+  flex: 1;
+  text-align: center;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--titlebar-front-ink);
+  letter-spacing: 0.02em;
+  padding-left: 18px;
+}
+
+.hal-search__close {
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  padding: 0;
+  flex: none;
+  cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #ff9c92, #c0392b);
+  border: 1px solid #8e2b20;
+  color: transparent;
+  font-size: 0;
+}
+
+.hal-search__field {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  background: linear-gradient(180deg, #e4e4de, #cfcfc9);
+  border-bottom: 1px solid #a9a9a2;
+}
+
+.hal-search__label {
+  font-size: 11.5px;
+  color: var(--body-ink-soft);
+  flex: none;
+}
+
+.hal-search__input {
+  flex: 1;
+  min-width: 0;
+  height: 21px;
+  border: 1px solid #93938c;
+  border-radius: 3px;
+  padding: 0 7px;
+  font-size: 11.5px;
+  background: var(--paper);
+  color: var(--titlebar-front-ink);
+}
+
+.hal-search__only {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--body-ink-soft);
+  white-space: nowrap;
+}
+
+.hal-search__cols {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.hal-search__filters {
+  width: 132px;
+  flex: none;
+  background: linear-gradient(180deg, #e2e6ea, #d3d8dd);
+  border-right: 1px solid var(--control-border);
+  padding: 6px 0;
+  overflow: auto;
+}
+
+.hal-search__filter {
+  appearance: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 4px 12px;
+  font-size: 11.5px;
+  color: #2a3138;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hal-search__filter[aria-pressed='true'] {
+  background: #8fa8bd;
+  color: #fff;
+}
+
+.hal-search__filter:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.hal-search__filtercount {
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.hal-search__resultpane {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+}
+
+.hal-search__results {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.hal-search__hit {
+  display: block;
+  padding: 7px 11px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.hal-search__hit[aria-selected='true'] {
+  background: var(--selected);
+}
+
+.hal-search__hittop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hal-search__hittitle {
+  font-size: 11.5px;
+  color: var(--titlebar-front-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hal-search__hitsurface {
+  flex: none;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.hal-search__hitdetail {
+  display: block;
+  font-size: 10.5px;
+  color: #79808a;
+  margin-top: 2px;
+}
+
+.hal-search__empty {
+  padding: 18px 14px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #6b727c;
+}
+
+.hal-search__foot {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 11px;
+  border-top: 1px solid var(--hairline);
+  background: var(--panel);
+  font-size: 10px;
+  color: var(--label);
+}
+
+/* ---------------------------------------------------------------- directory */
+
+.hal-dir__list {
+  width: 190px;
+  flex: none;
+  border-right: 1px solid var(--hairline);
+  background: var(--panel);
+  overflow: auto;
+}
+
+.hal-dir__grouphead {
+  padding: 7px 12px 3px;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: var(--label);
+}
+
+.hal-dir__row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  border: none;
+  border-bottom: 1px solid var(--hairline-soft);
+  background: transparent;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  color: var(--titlebar-front-ink);
+  cursor: pointer;
+}
+
+.hal-dir__row[aria-selected='true'] {
+  background: var(--selected);
+}
+
+.hal-dir__page {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: var(--paper);
+  padding: 16px 20px;
+}
+
+.hal-dir__empty {
+  padding: 16px 20px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: #6b727c;
+}
+
+.hal-dir__name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #15181c;
+  letter-spacing: -0.01em;
+}
+
+.hal-dir__type {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--label);
+  margin-top: 2px;
+}
+
+.hal-dir__aliases {
+  font-size: 11px;
+  color: #6b727c;
+  margin-top: 6px;
+}
+
+.hal-dir__section {
+  margin-top: 18px;
+  border-top: 1px solid var(--hairline-soft);
+  padding-top: 11px;
+}
+
+.hal-dir__sectionhead {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  color: var(--label);
+  margin-bottom: 8px;
+}
+
+.hal-dir__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin: 0;
+}
+
+.hal-dir__count {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.hal-dir__count dt {
+  font-size: 11.5px;
+  color: var(--body-ink);
+}
+
+.hal-dir__count dd {
+  margin: 0;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--body-ink-soft);
+}
+
+.hal-dir__gap {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: #6b727c;
+}
+
+.hal-dir__span,
+.hal-dir__none {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #79808a;
+}
+
+.hal-dir__facts {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--body-ink-soft);
+}
+
+/* Confidence is carried by grammar and grouping, not by colour: a rumour is written as reported
+   speech, so it cannot be read as a document even at a glance. Weight only reinforces it. */
+.hal-dir__rel {
+  margin-bottom: 12px;
+}
+
+.hal-dir__relhead {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--body-ink);
+}
+
+.hal-dir__relnote {
+  font-size: 10.5px;
+  color: #79808a;
+  margin: 2px 0 5px;
+}
+
+.hal-dir__rellist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--body-ink);
+}
+
+.hal-dir__rellist li {
+  display: flex;
+  gap: 7px;
+}
+
+.hal-dir__relmark {
+  flex: none;
+  width: 9px;
+  color: var(--label);
+}
+
+.hal-dir__rel--inferred .hal-dir__rellist {
+  color: var(--body-ink-soft);
+}
+
+.hal-dir__rel--rumoured .hal-dir__relhead {
+  color: #8a6a28;
+}
+
+.hal-dir__rel--rumoured .hal-dir__rellist {
+  color: #79808a;
+  font-style: italic;
+}
+
+.hal-dir__meta {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.hal-dir__metarow {
+  display: flex;
+  gap: 10px;
+  font-size: 11.5px;
+}
+
+.hal-dir__metarow dt {
+  width: 120px;
+  flex: none;
+  color: var(--label);
+}
+
+.hal-dir__metarow dd {
+  margin: 0;
+  color: var(--body-ink);
+}
+
+@media (max-width: 860px), (pointer: coarse) and (max-width: 1024px) {
+  .hal-search {
+    padding: 0;
+  }
+
+  .hal-search__panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .hal-search__cols {
+    flex-direction: column;
+  }
+
+  .hal-search__filters {
+    width: auto;
+    display: flex;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--control-border);
+    padding: 4px 6px;
+  }
+
+  .hal-search__filter {
+    width: auto;
+    flex: none;
+    gap: 5px;
+  }
+
+  .hal-dir__list {
+    width: auto;
+    max-height: 34%;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+  }
+}

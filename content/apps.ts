@@ -14,6 +14,7 @@ export const apps: AppInput[] = [
   { id: 'notes', title: 'Notes', mono: 'N', width: 352, height: 300 },
   { id: 'term', title: 'Terminal', mono: '>', width: 568, height: 328 },
   { id: 'recall', title: 'Recall', mono: 'R', width: 428, height: 352 },
+  { id: 'directory', title: 'Directory', mono: 'D', width: 640, height: 420 },
 ]
 
 export const dock = [
@@ -26,5 +27,6 @@ export const dock = [
   'notes',
   'term',
   'recall',
+  'directory',
   'phone',
 ]
