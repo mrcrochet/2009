@@ -34,6 +34,9 @@ export const wayup: z.input<typeof WayUpConfigSchema> = {
   offlineBody:
     'The listener is attached and nothing is answering. There is no index on this side of the line — only the address, and an address is not a conversation. Try again when somebody is awake.',
 
+  offlineDial:
+    'It will still carry an address, if you give it one whole. Type the host and the path into the same field, and it will dial rather than ask.',
+
   exhausted:
     'The line is quiet. Whatever budget this machine has for reaching that way, it has spent it today, and it does not explain how it knows.',
 

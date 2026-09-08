@@ -309,6 +309,12 @@ export const WayUpConfigSchema = z.object({
   /** Shown when no relay is configured on this deployment. */
   offlineTitle: z.string().min(1),
   offlineBody: z.string().min(1),
+  /**
+   * What the console offers when there is no index: dialling an address it is given. Shown under
+   * the offline notice, because a player who has only ever asked questions has no reason to know
+   * the field takes anything else.
+   */
+  offlineDial: z.string().default(''),
   /** Shown when the day's signal is gone. */
   exhausted: z.string().min(1),
   emptyResults: z.string().min(1),

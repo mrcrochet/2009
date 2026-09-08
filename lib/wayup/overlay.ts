@@ -423,6 +423,20 @@ function stablePosition(overlayId: string, span: number): number {
  * not annotated. The overlay sits beside them carrying its own provenance, and never at the top:
  * appearing above every real result would read as the fiction asserting precedence over what the
  * network actually returned.
+ *
+ * **Nothing calls this yet, and that is deliberate.** The merge, the allowlist and the refusals
+ * are complete and tested; no overlay has been authored, and `/api/wayup/search` does not call
+ * it. Two decisions have to be made before it does, and neither is a coding decision:
+ *
+ * 1. *Which overlays apply when.* An overlay is a page about our own fiction placed among real
+ *    results, so it has to be gated by day and by what the player has already found — and the
+ *    route is stateless. Taking a day from the client would let a save file spoil itself.
+ * 2. *What it is worth.* An invented result the player cannot tell from a real one is the most
+ *    dangerous thing in this product. The safety is not the code below; it is
+ *    `universe.ts`, which refuses anything that is not ours, and an editorial decision about
+ *    whether a beat needs this at all.
+ *
+ * Wiring it without settling those would be worse than leaving it here.
  */
 export function mergeSearchResults(
   real: readonly WayUpResult[],

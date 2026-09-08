@@ -120,6 +120,29 @@ Two remain, and are the known cost of the next day:
   addresses still resolve, as flattened corpus pages. In practice this is a constraint that
   improves the fiction: somebody edited the bookmarks bar overnight, and that is content.
 
+## The relay
+
+A day that has a way forward authors a `wayup` block (`WayUpConfigSchema`) and a `terminal.relay`
+block. `null` in either means the process is not on this machine today.
+
+Every word the console says is authored. The register is a Unix daemon's — it reports carrier and
+bytes and refusals, never says "the future", never says "2026", and never explains itself, because
+it does not know. One line of that written in a component and it starts sounding like software
+from 2026 describing 2026.
+
+Three prices, all the day's decision: `searchCost` to ask, `openCost` to open one of the answers,
+and `keepShift` / `keepHeat` to carry a line back. Signal buys the looking; the shift is the price
+of the carrying, because a sentence that has not happened is now somewhere it was not.
+
+The one field takes either a question or an address, and the console works out which. Asking
+needs an index and there may not be one; dialling needs nothing but the address. On a deployment
+with no provider, dialling is the whole of what the relay can do — which is what the authored
+offline copy already says.
+
+A kept line is shown in the tray and on the board and is **never selectable for a claim**. Nothing
+a player can show anyone in 2009 begins in a year nobody has reached. That is the spend: building
+your case beside a paragraph you know is true and cannot use.
+
 ## Mysteries
 
 A day is not the world. The corpus every day is searched against — and projected into — is

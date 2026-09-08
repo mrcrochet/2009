@@ -110,7 +110,9 @@ function mount(seed: readonly EventInput[] = ATTACHED) {
 }
 
 async function transmit(user: ReturnType<typeof userEvent.setup>, query = 'aion group') {
-  await user.type(screen.getByLabelText(cfg.queryLabel), query)
+  const field = screen.getByLabelText(cfg.queryLabel)
+  await user.clear(field)
+  await user.type(field, query)
   await user.click(screen.getByRole('button', { name: cfg.submitLabel }))
 }
 
@@ -309,6 +311,36 @@ describe('the budget', () => {
     await waitFor(() => expect(row).toHaveAttribute('aria-disabled', 'true'))
     expect(row).not.toBeDisabled()
     expect(screen.getByText(cfg.exhausted)).toBeInTheDocument()
+  })
+
+  /**
+   * A question needs an index and there may not be one on this side of the line; an address
+   * needs nothing but the address. The console makes that distinction silently, the way a
+   * command line in 2009 would, and it is the whole of what the relay can do on a deployment
+   * with no provider.
+   */
+  it('dials an address instead of asking, and does it even with no index', async () => {
+    const user = userEvent.setup()
+    const fetchMock = stubFetch({
+      search: reply(503, { error: 'the relay has no index on this side' }),
+      fetch: reply(200, { snapshot: SNAPSHOT, cached: false }),
+    })
+    const { api } = mount()
+
+    // Asking first: no index, and the console says so and takes nothing.
+    await transmit(user, 'aion group')
+    expect(await screen.findByText(cfg.offlineTitle)).toBeInTheDocument()
+    expect(api.getState().timeline.wayup.signalSpent).toBe(0)
+
+    // The same field, given an address whole.
+    await transmit(user, 'example.test/filings/aion')
+    await screen.findByRole('button', { name: cfg.backLabel })
+    expect(api.getState().timeline.wayup.observed).toEqual([SNAPSHOT.id])
+    // It cost an opening, not a question.
+    expect(api.getState().timeline.wayup.signalSpent).toBe(cfg.openCost)
+
+    const calls = fetchMock.mock.calls.map((c) => String(c[0]))
+    expect(calls).toContain('/api/wayup/fetch')
   })
 
   it('says the authored line rather than an empty list', async () => {

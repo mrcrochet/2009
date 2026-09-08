@@ -308,11 +308,29 @@ export function WayUpOverlay() {
         ? refusalLine(outcome.refusal)
         : ''
 
+  /**
+   * One field, and the machine works out what it was given.
+   *
+   * A question needs an index and there may not be one on this side of the line. An address
+   * needs nothing but the address — which is what the day's own copy says: "only the address,
+   * and an address is not a conversation." So a dial still works when asking does not, and on a
+   * deployment with no index it is the whole of what the relay can do. A command line in 2009
+   * would have made exactly this distinction, and made it silently.
+   */
+  const looksLikeAddress = (text: string): boolean =>
+    !/\s/.test(text) && /^(?:[a-z][a-z0-9+.-]*:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/|$|\?)/i.test(text)
+
   const transmit = async () => {
     const asked = query.trim()
     // The console must not let the player reach a refusal it could have predicted: an empty
-    // query and a spent budget are both refused here rather than by the far end.
-    if (asked.length === 0 || sending || !affordsSearch) return
+    // input and a spent budget are both refused here rather than by the far end.
+    if (asked.length === 0 || sending) return
+    if (looksLikeAddress(asked)) {
+      if (!affordsOpen && !alreadyObserved(asked)) return
+      await openAddress(asked)
+      return
+    }
+    if (!affordsSearch) return
 
     const outcome = await send<WayUpSearchResponse>('/api/wayup/search', { query: asked })
     if (!outcome) return
@@ -446,8 +464,10 @@ export function WayUpOverlay() {
     })
   }
 
-  const say = sending ? cfg.working : line.length > 0 ? line : affordsSearch ? '' : cfg.exhausted
-  const canTransmit = query.trim().length > 0 && !sending && affordsSearch
+  const dialling = looksLikeAddress(query.trim())
+  const affordsThis = dialling ? affordsOpen || alreadyObserved(query.trim()) : affordsSearch
+  const say = sending ? cfg.working : line.length > 0 ? line : affordsThis ? '' : cfg.exhausted
+  const canTransmit = query.trim().length > 0 && !sending && affordsThis
 
   return (
     <div className="hal-wayup" data-testid="wayup">
@@ -498,7 +518,7 @@ export function WayUpOverlay() {
             /* Never `disabled`: a control that goes disabled under the player's own focus drops
                them to <body> and costs them their place on the screen. */
             aria-disabled={!canTransmit}
-            data-spent={!affordsSearch}
+            data-spent={!affordsThis}
           >
             {cfg.submitLabel}
           </button>
@@ -520,6 +540,7 @@ export function WayUpOverlay() {
                 {cfg.offlineTitle}
               </h2>
               <p className="hal-wayup__noticebody">{cfg.offlineBody}</p>
+              {cfg.offlineDial ? <p className="hal-wayup__noticebody">{cfg.offlineDial}</p> : null}
             </section>
           ) : null}
 
