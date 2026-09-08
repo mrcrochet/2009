@@ -2398,8 +2398,11 @@
     display: none;
   }
 
+  /* The dock sits at z-index 8800, above both of these. Reserving its strip is not cosmetic:
+     the home button and OPEN BOARD are the only ways out of these two surfaces, and a dock
+     item was intercepting the tap. */
   .hal-phone {
-    inset: var(--menubar-height) 0 0 0 !important;
+    inset: var(--menubar-height) 0 76px 0 !important;
     width: auto !important;
     height: auto !important;
     transform: none !important;
@@ -2419,7 +2422,7 @@
     height: 62dvh;
     border-left: none;
     border-top: 1px solid var(--overlay-border);
-    bottom: 0;
+    bottom: 76px;
   }
 
   .hal-traytab {
