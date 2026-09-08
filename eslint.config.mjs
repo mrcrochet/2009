@@ -9,6 +9,8 @@ const config = [
       'test-results/**',
       'coverage/**',
       'design/**',
+      // Agent worktrees are full copies of the repo living inside it.
+      '.claude/**',
       'next-env.d.ts',
     ],
   },

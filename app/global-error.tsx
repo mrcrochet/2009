@@ -36,6 +36,9 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
           <p style={{ fontSize: 14, lineHeight: 1.7, color: '#8b949c', margin: '0 0 20px' }}>
             Your timeline is saved in this browser and was not affected.
           </p>
+          {/* A hard navigation on purpose: the root layout is what failed, so the client
+              router is not something to rely on here. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/"
             style={{
