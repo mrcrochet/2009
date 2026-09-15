@@ -59,12 +59,12 @@ export default async function AccountPage({ searchParams }: Props) {
             </p>
             <div className={styles.row}>
               <Link
-                className="hal-cta"
+                className="nova-cta"
                 href={`/auth/sign-in${claim ? `?claim=${encodeURIComponent(claim)}` : ''}`}
               >
                 CREATE AN ACCOUNT
               </Link>
-              <Link className="hal-cta hal-cta--ghost" href="/play">
+              <Link className="nova-cta nova-cta--ghost" href="/play">
                 Abandon this one and start again
               </Link>
             </div>

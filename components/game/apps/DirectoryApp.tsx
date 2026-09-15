@@ -85,11 +85,11 @@ const CONFIDENCE_ORDER: readonly Confidence[] = ['asserted', 'inferred', 'rumour
 function ConflictSide({ artifact }: { artifact: WorldArtifact }) {
   const line = artifact.disputedClaim
   return (
-    <span className="hal-dir__conflictside">
-      <span className={line ? 'hal-dir__conflictquote' : 'hal-dir__conflicttitle'}>
+    <span className="nova-dir__conflictside">
+      <span className={line ? 'nova-dir__conflictquote' : 'nova-dir__conflicttitle'}>
         {line ? `“${line}”` : artifact.title || artifact.source}
       </span>
-      <span className="hal-dir__conflictmeta">
+      <span className="nova-dir__conflictmeta">
         {line ? `${artifact.title || artifact.source} · ` : ''}
         {artifact.source} · {displayDate(artifact.date)}
       </span>
@@ -194,7 +194,7 @@ export function DirectoryApp() {
 
   if (!world) {
     return (
-      <div className="hal-dir__empty">
+      <div className="nova-dir__empty">
         <p>The directory is not available on this machine.</p>
       </div>
     )
@@ -202,16 +202,16 @@ export function DirectoryApp() {
 
   return (
     <>
-      <div className="hal-dir__list" role="listbox" aria-label="Directory">
+      <div className="nova-dir__list" role="listbox" aria-label="Directory">
         {groups.map((group) => (
           <div key={group.heading}>
-            <div className="hal-dir__grouphead">{group.heading}</div>
+            <div className="nova-dir__grouphead">{group.heading}</div>
             {group.entities.map((entity) => (
               <button
                 key={entity.id}
                 type="button"
                 role="option"
-                className="hal-dir__row"
+                className="nova-dir__row"
                 aria-selected={selectedId === entity.id}
                 data-entity={entity.id}
                 onClick={() => setSelectedId(entity.id)}
@@ -223,9 +223,9 @@ export function DirectoryApp() {
         ))}
       </div>
 
-      <div className="hal-dir__page">
+      <div className="nova-dir__page">
         {stranger ? (
-          <div className="hal-dir__empty">
+          <div className="nova-dir__empty">
             <p>{stranger.canonicalName}</p>
             <p>
               The name has come up in a search of this machine. Nothing you have read mentions them,
@@ -233,7 +233,7 @@ export function DirectoryApp() {
             </p>
           </div>
         ) : !dossier ? (
-          <div className="hal-dir__empty">
+          <div className="nova-dir__empty">
             <p>{known.length === 0 ? 'Nobody yet.' : 'Nobody selected.'}</p>
             <p>
               {known.length === 0
@@ -243,31 +243,31 @@ export function DirectoryApp() {
           </div>
         ) : (
           <>
-            <h1 className="hal-dir__name">{dossier.entity.canonicalName}</h1>
-            <div className="hal-dir__type">{dossier.entity.type}</div>
+            <h1 className="nova-dir__name">{dossier.entity.canonicalName}</h1>
+            <div className="nova-dir__type">{dossier.entity.type}</div>
 
             {dossier.entity.aliases.length > 0 ? (
-              <div className="hal-dir__aliases">Also: {dossier.entity.aliases.join(' · ')}</div>
+              <div className="nova-dir__aliases">Also: {dossier.entity.aliases.join(' · ')}</div>
             ) : null}
 
-            <div className="hal-dir__section">
-              <div className="hal-dir__sectionhead">WHAT YOU HAVE</div>
-              <dl className="hal-dir__counts">
+            <div className="nova-dir__section">
+              <div className="nova-dir__sectionhead">WHAT YOU HAVE</div>
+              <dl className="nova-dir__counts">
                 {Object.entries(dossier.known).map(([surface, list]) => (
-                  <div key={surface} className="hal-dir__count">
+                  <div key={surface} className="nova-dir__count">
                     <dt>{SURFACE_LABEL[surface] ?? surface}</dt>
                     <dd>{list.length}</dd>
                   </div>
                 ))}
               </dl>
-              <p className="hal-dir__gap">
+              <p className="nova-dir__gap">
                 {dossier.knownCount} found
                 {dossier.undiscoveredCount > 0
                   ? ` · ${dossier.undiscoveredCount} not yet found`
                   : ' · nothing else on record'}
               </p>
               {dossier.firstSeen ? (
-                <p className="hal-dir__span">
+                <p className="nova-dir__span">
                   First appears {displayDate(dossier.firstSeen)}
                   {dossier.lastSeen && dossier.lastSeen !== dossier.firstSeen
                     ? ` · last ${displayDate(dossier.lastSeen)}`
@@ -277,15 +277,15 @@ export function DirectoryApp() {
             </div>
 
             {facts.length > 0 ? (
-              <div className="hal-dir__section">
-                <div className="hal-dir__sectionhead">
+              <div className="nova-dir__section">
+                <div className="nova-dir__sectionhead">
                   {disputed ? 'CORROBORATION — DISPUTED' : 'CORROBORATION'}
                 </div>
-                <ul className="hal-dir__facts">
+                <ul className="nova-dir__facts">
                   {facts.map((fact) => (
                     <li
                       key={fact.factId}
-                      className="hal-dir__fact"
+                      className="nova-dir__fact"
                       data-conflicts={fact.conflicts > 0 ? 'yes' : undefined}
                     >
                       {traceLine(fact)}
@@ -296,18 +296,18 @@ export function DirectoryApp() {
             ) : null}
 
             {dossier.conflicts.length > 0 ? (
-              <div className="hal-dir__section hal-dir__section--conflict">
-                <div className="hal-dir__sectionhead">DOES NOT ADD UP</div>
-                <p className="hal-dir__relnote">
+              <div className="nova-dir__section nova-dir__section--conflict">
+                <div className="nova-dir__sectionhead">DOES NOT ADD UP</div>
+                <p className="nova-dir__relnote">
                   {dossier.conflicts.length === 1
                     ? 'Two things you have cannot both be true.'
                     : `${dossier.conflicts.length} pairs of things you have cannot both be true.`}
                 </p>
-                <ul className="hal-dir__conflicts">
+                <ul className="nova-dir__conflicts">
                   {dossier.conflicts.map(([a, b]) => (
-                    <li key={`${a.id}|${b.id}`} className="hal-dir__conflict">
+                    <li key={`${a.id}|${b.id}`} className="nova-dir__conflict">
                       <ConflictSide artifact={a} />
-                      <span className="hal-dir__conflictvs" aria-hidden="true">
+                      <span className="nova-dir__conflictvs" aria-hidden="true">
                         ×
                       </span>
                       <ConflictSide artifact={b} />
@@ -317,10 +317,10 @@ export function DirectoryApp() {
               </div>
             ) : null}
 
-            <div className="hal-dir__section">
-              <div className="hal-dir__sectionhead">CONNECTIONS</div>
+            <div className="nova-dir__section">
+              <div className="nova-dir__sectionhead">CONNECTIONS</div>
               {dossier.relations.length === 0 ? (
-                <p className="hal-dir__none">No connection recorded.</p>
+                <p className="nova-dir__none">No connection recorded.</p>
               ) : (
                 CONFIDENCE_ORDER.map((confidence) => {
                   const rows = dossier.relations.filter((r) => r.relation.confidence === confidence)
@@ -329,12 +329,12 @@ export function DirectoryApp() {
                   return (
                     <div
                       key={confidence}
-                      className={`hal-dir__rel hal-dir__rel--${confidence}`}
+                      className={`nova-dir__rel nova-dir__rel--${confidence}`}
                       data-confidence={confidence}
                     >
-                      <div className="hal-dir__relhead">{style.heading}</div>
-                      <div className="hal-dir__relnote">{style.note}</div>
-                      <ul className="hal-dir__rellist">
+                      <div className="nova-dir__relhead">{style.heading}</div>
+                      <div className="nova-dir__relnote">{style.note}</div>
+                      <ul className="nova-dir__rellist">
                         {rows.map(({ relation, other }, i) => {
                           const outbound = relation.from === dossier.entity.id
                           const subject = outbound
@@ -346,7 +346,7 @@ export function DirectoryApp() {
                           const sentence = `${subject} ${RELATION_PHRASE[relation.relation]} ${object}.`
                           return (
                             <li key={`${relation.from}-${relation.relation}-${relation.to}-${i}`}>
-                              <span className="hal-dir__relmark" aria-hidden="true">
+                              <span className="nova-dir__relmark" aria-hidden="true">
                                 {style.mark}
                               </span>
                               <span>{style.lead(sentence)}</span>
@@ -361,11 +361,11 @@ export function DirectoryApp() {
             </div>
 
             {Object.keys(dossier.entity.metadata).length > 0 ? (
-              <div className="hal-dir__section">
-                <div className="hal-dir__sectionhead">ON FILE</div>
-                <dl className="hal-dir__meta">
+              <div className="nova-dir__section">
+                <div className="nova-dir__sectionhead">ON FILE</div>
+                <dl className="nova-dir__meta">
                   {Object.entries(dossier.entity.metadata).map(([key, value]) => (
-                    <div key={key} className="hal-dir__metarow">
+                    <div key={key} className="nova-dir__metarow">
                       <dt>{key}</dt>
                       <dd>{value}</dd>
                     </div>

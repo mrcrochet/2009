@@ -18,36 +18,36 @@ export function DevicesApp() {
   const services = useInvestigation((s) => selectServices(s, content))
 
   return (
-    <div className="hal-devices">
-      <div className="hal-devices__list">
+    <div className="nova-devices">
+      <div className="nova-devices__list">
         {devices.map((device) => (
           <DeviceRow key={device.id} id={device.id} />
         ))}
         {devices.length === 0 ? (
-          <p className="hal-devices__empty">
+          <p className="nova-devices__empty">
             No sources are attached to this case. Everything you find, you find outside it.
           </p>
         ) : null}
       </div>
       {services.length > 0 ? (
-        <div className="hal-devices__services">
+        <div className="nova-devices__services">
           {services.map((service) => (
-            <div key={service.id} className="hal-devices__service" data-service={service.id}>
-              <div className="hal-devices__servicetitle">{service.title}</div>
+            <div key={service.id} className="nova-devices__service" data-service={service.id}>
+              <div className="nova-devices__servicetitle">{service.title}</div>
               {service.granted ? (
-                <p className="hal-devices__servicedone">{service.completed}</p>
+                <p className="nova-devices__servicedone">{service.completed}</p>
               ) : (
                 <>
-                  <p className="hal-devices__serviceline">{service.unavailable}</p>
-                  <p className="hal-devices__serviceline">{service.offer}</p>
+                  <p className="nova-devices__serviceline">{service.unavailable}</p>
+                  <p className="nova-devices__serviceline">{service.offer}</p>
                   {/*
                     The price is not here, and the button does not take money. Recovery is bought
                     on the account page, where a purchase looks like a purchase — a card field
                     inside a simulated computer is the one place this product could mislead
                     somebody without meaning to.
                   */}
-                  <p className="hal-devices__servicereal">{service.realityNote}</p>
-                  <a className="hal-cta hal-cta--ghost" href={`/account?service=${service.id}`}>
+                  <p className="nova-devices__servicereal">{service.realityNote}</p>
+                  <a className="nova-cta nova-cta--ghost" href={`/account?service=${service.id}`}>
                     View recovery options
                   </a>
                 </>
@@ -78,27 +78,27 @@ function DeviceRow({ id }: { id: string }) {
   }
 
   return (
-    <div className="hal-device" data-device={id} data-unlocked={device.unlocked}>
-      <div className="hal-device__head">
-        <span className="hal-device__label">{device.label}</span>
-        <span className="hal-device__state">
+    <div className="nova-device" data-device={id} data-unlocked={device.unlocked}>
+      <div className="nova-device__head">
+        <span className="nova-device__label">{device.label}</span>
+        <span className="nova-device__state">
           {!device.connected ? 'NOT HANDED OVER' : device.unlocked ? 'OPEN' : 'LOCKED'}
         </span>
       </div>
-      <div className="hal-device__meta">
+      <div className="nova-device__meta">
         {device.owner} · {device.meta}
       </div>
       {device.connected && !device.unlocked ? (
-        <div className="hal-device__lock">
-          {device.unlockHint ? <p className="hal-device__hint">{device.unlockHint}</p> : null}
+        <div className="nova-device__lock">
+          {device.unlockHint ? <p className="nova-device__hint">{device.unlockHint}</p> : null}
           <form
             onSubmit={(event) => {
               event.preventDefault()
               submit()
             }}
           >
-            <label className="hal-device__field">
-              <span className="hal-device__fieldlabel">Passcode</span>
+            <label className="nova-device__field">
+              <span className="nova-device__fieldlabel">Passcode</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -110,12 +110,12 @@ function DeviceRow({ id }: { id: string }) {
                 }}
               />
             </label>
-            <button type="submit" className="hal-cta" disabled={key.trim().length === 0}>
+            <button type="submit" className="nova-cta" disabled={key.trim().length === 0}>
               OPEN
             </button>
           </form>
           {refused && authored.wrongKey ? (
-            <p className="hal-device__refused" role="status">
+            <p className="nova-device__refused" role="status">
               {authored.wrongKey}
             </p>
           ) : null}

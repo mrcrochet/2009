@@ -92,11 +92,11 @@ export const UNIVERSE: readonly UniverseEntity[] = [
     domains: ['columbia-register.com'],
   },
   {
-    id: 'halcyon',
+    id: 'nova',
     provenance: 'invented',
     // The OS, and the vocabulary its own screens print. Registered so the scanner does not flag
     // the game's own chrome as a foreign proper noun.
-    aliases: ['HALCYON', 'Halcyon', 'Halcyon Browser', 'Way Up Machine', 'Way Up'],
+    aliases: ['NOVA', 'the workstation', 'Orbit', 'Way Up Machine', 'Way Up'],
     domains: [],
   },
   {

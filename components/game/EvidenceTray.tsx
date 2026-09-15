@@ -15,7 +15,7 @@ export function EvidenceTray() {
     <>
       <button
         type="button"
-        className="hal-traytab"
+        className="nova-traytab"
         data-testid="evidence-tab"
         aria-expanded={open}
         aria-controls="evidence-tray"
@@ -25,28 +25,28 @@ export function EvidenceTray() {
       </button>
 
       {open ? (
-        <aside className="hal-tray" id="evidence-tray" aria-label="Pinned evidence">
-          <div className="hal-tray__head">
-            <span className="hal-tray__title">PINNED EVIDENCE</span>
+        <aside className="nova-tray" id="evidence-tray" aria-label="Pinned evidence">
+          <div className="nova-tray__head">
+            <span className="nova-tray__title">PINNED EVIDENCE</span>
             <button
               type="button"
-              className="hal-tray__close"
+              className="nova-tray__close"
               aria-label="Close evidence tray"
               onClick={() => dispatch({ type: 'TRAY_TOGGLED', open: false })}
             >
               ×
             </button>
           </div>
-          <div className="hal-tray__list">
+          <div className="nova-tray__list">
             {cards.map((e) => (
-              <div key={e.id} className="hal-evcard">
-                <div className="hal-evcard__src">{e.source}</div>
-                <div className="hal-evcard__text">{e.text}</div>
-                <div className="hal-evcard__tags">{e.reliability.toUpperCase()}</div>
+              <div key={e.id} className="nova-evcard">
+                <div className="nova-evcard__src">{e.source}</div>
+                <div className="nova-evcard__text">{e.text}</div>
+                <div className="nova-evcard__tags">{e.reliability.toUpperCase()}</div>
               </div>
             ))}
             {cards.length === 0 ? (
-              <div className="hal-tray__empty">
+              <div className="nova-tray__empty">
                 Nothing pinned.
                 <br />
                 <br />
@@ -56,10 +56,10 @@ export function EvidenceTray() {
             ) : null}
             <KeptLines variant="tray" />
           </div>
-          <div className="hal-tray__foot">
+          <div className="nova-tray__foot">
             <button
               type="button"
-              className="hal-tray__board"
+              className="nova-tray__board"
               onClick={() => dispatch({ type: 'BOARD_TOGGLED', open: true })}
             >
               OPEN BOARD

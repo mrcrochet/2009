@@ -40,46 +40,46 @@ export function InvestigationBoard() {
   if (!open) return null
 
   return (
-    <div className="hal-board">
+    <div className="nova-board">
       <div
-        className="hal-board__panel"
+        className="nova-board__panel"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Investigation board"
         tabIndex={-1}
       >
-        <div className="hal-board__head">
-          <span className="hal-board__title">INVESTIGATION — BUILD A CLAIM</span>
+        <div className="nova-board__head">
+          <span className="nova-board__title">INVESTIGATION — BUILD A CLAIM</span>
           <button
             type="button"
-            className="hal-board__close"
+            className="nova-board__close"
             aria-label="Close the board"
             onClick={() => dispatch({ type: 'BOARD_TOGGLED', open: false })}
           >
             ×
           </button>
         </div>
-        <div className="hal-board__cols">
-          <div className="hal-board__left">
-            <div className="hal-board__label">SELECT THE PIECES YOU ARE RELYING ON</div>
-            <div className="hal-board__stack">
+        <div className="nova-board__cols">
+          <div className="nova-board__left">
+            <div className="nova-board__label">SELECT THE PIECES YOU ARE RELYING ON</div>
+            <div className="nova-board__stack">
               {cards.map((e) => (
                 <button
                   key={e.id}
                   type="button"
-                  className="hal-evcard hal-evcard--pick"
+                  className="nova-evcard nova-evcard--pick"
                   aria-pressed={e.selected}
                   data-evidence={e.id}
                   onClick={() => dispatch({ type: 'EVIDENCE_SELECTION_TOGGLED', evidenceId: e.id })}
                 >
-                  <span className="hal-evcard__src">{e.source}</span>
-                  <span className="hal-evcard__text">{e.text}</span>
-                  <span className="hal-evcard__check">{e.selected ? '✓ RELYING ON THIS' : ''}</span>
+                  <span className="nova-evcard__src">{e.source}</span>
+                  <span className="nova-evcard__text">{e.text}</span>
+                  <span className="nova-evcard__check">{e.selected ? '✓ RELYING ON THIS' : ''}</span>
                 </button>
               ))}
               {cards.length === 0 ? (
-                <div className="hal-tray__empty">
+                <div className="nova-tray__empty">
                   Pin something first. A claim is only as good as what you are prepared to name
                   behind it.
                 </div>
@@ -87,13 +87,13 @@ export function InvestigationBoard() {
               <KeptLines variant="board" />
             </div>
           </div>
-          <div className="hal-board__right">
-            <div className="hal-board__label">ASSERT</div>
+          <div className="nova-board__right">
+            <div className="nova-board__label">ASSERT</div>
             {content.claims.map((c) => (
               <button
                 key={c.id}
                 type="button"
-                className="hal-board__claim"
+                className="nova-board__claim"
                 aria-pressed={selectedClaimId === c.id}
                 data-claim={c.id}
                 onClick={() => dispatch({ type: 'CLAIM_SELECTED', claimId: c.id })}
@@ -103,7 +103,7 @@ export function InvestigationBoard() {
             ))}
             <button
               type="button"
-              className="hal-board__submit"
+              className="nova-board__submit"
               disabled={!selectedClaimId}
               onClick={() =>
                 selectedClaimId &&
@@ -118,19 +118,19 @@ export function InvestigationBoard() {
             </button>
             {verdict ? (
               <div
-                className={`hal-board__verdict${verdict.verdict === 'accepted' ? ' hal-board__verdict--accepted' : ''}`}
+                className={`nova-board__verdict${verdict.verdict === 'accepted' ? ' nova-board__verdict--accepted' : ''}`}
                 role="status"
                 data-verdict={verdict.verdict}
               >
-                <span className="hal-board__verdictkind">{VERDICT_LABEL[verdict.verdict]}</span>
+                <span className="nova-board__verdictkind">{VERDICT_LABEL[verdict.verdict]}</span>
                 {verdict.message}
               </div>
             ) : null}
             {log.length > 0 ? (
-              <div className="hal-board__log">
-                <div className="hal-board__loglabel">CLAIMS ON RECORD</div>
+              <div className="nova-board__log">
+                <div className="nova-board__loglabel">CLAIMS ON RECORD</div>
                 {log.map((entry, i) => (
-                  <div key={`${entry.claimId}-${i}`} className="hal-board__logitem">
+                  <div key={`${entry.claimId}-${i}`} className="nova-board__logitem">
                     — {entry.claimText}
                   </div>
                 ))}

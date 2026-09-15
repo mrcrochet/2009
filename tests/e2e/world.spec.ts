@@ -77,7 +77,7 @@ test.describe('the world', () => {
     await expect(subject).toBeVisible()
     await subject.click()
 
-    const page_ = page.locator('.hal-dir__page')
+    const page_ = page.locator('.nova-dir__page')
     // The gap is a number and never a list.
     await expect(page_).toContainText(/\d+ found · \d+ not yet found/)
     await expect(page_).toContainText('First appears 17 Jun 2026')
@@ -102,7 +102,7 @@ test.describe('the world', () => {
     // Nothing to do with the case. That is the point of it being there.
     await expect(document_).not.toContainText(/Mercer|Vale/)
     // Prose is reflowed rather than kept at whatever column the corpus file wraps at.
-    await expect(document_.locator('.hal-web__p').first()).toBeVisible()
+    await expect(document_.locator('.nova-web__p').first()).toBeVisible()
 
     // And having read it counts as having found it.
     await page.keyboard.press('Control+k')

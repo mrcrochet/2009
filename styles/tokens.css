@@ -1,85 +1,117 @@
 /*
- * Design tokens extracted from the Claude Design handoff (design/2009.dc.html).
- * Every literal here appears in that file. Do not "modernise" these values.
+ * NOVA 3.2 — the workstation's visual language.
+ *
+ * These were the 2009 handoff's literals, and the instruction on them was "do not modernise".
+ * The product moved: the machine is a present-day forensic workstation, and a beige window with
+ * a bevelled titlebar now reads as a costume rather than as a computer.
+ *
+ * The rule that replaced it is narrower and holds better. **Chrome is dark and quiet; documents
+ * are light and dense; the only saturated colour on screen means something.** A workstation is
+ * not trying to be looked at — it is trying to hold four windows of somebody else's mail at
+ * eleven at night without being tiring. Anything here that is merely pretty is a mistake.
  */
 
 :root {
   color-scheme: dark;
 
   /* Surfaces */
-  --void: #07090b;
-  --boot-bg: #050708;
-  --ink-bright: #eceef0;
-  --ink: #c8ced3;
-  --ink-dim: #8b949c;
+  --void: #0b0d10;
+  --boot-bg: #08090b;
+  --ink-bright: #eef1f3;
+  --ink: #c6cdd3;
+  --ink-dim: #8a939b;
   --ink-dimmer: #5e666e;
   --ink-faint: #454c53;
   --ink-muted: #6f7880;
 
-  /* HALCYON chrome */
-  --menubar-height: 23px;
-  --titlebar-height: 25px;
-  --menubar-bg: linear-gradient(180deg, rgba(30, 35, 40, 0.94), rgba(14, 17, 20, 0.94));
-  --menubar-ink: #c3cad0;
-  --menubar-accent: #7fa6c4;
-  --desktop-bg: radial-gradient(105% 80% at 26% 14%, #22323b 0%, #131c22 46%, #080b0e 100%);
+  /*
+   * The accent, and the discipline around it.
+   *
+   * One hue, used for focus, selection and the platform's own voice — the recovery offer, the
+   * account boundary. Nothing decorative is allowed to borrow it, because the moment two things
+   * are this colour it stops meaning "this is the product talking".
+   */
+  --platform-accent: #5b8db8;
+
+  /* Chrome */
+  --menubar-height: 26px;
+  --titlebar-height: 28px;
+  --menubar-bg: linear-gradient(180deg, rgba(23, 27, 32, 0.96), rgba(15, 18, 22, 0.96));
+  --menubar-ink: #b9c1c8;
+  --menubar-accent: var(--platform-accent);
+
+  /*
+   * The desktop. A dark room with one lamp in it, off to the left, which is where the light in
+   * a photograph of a desk comes from. The CRT aperture grid that used to sit over this is
+   * gone: it was the single most costume-like thing on screen.
+   */
+  --desktop-bg: radial-gradient(120% 90% at 22% 8%, #1e252c 0%, #141a20 44%, #0b0e11 100%);
 
   /* Window */
-  --win-bg: #ecece8;
-  --win-border: #4b5055;
-  --win-shadow: 0 22px 48px rgba(0, 0, 0, 0.62), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  --titlebar-front: linear-gradient(180deg, #cfd4d9, #a8afb7);
-  --titlebar-back: linear-gradient(180deg, #e0e0dc, #c6c6c2);
-  --titlebar-front-ink: #1d2126;
-  --titlebar-back-ink: #8a8f95;
-  --titlebar-rule: #7d838a;
+  --radius-sm: 3px;
+  --radius-win: 6px;
+  --win-bg: #f3f4f5;
+  --win-border: #2c3238;
+  --win-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  /* Flat, with a single hairline. The bevel was the period; the hierarchy is the point. */
+  --titlebar-front: linear-gradient(180deg, #e9ebed, #dcdfe2);
+  --titlebar-back: linear-gradient(180deg, #f1f2f3, #e8eaec);
+  --titlebar-front-ink: #1f242a;
+  --titlebar-back-ink: #9aa1a8;
+  --titlebar-rule: #c3c8cd;
 
-  /* Period widget palette */
-  --hairline: #c6c6c0;
-  --hairline-soft: #e4e4de;
-  --panel: #f4f4f0;
-  --panel-alt: #f7f7f4;
+  /* Documents */
+  --hairline: #d5d9dd;
+  --hairline-soft: #e8eaed;
+  --panel: #f3f4f5;
+  --panel-alt: #f8f9fa;
   --paper: #fff;
-  --paper-warm: #fbfbf9;
-  --selected: #dfe7ee;
-  --label: #8b8b84;
-  --body-ink: #22262b;
-  --body-ink-soft: #4a5158;
-  --control-border: #b3b8bd;
-  --control-face: linear-gradient(180deg, #fff, #e9e9e6);
-  --control-focus: #5f8fb4;
+  --paper-warm: #fcfcfd;
+  --selected: #dce8f2;
+  --label: #858d95;
+  --body-ink: #1d2126;
+  --body-ink-soft: #545c64;
+  --control-border: #bcc2c8;
+  --control-face: linear-gradient(180deg, #fff, #f0f1f3);
+  --control-focus: var(--platform-accent);
 
-  /* Semantic ledger */
-  --debit: #a33a2a;
-  --credit: #2a6a3a;
+  /* Semantic. These two are the only reds and greens in the product. */
+  --debit: #a63a2c;
+  --credit: #2d6b45;
 
-  /* Overlay chrome */
-  --overlay-panel: linear-gradient(180deg, rgba(18, 22, 26, 0.97), rgba(10, 13, 16, 0.97));
-  --overlay-border: rgba(255, 255, 255, 0.12);
-  --overlay-ink: #8fa0ac;
-  --overlay-ink-dim: #6d7c88;
-  --overlay-ink-body: #d4dce2;
+  /* Overlay chrome — the board, the tray, the relay console, the report */
+  --overlay-panel: linear-gradient(180deg, rgba(20, 24, 29, 0.975), rgba(11, 14, 17, 0.975));
+  --overlay-border: rgba(255, 255, 255, 0.1);
+  --overlay-ink: #8d9aa5;
+  --overlay-ink-dim: #6b7883;
+  --overlay-ink-body: #d3dae0;
   --overlay-empty: #5c6a75;
   /* The same family, lifted to stay readable where it carries prose rather than chrome. */
   --overlay-prose: #7b8792;
 
-  /* Confidence / verdict */
+  /* Verdicts and reliability. Never the only carrier of meaning — see CLAUDE.md §22. */
   --conf-high: #7fd39a;
   --conf-mid: #d8bd7a;
   --conf-fractured: #e2887a;
   --conf-none: #5c6a75;
-  --integrity-good: #5f9e78;
-  --integrity-fair: #b8974a;
-  --integrity-bad: #a85a48;
 
-  /* Typography */
-  --font-os: 'Lucida Grande', Tahoma, Geneva, Verdana, sans-serif;
+  /*
+   * Typography.
+   *
+   * The chrome uses whatever this machine's own interface font is, which is what makes it read
+   * as an application rather than as a rendering of one. Mono is reserved: timestamps, hashes,
+   * addresses, the console, and the labels that are machine output rather than prose.
+   */
+  --font-os:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-display: var(--font-archivo), 'Archivo', system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
-  --font-terminal: Monaco, 'Courier New', monospace;
-  --font-web: Verdana, Geneva, sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+  --font-terminal: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --font-web: var(--font-os);
 
-  /* Layers — matches the handoff exactly */
+  /* Layers */
   --z-desktop-icons: 10;
   --z-tray-tab: 8000;
   --z-tray: 8100;
@@ -88,7 +120,7 @@
   --z-dock: 8800;
   --z-menubar: 9000;
   --z-watched: 9500;
-  --z-daycard: 9700;
+  --z-reportcard: 9700;
 }
 
 * {
@@ -108,12 +140,12 @@ body {
 }
 
 a {
-  color: #2b5f96;
+  color: #2a5d90;
   text-decoration: underline;
 }
 
 a:hover {
-  color: #8a3b2c;
+  color: #1d4573;
 }
 
 button {
@@ -177,23 +209,29 @@ input {
   }
 }
 
-/* Period scrollbars. */
+/* Thin, and out of the way until they are needed. */
 ::-webkit-scrollbar {
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #dcdcd8;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #b6bac0, #8d939a);
-  border: 1px solid #74797f;
+  background: #c2c8ce;
+  border: 2px solid transparent;
+  background-clip: content-box;
   border-radius: 6px;
 }
 
-/* A 2009 machine did not animate much, but a 2026 player may need it to stop. */
+::-webkit-scrollbar-thumb:hover {
+  background: #a7aeb5;
+  background-clip: content-box;
+}
+
+/* The beats still happen; the waiting does not. `pace()` does the same for the timers. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -204,44 +242,44 @@ input {
   }
 }
 
-/* Focus is visible, but it is a 2009 focus ring: a hard 1px halo, not a modern glow. */
 :focus-visible {
-  outline: 1px solid var(--menubar-accent);
+  outline: 2px solid var(--platform-accent);
   outline-offset: 1px;
+  border-radius: var(--radius-sm);
 }
 
-/* Shared call-to-action, used by the day-end card and the account surface. */
-.hal-cta {
+/* Shared call-to-action, used by the report card and the account surface. */
+.nova-cta {
   appearance: none;
   border: 1px solid #d8dcdf;
   background: var(--ink-bright);
   color: #0a0c0e;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 12.5px;
-  letter-spacing: 0.1em;
-  padding: 13px 24px;
+  letter-spacing: 0.08em;
+  padding: 12px 22px;
   cursor: pointer;
   text-decoration: none;
   display: inline-block;
+  border-radius: var(--radius-sm);
   font-family: var(--font-display);
 }
 
-.hal-cta:hover {
+.nova-cta:hover {
   background: #fff;
   color: #0a0c0e;
 }
 
-.hal-cta--ghost {
-  border: 1px solid rgba(255, 255, 255, 0.22);
+.nova-cta--ghost {
+  border: 1px solid rgba(255, 255, 255, 0.2);
   background: transparent;
   color: #a9b2b9;
   font-weight: 400;
-  font-size: 12.5px;
-  letter-spacing: 0.06em;
-  padding: 13px 20px;
+  letter-spacing: 0.05em;
+  padding: 12px 18px;
 }
 
-.hal-cta--ghost:hover {
+.nova-cta--ghost:hover {
   color: #fff;
   border-color: #fff;
   background: transparent;

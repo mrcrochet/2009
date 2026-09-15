@@ -36,7 +36,7 @@ const REGISTRY: Record<string, ComponentType> = {
 }
 
 function MissingApp() {
-  return <div className="hal-apploading">This workstation does not have that application.</div>
+  return <div className="nova-apploading">This workstation does not have that application.</div>
 }
 
 /**

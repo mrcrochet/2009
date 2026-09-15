@@ -14,35 +14,35 @@ export function FilesApp() {
 
   return (
     <>
-      <div className="hal-files__places">
-        <div className="hal-files__placeshead">PLACES</div>
-        <div className="hal-files__place hal-files__place--active">Desktop</div>
-        <div className="hal-files__place">Documents</div>
-        <div className="hal-files__place">Pictures</div>
-        <div className="hal-files__place hal-files__place--off">Network</div>
+      <div className="nova-files__places">
+        <div className="nova-files__placeshead">PLACES</div>
+        <div className="nova-files__place nova-files__place--active">Desktop</div>
+        <div className="nova-files__place">Documents</div>
+        <div className="nova-files__place">Pictures</div>
+        <div className="nova-files__place nova-files__place--off">Network</div>
       </div>
-      <div className="hal-files__list" role="listbox" aria-label="Desktop">
+      <div className="nova-files__list" role="listbox" aria-label="Desktop">
         {files.map((f) => (
           <button
             key={f.id}
             type="button"
             role="option"
-            className="hal-files__row"
+            className="nova-files__row"
             aria-selected={f.selected}
             onClick={() => dispatch({ type: 'FILE_OPENED', fileId: f.id })}
           >
-            <span className="hal-files__label">
-              <span className="hal-files__icon">
+            <span className="nova-files__label">
+              <span className="nova-files__icon">
                 <FileIcon kind={f.icon} size={18} />
               </span>
-              <span className="hal-files__name">{f.name}</span>
+              <span className="nova-files__name">{f.name}</span>
             </span>
-            <span className="hal-files__meta">{f.meta}</span>
+            <span className="nova-files__meta">{f.meta}</span>
           </button>
         ))}
       </div>
-      <div className="hal-files__body">
-        <pre className="hal-files__text">{body}</pre>
+      <div className="nova-files__body">
+        <pre className="nova-files__text">{body}</pre>
         {evidenceId ? <PinButton evidenceId={evidenceId} via="files" /> : null}
       </div>
     </>

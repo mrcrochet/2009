@@ -12,7 +12,7 @@ export function DesktopIcons() {
   if (icons.length === 0) return null
 
   return (
-    <div className="hal-icons">
+    <div className="nova-icons">
       {icons.map((iconId) => {
         const doc = content.files.find((f) => f.id === iconId)
         if (!doc) return null
@@ -20,14 +20,14 @@ export function DesktopIcons() {
           <button
             key={iconId}
             type="button"
-            className="hal-icon"
+            className="nova-icon"
             data-file={iconId}
             onClick={() => open(iconId)}
           >
-            <span className="hal-icon__art">
+            <span className="nova-icon__art">
               <FileIcon kind={doc.icon} size={54} />
             </span>
-            <span className="hal-icon__label">{doc.name}</span>
+            <span className="nova-icon__label">{doc.name}</span>
           </button>
         )
       })}

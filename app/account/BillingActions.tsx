@@ -77,7 +77,7 @@ export function BillingActions({
   if (entitled) {
     return (
       <div className={styles.row}>
-        <button type="button" className="hal-cta" disabled={busy !== null} onClick={portal}>
+        <button type="button" className="nova-cta" disabled={busy !== null} onClick={portal}>
           MANAGE SUBSCRIPTION
         </button>
         {error ? <span className={styles.mono}>{error}</span> : null}
@@ -92,7 +92,7 @@ export function BillingActions({
           <button
             key={p.id}
             type="button"
-            className={p.id === 'monthly' ? 'hal-cta' : 'hal-cta hal-cta--ghost'}
+            className={p.id === 'monthly' ? 'nova-cta' : 'nova-cta nova-cta--ghost'}
             disabled={!p.purchasable || busy !== null}
             onClick={() => start(p.id)}
             title={p.blurb}

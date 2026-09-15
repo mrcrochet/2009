@@ -35,13 +35,13 @@ export function MessengerApp() {
   }, [lines.length, waiting])
 
   return (
-    <div className="hal-msg">
-      <div className="hal-msg__tabs" role="tablist" aria-label="Conversations">
+    <div className="nova-msg">
+      <div className="nova-msg__tabs" role="tablist" aria-label="Conversations">
         {content.threads.map((t) => (
           <button
             key={t.id}
             type="button"
-            className="hal-msg__tab"
+            className="nova-msg__tab"
             {...tabProps(t.id as ThreadId)}
             onClick={() => {
               dispatch({ type: 'THREAD_SELECTED', thread: t.id as ThreadId })
@@ -52,25 +52,25 @@ export function MessengerApp() {
           </button>
         ))}
       </div>
-      <div className="hal-msg__panel" {...panelProps}>
-        <div className="hal-msg__log" ref={logRef} role="log" aria-live="polite">
+      <div className="nova-msg__panel" {...panelProps}>
+        <div className="nova-msg__log" ref={logRef} role="log" aria-live="polite">
           {lines.map((line, i) => (
-            <div key={i} className={`hal-msg__line${line.mine ? ' hal-msg__line--mine' : ''}`}>
-              <span className="hal-msg__who">
+            <div key={i} className={`nova-msg__line${line.mine ? ' nova-msg__line--mine' : ''}`}>
+              <span className="nova-msg__who">
                 {line.who} · {line.time}
               </span>
-              <div className="hal-msg__bubble">{line.text}</div>
+              <div className="nova-msg__bubble">{line.text}</div>
             </div>
           ))}
           {/* Inside the live region, so the pause before a reply is announced too. */}
-          {waiting ? <div className="hal-msg__typing">typing…</div> : null}
+          {waiting ? <div className="nova-msg__typing">typing…</div> : null}
         </div>
-        <div className="hal-msg__composer">
+        <div className="nova-msg__composer">
           {choices.map((choice) => (
             <button
               key={choice.text}
               type="button"
-              className="hal-msg__choice"
+              className="nova-msg__choice"
               onClick={() =>
                 dispatch({
                   type: 'CHAT_REPLY_SENT',

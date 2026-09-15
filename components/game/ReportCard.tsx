@@ -30,18 +30,18 @@ export function ReportCard() {
   const next = `/account?claim=${encodeURIComponent(investigationId)}`
 
   return (
-    <div className="hal-daycard" data-testid="report-card">
+    <div className="nova-daycard" data-testid="report-card">
       <div
-        className="hal-daycard__inner"
+        className="nova-daycard__inner"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={`${caseLabel} — session complete`}
         tabIndex={-1}
       >
-        <div className="hal-daycard__ts">{summary.timestamp}</div>
-        <h1 className="hal-daycard__title">{content.report.title}</h1>
-        <div className="hal-daycard__stats" role="status">
+        <div className="nova-daycard__ts">{summary.timestamp}</div>
+        <h1 className="nova-daycard__title">{content.report.title}</h1>
+        <div className="nova-daycard__stats" role="status">
           <span>
             {caseLabel} · {content.title}
           </span>
@@ -53,20 +53,20 @@ export function ReportCard() {
           <span className="watched">{summary.watchedLine}</span>
         </div>
         {summary.deeds.length > 0 ? (
-          <div className="hal-daycard__deeds">
+          <div className="nova-daycard__deeds">
             {summary.deeds.map((deed) => (
               <span key={deed}>{deed}</span>
             ))}
           </div>
         ) : null}
-        <div className="hal-daycard__rule" />
-        <div className="hal-daycard__block">
-          <div className="hal-daycard__headline">{content.report.saveHeadline}</div>
-          <div className="hal-daycard__body">{content.report.saveBody}</div>
-          <div className="hal-daycard__ctas">
+        <div className="nova-daycard__rule" />
+        <div className="nova-daycard__block">
+          <div className="nova-daycard__headline">{content.report.saveHeadline}</div>
+          <div className="nova-daycard__body">{content.report.saveBody}</div>
+          <div className="nova-daycard__ctas">
             <button
               type="button"
-              className="hal-cta"
+              className="nova-cta"
               data-testid="save-investigation"
               onClick={() => {
                 track('paywall_viewed', { caseId: content.id })
@@ -77,7 +77,7 @@ export function ReportCard() {
             </button>
             <button
               type="button"
-              className="hal-cta hal-cta--ghost"
+              className="nova-cta nova-cta--ghost"
               onClick={() =>
                 router.push(`/auth/sign-in?claim=${encodeURIComponent(investigationId)}`)
               }
@@ -85,7 +85,7 @@ export function ReportCard() {
               {content.report.secondaryCta}
             </button>
           </div>
-          <div className="hal-daycard__price">{content.report.priceLine}</div>
+          <div className="nova-daycard__price">{content.report.priceLine}</div>
         </div>
       </div>
     </div>

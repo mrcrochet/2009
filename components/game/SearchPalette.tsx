@@ -32,7 +32,7 @@ const SURFACE_LABEL: Readonly<Record<string, string>> = {
 /** Filter order, chosen so the surfaces a player thinks in come first. */
 const SURFACES = ['people', 'mail', 'msg', 'phone', 'device', 'files', 'web', 'archive', 'term']
 
-const optionId = (hit: SearchHit) => `hal-search-opt-${hit.kind}-${hit.id}`
+const optionId = (hit: SearchHit) => `nova-search-opt-${hit.kind}-${hit.id}`
 
 export interface SearchPaletteProps {
   readonly open: boolean
@@ -43,7 +43,7 @@ export interface SearchPaletteProps {
    * What this machine is called.
    *
    * Passed in rather than read from the store, because the palette is mountable on its own and
-   * a component that reaches for a provider to render its own title cannot be. It said HALCYON
+   * a component that reaches for a provider to render its own title cannot be. It said NOVA
    * outright, which was a case's word living in a component.
    */
   readonly machine: string
@@ -169,9 +169,9 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
   const activeHit = hits[active]
 
   return (
-    <div className="hal-search">
+    <div className="nova-search">
       <div
-        className="hal-search__panel"
+        className="nova-search__panel"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
@@ -179,11 +179,11 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
         tabIndex={-1}
         onKeyDown={onKeyDown}
       >
-        <div className="hal-search__bar">
-          <span className="hal-search__title">SEARCH {machine.toUpperCase()}</span>
+        <div className="nova-search__bar">
+          <span className="nova-search__title">SEARCH {machine.toUpperCase()}</span>
           <button
             type="button"
-            className="hal-search__close"
+            className="nova-search__close"
             aria-label="Close search"
             onClick={onClose}
           >
@@ -191,17 +191,17 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
           </button>
         </div>
 
-        <div className="hal-search__field">
-          <label className="hal-search__label" htmlFor="hal-search-input">
+        <div className="nova-search__field">
+          <label className="nova-search__label" htmlFor="nova-search-input">
             Find:
           </label>
           <input
-            id="hal-search-input"
+            id="nova-search-input"
             ref={inputRef}
-            className="hal-search__input"
+            className="nova-search__input"
             role="combobox"
             aria-expanded={hits.length > 0}
-            aria-controls="hal-search-results"
+            aria-controls="nova-search-results"
             aria-activedescendant={activeHit ? optionId(activeHit) : undefined}
             aria-autocomplete="list"
             autoComplete="off"
@@ -209,7 +209,7 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <label className="hal-search__only">
+          <label className="nova-search__only">
             <input
               type="checkbox"
               checked={discoveredOnly}
@@ -219,16 +219,16 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
           </label>
         </div>
 
-        <div className="hal-search__cols">
-          <div className="hal-search__filters" role="group" aria-label="Filter by source">
+        <div className="nova-search__cols">
+          <div className="nova-search__filters" role="group" aria-label="Filter by source">
             <button
               type="button"
-              className="hal-search__filter"
+              className="nova-search__filter"
               aria-pressed={surface === 'all'}
               onClick={() => setSurface('all')}
             >
-              <span className="hal-search__filtername">All</span>
-              <span className="hal-search__filtercount">{results.total}</span>
+              <span className="nova-search__filtername">All</span>
+              <span className="nova-search__filtercount">{results.total}</span>
             </button>
             {SURFACES.map((key) => {
               const count = results.bySurface[key] ?? 0
@@ -236,22 +236,22 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
                 <button
                   key={key}
                   type="button"
-                  className="hal-search__filter"
+                  className="nova-search__filter"
                   aria-pressed={surface === key}
                   disabled={count === 0}
                   onClick={() => setSurface(key)}
                 >
-                  <span className="hal-search__filtername">{SURFACE_LABEL[key] ?? key}</span>
-                  <span className="hal-search__filtercount">{count}</span>
+                  <span className="nova-search__filtername">{SURFACE_LABEL[key] ?? key}</span>
+                  <span className="nova-search__filtercount">{count}</span>
                 </button>
               )
             })}
           </div>
 
-          <div className="hal-search__resultpane">
+          <div className="nova-search__resultpane">
             <div
-              id="hal-search-results"
-              className="hal-search__results"
+              id="nova-search-results"
+              className="nova-search__results"
               role="listbox"
               aria-label="Results"
               ref={listRef}
@@ -262,31 +262,31 @@ export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPalet
                   id={optionId(hit)}
                   role="option"
                   aria-selected={i === active}
-                  className="hal-search__hit"
+                  className="nova-search__hit"
                   data-hit={hit.id}
                   onClick={() => openHit(hit)}
                   onMouseEnter={() => setActive(i)}
                 >
-                  <span className="hal-search__hittop">
-                    <span className="hal-search__hittitle">{hit.title}</span>
-                    <span className="hal-search__hitsurface">
+                  <span className="nova-search__hittop">
+                    <span className="nova-search__hittitle">{hit.title}</span>
+                    <span className="nova-search__hitsurface">
                       {SURFACE_LABEL[hit.surface] ?? hit.surface}
                     </span>
                   </span>
-                  <span className="hal-search__hitdetail">{hit.detail}</span>
+                  <span className="nova-search__hitdetail">{hit.detail}</span>
                 </div>
               ))}
             </div>
 
             {hits.length === 0 ? (
-              <div className="hal-search__empty" role="status">
+              <div className="nova-search__empty" role="status">
                 {query.trim().length < 2
                   ? 'Type at least two characters. This searches the mail, the files, the photographs, the ledger and the web at once.'
                   : `Nothing matches “${query}”.${discoveredOnly ? ' You are only searching what you have already found.' : ''}`}
               </div>
             ) : null}
 
-            <div className="hal-search__foot">
+            <div className="nova-search__foot">
               <span>{hits.length} shown</span>
               <span aria-hidden="true">↑↓ move · ↵ open · esc close</span>
             </div>

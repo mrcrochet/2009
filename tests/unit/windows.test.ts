@@ -6,9 +6,26 @@ import { content, dispatch, fresh, run } from './helpers'
 const VIEWPORT = { width: 1280, height: 800 }
 
 describe('window manager', () => {
-  it('cascades new windows', () => {
-    expect(cascadePosition(0, 640, 410, VIEWPORT)).toEqual({ x: 150, y: 70 })
-    expect(cascadePosition(1, 640, 410, VIEWPORT)).toEqual({ x: 184, y: 98 })
+  it('cascades new windows from the middle of the usable area', () => {
+    // 1280 wide, 640 window → centred at 320, biased 60 left of it.
+    const first = cascadePosition(0, 640, 410, VIEWPORT)
+    expect(first).toEqual({ x: 260, y: 141 })
+    // A constant step, because a cascade the player can predict is the point of one.
+    expect(cascadePosition(1, 640, 410, VIEWPORT)).toEqual({ x: 294, y: 169 })
+  })
+
+  it('uses the screen it is given rather than a fixed corner', () => {
+    const wide = { width: 1920, height: 1080 }
+    const narrow = { width: 1280, height: 800 }
+    expect(cascadePosition(0, 640, 410, wide).x).toBeGreaterThan(
+      cascadePosition(0, 640, 410, narrow).x,
+    )
+    // And the whole stack still sits clear of the menu bar and the dock.
+    for (let i = 0; i < 9; i += 1) {
+      const pos = cascadePosition(i, 640, 410, wide)
+      expect(pos.y).toBeGreaterThanOrEqual(43)
+      expect(pos.y + 410).toBeLessThanOrEqual(wide.height)
+    }
   })
 
   it('keeps windows inside a small viewport', () => {

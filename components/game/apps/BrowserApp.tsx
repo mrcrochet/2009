@@ -38,11 +38,11 @@ export function BrowserApp() {
   }
 
   return (
-    <div className="hal-web">
-      <div className="hal-web__toolbar">
+    <div className="nova-web">
+      <div className="nova-web__toolbar">
         <button
           type="button"
-          className="hal-web__nav"
+          className="nova-web__nav"
           aria-label="Back"
           disabled={browser.history.length === 0}
           onClick={() => dispatch({ type: 'BROWSER_WENT_BACK' })}
@@ -51,7 +51,7 @@ export function BrowserApp() {
         </button>
         <button
           type="button"
-          className="hal-web__nav"
+          className="nova-web__nav"
           aria-label="Forward"
           disabled={browser.forward.length === 0}
           onClick={() => dispatch({ type: 'BROWSER_WENT_FORWARD' })}
@@ -60,7 +60,7 @@ export function BrowserApp() {
         </button>
         <button
           type="button"
-          className="hal-web__nav hal-web__nav--home"
+          className="nova-web__nav nova-web__nav--home"
           aria-label="Home"
           onClick={() => go(content.browser.home)}
         >
@@ -75,7 +75,7 @@ export function BrowserApp() {
           </svg>
         </button>
         <input
-          className="hal-web__url"
+          className="nova-web__url"
           aria-label="Address"
           spellCheck={false}
           value={browser.draftUrl ?? browser.url}
@@ -84,17 +84,17 @@ export function BrowserApp() {
             if (e.key === 'Enter') go(browser.draftUrl ?? browser.url)
           }}
         />
-        <span className="hal-web__engine">{content.browser.engineName}</span>
+        <span className="nova-web__engine">{content.browser.engineName}</span>
       </div>
 
       {content.browser.bookmarks.length > 0 ? (
-        <div className="hal-web__bookmarks">
-          <span className="hal-web__bookmarkslabel">Bookmarks</span>
+        <div className="nova-web__bookmarks">
+          <span className="nova-web__bookmarkslabel">Bookmarks</span>
           {content.browser.bookmarks.map((b) => (
             <button
               key={b.url}
               type="button"
-              className="hal-web__bookmark"
+              className="nova-web__bookmark"
               data-bookmark={b.url}
               onClick={() => go(b.url)}
             >
@@ -104,15 +104,15 @@ export function BrowserApp() {
         </div>
       ) : null}
 
-      <div className="hal-scroll">
+      <div className="nova-scroll">
         {browser.view === 'home' ? (
-          <div className="hal-web__home">
-            <div className="hal-web__logo">
+          <div className="nova-web__home">
+            <div className="nova-web__logo">
               corvid<span>.</span>
             </div>
-            <div className="hal-web__searchrow">
+            <div className="nova-web__searchrow">
               <input
-                className="hal-web__q"
+                className="nova-web__q"
                 aria-label="Search the web"
                 value={browser.query}
                 onChange={(e) => dispatch({ type: 'BROWSER_QUERY_CHANGED', query: e.target.value })}
@@ -120,49 +120,49 @@ export function BrowserApp() {
                   if (e.key === 'Enter') search()
                 }}
               />
-              <button type="button" className="hal-web__go" onClick={search}>
+              <button type="button" className="nova-web__go" onClick={search}>
                 Search
               </button>
             </div>
             <button
               type="button"
-              className="hal-web__homelink"
+              className="nova-web__homelink"
               onClick={() => go(content.browser.directoryUrl)}
             >
               {content.browser.directoryLabel}
             </button>
-            <div className="hal-web__homefoot">
+            <div className="nova-web__homefoot">
               Web · Images · Groups · News · Mail — © 2009 Corvid Inc.
             </div>
           </div>
         ) : null}
 
         {browser.view === 'results' ? (
-          <div className="hal-web__results">
-            <div className="hal-web__resulthead">
+          <div className="nova-web__results">
+            <div className="nova-web__resulthead">
               Results for <b>{browser.query}</b> — {results.length} found
             </div>
             {results.map((r) => (
-              <div key={r.id} className="hal-web__result">
+              <div key={r.id} className="nova-web__result">
                 <button
                   type="button"
-                  className="hal-web__resulttitle"
+                  className="nova-web__resulttitle"
                   disabled={!r.go}
                   onClick={() => r.go && go(r.go)}
                 >
                   {r.title}
                 </button>
-                <div className="hal-web__resulturl">{r.url}</div>
-                <div className="hal-web__resultsnip">{r.snippet}</div>
+                <div className="nova-web__resulturl">{r.url}</div>
+                <div className="nova-web__resultsnip">{r.snippet}</div>
               </div>
             ))}
             {results.length === 0 ? (
-              <div className="hal-web__empty">
+              <div className="nova-web__empty">
                 {content.browser.emptyResults}
                 <div>
                   <button
                     type="button"
-                    className="hal-web__inlinelink"
+                    className="nova-web__inlinelink"
                     onClick={() => go(content.browser.directoryUrl)}
                   >
                     {content.browser.directoryLabel}
@@ -175,7 +175,7 @@ export function BrowserApp() {
 
         {browser.view === 'page' ? (
           <div
-            className={`hal-web__page${page.dark ? ' hal-web__page--dark' : ''}`}
+            className={`nova-web__page${page.dark ? ' nova-web__page--dark' : ''}`}
             style={{ background: page.background }}
           >
             {page.found ? (
@@ -218,18 +218,18 @@ function CorpusPage({ artifact, onGo }: { artifact: WorldArtifact; onGo: (url: s
   const preformatted = (para: string) => /^[ \t]+\S/m.test(para)
   return (
     <div data-testid="web-corpus" data-artifact={artifact.id}>
-      <div className="hal-web__h">{artifact.title || artifact.source}</div>
-      <div className="hal-web__sub">
+      <div className="nova-web__h">{artifact.title || artifact.source}</div>
+      <div className="nova-web__sub">
         {artifact.source} · {displayDate(artifact.date)}
       </div>
-      <div className="hal-web__rule" style={{ margin: '12px 0' }} />
+      <div className="nova-web__rule" style={{ margin: '12px 0' }} />
       {artifact.body
         .split(/\n{2,}/)
         .filter((para) => para.trim().length > 0)
         .map((para, i) => (
           <div
             key={i}
-            className={preformatted(para) ? 'hal-web__pre' : 'hal-web__p'}
+            className={preformatted(para) ? 'nova-web__pre' : 'nova-web__p'}
             style={preformatted(para) ? undefined : { whiteSpace: 'normal' }}
           >
             {preformatted(para) ? para : para.replace(/\s*\n\s*/g, ' ')}
@@ -237,8 +237,8 @@ function CorpusPage({ artifact, onGo }: { artifact: WorldArtifact; onGo: (url: s
         ))}
       {siblings.length > 0 ? (
         <>
-          <div className="hal-web__rule" style={{ margin: '12px 0' }} />
-          <div className="hal-web__sitenav">
+          <div className="nova-web__rule" style={{ margin: '12px 0' }} />
+          <div className="nova-web__sitenav">
             {siblings.map((page) => {
               const url = artifactUrl(page)
               if (!url) return null
@@ -246,7 +246,7 @@ function CorpusPage({ artifact, onGo }: { artifact: WorldArtifact; onGo: (url: s
                 <button
                   key={page.id}
                   type="button"
-                  className="hal-web__navlink"
+                  className="nova-web__navlink"
                   data-href={url}
                   onClick={() => onGo(url)}
                 >
@@ -259,8 +259,8 @@ function CorpusPage({ artifact, onGo }: { artifact: WorldArtifact; onGo: (url: s
       ) : null}
       {fields.length > 0 ? (
         <>
-          <div className="hal-web__rule" style={{ margin: '12px 0' }} />
-          <table className="hal-web__fields">
+          <div className="nova-web__rule" style={{ margin: '12px 0' }} />
+          <table className="nova-web__fields">
             <tbody>
               {fields.map(([key, value]) => (
                 <tr key={key}>
@@ -281,16 +281,16 @@ function NotFound({ url }: { url: string }) {
   const dispatch = useDispatch()
   return (
     <div data-testid="web-404">
-      <div className="hal-web__h" style={{ color: '#7a0f0f' }}>
+      <div className="nova-web__h" style={{ color: '#7a0f0f' }}>
         {content.browser.notFoundTitle}
       </div>
-      <div className="hal-web__sub">{url}</div>
-      <div className="hal-web__rule" style={{ margin: '12px 0' }} />
-      <div className="hal-web__p">{content.browser.notFoundBody}</div>
+      <div className="nova-web__sub">{url}</div>
+      <div className="nova-web__rule" style={{ margin: '12px 0' }} />
+      <div className="nova-web__p">{content.browser.notFoundBody}</div>
       <div style={{ marginTop: 12 }}>
         <button
           type="button"
-          className="hal-web__inlinelink"
+          className="nova-web__inlinelink"
           onClick={() => dispatch({ type: 'BROWSER_NAVIGATED', url: content.browser.directoryUrl })}
         >
           {content.browser.directoryLabel}
@@ -306,47 +306,47 @@ function BlockView({ block }: { block: Block }) {
   switch (block.kind) {
     case 'heading':
       return (
-        <div className="hal-web__block">
-          <div className="hal-web__h" style={{ color: block.ink }}>
+        <div className="nova-web__block">
+          <div className="nova-web__h" style={{ color: block.ink }}>
             {block.text}
           </div>
         </div>
       )
     case 'sub':
       return (
-        <div className="hal-web__block">
-          <div className="hal-web__sub">{block.text}</div>
+        <div className="nova-web__block">
+          <div className="nova-web__sub">{block.text}</div>
         </div>
       )
     case 'subheading':
       return (
-        <div className="hal-web__block">
-          <div className="hal-web__h2" style={{ color: block.ink }}>
+        <div className="nova-web__block">
+          <div className="nova-web__h2" style={{ color: block.ink }}>
             {block.text}
           </div>
         </div>
       )
     case 'rule':
       return (
-        <div className="hal-web__block">
-          <div className="hal-web__rule" />
+        <div className="nova-web__block">
+          <div className="nova-web__rule" />
         </div>
       )
     case 'p':
       return (
-        <div className="hal-web__block">
-          <div className="hal-web__p">{block.text}</div>
+        <div className="nova-web__block">
+          <div className="nova-web__p">{block.text}</div>
         </div>
       )
     case 'nav':
       return (
-        <div className="hal-web__block">
-          <div className="hal-web__sitenav">
+        <div className="nova-web__block">
+          <div className="nova-web__sitenav">
             {block.items.map((item) => (
               <button
                 key={item.url}
                 type="button"
-                className="hal-web__navlink"
+                className="nova-web__navlink"
                 data-href={item.url}
                 onClick={() => dispatch({ type: 'BROWSER_NAVIGATED', url: item.url })}
               >
@@ -359,10 +359,10 @@ function BlockView({ block }: { block: Block }) {
     case 'link': {
       const dead = !block.url && !block.opensApp
       return (
-        <div className="hal-web__block">
+        <div className="nova-web__block">
           <button
             type="button"
-            className="hal-web__pagelink"
+            className="nova-web__pagelink"
             data-href={block.url ?? block.opensApp ?? 'dead'}
             disabled={dead}
             onClick={() => {
@@ -375,19 +375,19 @@ function BlockView({ block }: { block: Block }) {
           >
             {block.label}
           </button>
-          {block.note ? <span className="hal-web__linknote">{block.note}</span> : null}
+          {block.note ? <span className="nova-web__linknote">{block.note}</span> : null}
         </div>
       )
     }
     case 'evidence':
       return (
-        <div className="hal-web__block">
+        <div className="nova-web__block">
           <PinButton evidenceId={block.evidenceId} via="browser" />
         </div>
       )
     case 'listing':
       return (
-        <div className="hal-web__block">
+        <div className="nova-web__block">
           <Listing block={block} />
         </div>
       )
@@ -405,13 +405,13 @@ function BlockView({ block }: { block: Block }) {
  */
 function Listing({ block }: { block: Extract<Block, { kind: 'listing' }> }) {
   return (
-    <div className="hal-web__listing">
-      <div className="hal-web__listingtop">
-        <span className="hal-web__listingtitle">{block.title}</span>
-        <span className="hal-web__listingprice">{block.price}</span>
+    <div className="nova-web__listing">
+      <div className="nova-web__listingtop">
+        <span className="nova-web__listingtitle">{block.title}</span>
+        <span className="nova-web__listingprice">{block.price}</span>
       </div>
-      <div className="hal-web__listingloc">{block.location}</div>
-      <div className="hal-web__listingtext">{block.text}</div>
+      <div className="nova-web__listingloc">{block.location}</div>
+      <div className="nova-web__listingtext">{block.text}</div>
     </div>
   )
 }

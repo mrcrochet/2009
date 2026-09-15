@@ -140,7 +140,7 @@ describe('an overlay may not name the real world', () => {
       blocks: [
         p('The Columbia Register reported that Meridian Savings & Loan closed the account.'),
         p('Marc Deleon and Lea Voss were both named. Owen T. Rask was not.'),
-        p('Filed from the Halcyon Browser through the Way Up Machine.'),
+        p('Filed from the Orbit through the Way Up Machine.'),
       ],
     })
     expect(refusalFor(ours)).toBeNull()

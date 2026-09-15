@@ -23,7 +23,7 @@ export function PinButton({
   const dispatch = useDispatch()
   const pinned = useInvestigation((s) => isPinned(s, evidenceId))
   const cls =
-    size === 'sm' ? 'hal-pin hal-pin--sm' : size === 'row' ? 'hal-pin hal-pin--row' : 'hal-pin'
+    size === 'sm' ? 'nova-pin nova-pin--sm' : size === 'row' ? 'nova-pin nova-pin--row' : 'nova-pin'
 
   return (
     <button

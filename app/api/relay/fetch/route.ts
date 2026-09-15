@@ -16,7 +16,7 @@ const TIMEOUT_MS = 20_000
  * Captures one remote page as an immutable snapshot.
  *
  * The response is the snapshot itself, not a stream of the remote page: the client is handed
- * normalised text blocks it renders with HALCYON's own renderer, and never markup it could
+ * normalised text blocks it renders with NOVA's own renderer, and never markup it could
  * inject. Whatever the other side sends, the game's origin only ever sees data.
  */
 export async function POST(request: Request) {

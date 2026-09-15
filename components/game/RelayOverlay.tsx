@@ -15,7 +15,7 @@ import { pace, useReducedMotion } from './useReducedMotion'
  * It is built like the investigation board and not like a browser: a focused in-world mode that
  * takes the screen, traps focus, and is left with Escape. What it renders is never markup from
  * the other side. The API hands back an immutable snapshot of normalised text blocks; this draws
- * those blocks with HALCYON's own elements, and an address the page names is a line of text the
+ * those blocks with NOVA's own elements, and an address the page names is a line of text the
  * player may send back through the relay, never something the browser can follow on its own.
  *
  * Every word on this screen is authored in `content/day01/relay.ts`. Nothing about the machine's
@@ -132,29 +132,29 @@ function blockText(block: RelayBlock): string {
   }
 }
 
-/** Normalised text, drawn by HALCYON. Nothing here can emit markup; every branch sets a text node. */
+/** Normalised text, drawn by NOVA. Nothing here can emit markup; every branch sets a text node. */
 function Block({ block }: { block: RelayBlock }) {
   switch (block.kind) {
     case 'heading': {
       const Tag = block.level === 1 ? 'h3' : block.level === 2 ? 'h4' : 'h5'
-      return <Tag className="hal-relay__h">{block.text}</Tag>
+      return <Tag className="nova-relay__h">{block.text}</Tag>
     }
     case 'p':
-      return <p className="hal-relay__p">{block.text}</p>
+      return <p className="nova-relay__p">{block.text}</p>
     case 'quote':
-      return <blockquote className="hal-relay__quote">{block.text}</blockquote>
+      return <blockquote className="nova-relay__quote">{block.text}</blockquote>
     case 'list':
       return (
-        <ul className="hal-relay__list">
+        <ul className="nova-relay__list">
           {block.items.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
         </ul>
       )
     case 'code':
-      return <pre className="hal-relay__code">{block.text}</pre>
+      return <pre className="nova-relay__code">{block.text}</pre>
     case 'rule':
-      return <hr className="hal-relay__rule" />
+      return <hr className="nova-relay__rule" />
     default:
       return null
   }
@@ -470,21 +470,21 @@ export function RelayOverlay() {
   const canTransmit = query.trim().length > 0 && !sending && affordsThis
 
   return (
-    <div className="hal-relay" data-testid="relay">
+    <div className="nova-relay" data-testid="relay">
       <div
-        className="hal-relay__panel"
+        className="nova-relay__panel"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={cfg.title}
         tabIndex={-1}
       >
-        <div className="hal-relay__head">
-          <span className="hal-relay__title">{cfg.title}</span>
-          <span className="hal-relay__sub">{cfg.subtitle}</span>
+        <div className="nova-relay__head">
+          <span className="nova-relay__title">{cfg.title}</span>
+          <span className="nova-relay__sub">{cfg.subtitle}</span>
           <button
             type="button"
-            className="hal-relay__close"
+            className="nova-relay__close"
             aria-label={cfg.closeLabel}
             onClick={close}
           >
@@ -493,19 +493,19 @@ export function RelayOverlay() {
         </div>
 
         <form
-          className="hal-relay__send"
+          className="nova-relay__send"
           onSubmit={(e) => {
             e.preventDefault()
             void transmit()
           }}
         >
-          <label className="hal-relay__label" htmlFor="relay-query">
+          <label className="nova-relay__label" htmlFor="relay-query">
             {cfg.queryLabel}
           </label>
           <input
             id="relay-query"
             ref={inputRef}
-            className="hal-relay__input"
+            className="nova-relay__input"
             value={query}
             maxLength={256}
             spellCheck={false}
@@ -514,7 +514,7 @@ export function RelayOverlay() {
           />
           <button
             type="submit"
-            className="hal-relay__go"
+            className="nova-relay__go"
             /* Never `disabled`: a control that goes disabled under the player's own focus drops
                them to <body> and costs them their place on the screen. */
             aria-disabled={!canTransmit}
@@ -524,50 +524,50 @@ export function RelayOverlay() {
           </button>
         </form>
 
-        <div className="hal-relay__meter">
-          <span className="hal-relay__signal" data-testid="relay-signal">
+        <div className="nova-relay__meter">
+          <span className="nova-relay__signal" data-testid="relay-signal">
             {fill(cfg.signalTemplate, { left: String(remaining), budget: String(budget) })}
           </span>
-          <span className="hal-relay__say" role="status">
+          <span className="nova-relay__say" role="status">
             {say}
           </span>
         </div>
 
-        <div className="hal-relay__out">
+        <div className="nova-relay__out">
           {screen === 'offline' ? (
-            <section className="hal-relay__notice" aria-labelledby="relay-offline">
-              <h2 className="hal-relay__noticetitle" id="relay-offline">
+            <section className="nova-relay__notice" aria-labelledby="relay-offline">
+              <h2 className="nova-relay__noticetitle" id="relay-offline">
                 {cfg.offlineTitle}
               </h2>
-              <p className="hal-relay__noticebody">{cfg.offlineBody}</p>
-              {cfg.offlineDial ? <p className="hal-relay__noticebody">{cfg.offlineDial}</p> : null}
+              <p className="nova-relay__noticebody">{cfg.offlineBody}</p>
+              {cfg.offlineDial ? <p className="nova-relay__noticebody">{cfg.offlineDial}</p> : null}
             </section>
           ) : null}
 
           {screen === 'results' ? (
             results.length === 0 ? (
-              <p className="hal-relay__empty">{cfg.emptyResults}</p>
+              <p className="nova-relay__empty">{cfg.emptyResults}</p>
             ) : (
               <>
-                <div className="hal-relay__label">{cfg.resultsLabel}</div>
-                <div className="hal-relay__rows">
+                <div className="nova-relay__label">{cfg.resultsLabel}</div>
+                <div className="nova-relay__rows">
                   {results.map((result) => {
                     const free = alreadyObserved(result.url)
                     return (
                       <button
                         key={result.url}
                         type="button"
-                        className="hal-relay__row"
+                        className="nova-relay__row"
                         data-url={result.url}
                         aria-disabled={!affordsOpen && !free}
                         onClick={() => void openAddress(result.url)}
                       >
-                        <span className="hal-relay__rowtitle">{result.title}</span>
-                        <span className="hal-relay__rowurl">{result.url}</span>
+                        <span className="nova-relay__rowtitle">{result.title}</span>
+                        <span className="nova-relay__rowurl">{result.url}</span>
                         {result.snippet.length > 0 ? (
-                          <span className="hal-relay__rowsnip">{result.snippet}</span>
+                          <span className="nova-relay__rowsnip">{result.snippet}</span>
                         ) : null}
-                        <span className="hal-relay__rowcost">
+                        <span className="nova-relay__rowcost">
                           {free ? '' : fill(cfg.costTemplate, { cost: String(cfg.openCost) })}
                         </span>
                       </button>
@@ -579,18 +579,18 @@ export function RelayOverlay() {
           ) : null}
 
           {screen === 'page' && snapshot ? (
-            <article className="hal-relay__doc">
-              <div className="hal-relay__docbar">
+            <article className="nova-relay__doc">
+              <div className="nova-relay__docbar">
                 <button
                   type="button"
-                  className="hal-relay__back"
+                  className="nova-relay__back"
                   onClick={() => setScreen('results')}
                 >
                   {cfg.backLabel}
                 </button>
                 <button
                   type="button"
-                  className="hal-relay__keep"
+                  className="nova-relay__keep"
                   aria-disabled={alreadyKept}
                   /* Pressing a button collapses the document selection before the click lands,
                      which would make the control that keeps a marked line the one thing that
@@ -602,17 +602,17 @@ export function RelayOverlay() {
                 </button>
               </div>
 
-              <h2 className="hal-relay__doctitle">{snapshot.title}</h2>
-              <div className="hal-relay__docurl">{snapshot.canonicalUrl}</div>
+              <h2 className="nova-relay__doctitle">{snapshot.title}</h2>
+              <div className="nova-relay__docurl">{snapshot.canonicalUrl}</div>
 
               <div
-                className="hal-relay__blocks"
+                className="nova-relay__blocks"
                 ref={blocksRef}
                 role="listbox"
                 aria-label={cfg.docLabel}
                 aria-activedescendant={
                   lines[activeLine] !== undefined
-                    ? `hal-relay-line-${lines[activeLine]}`
+                    ? `nova-relay-line-${lines[activeLine]}`
                     : undefined
                 }
                 tabIndex={0}
@@ -625,10 +625,10 @@ export function RelayOverlay() {
                   return (
                     <div
                       key={i}
-                      id={`hal-relay-line-${i}`}
+                      id={`nova-relay-line-${i}`}
                       role="option"
                       aria-selected={at === activeLine}
-                      className="hal-relay__line"
+                      className="nova-relay__line"
                       onMouseDown={() => setActiveLine(at)}
                     >
                       <Block block={block} />
@@ -637,7 +637,7 @@ export function RelayOverlay() {
                 })}
               </div>
 
-              <div className="hal-relay__captured">
+              <div className="nova-relay__captured">
                 {fill(cfg.capturedTemplate, {
                   when: snapshot.remoteFetchedAt,
                   bytes: String(snapshot.byteLength),
@@ -645,13 +645,13 @@ export function RelayOverlay() {
                 })}
               </div>
 
-              <p className="hal-relay__hint">{cfg.pinHint}</p>
+              <p className="nova-relay__hint">{cfg.pinHint}</p>
 
               {kept.length > 0 ? (
-                <div className="hal-relay__kept">
-                  <div className="hal-relay__label">{cfg.pinnedLabel}</div>
+                <div className="nova-relay__kept">
+                  <div className="nova-relay__label">{cfg.pinnedLabel}</div>
                   {kept.map((entry) => (
-                    <div key={entry.id} className="hal-relay__keptline">
+                    <div key={entry.id} className="nova-relay__keptline">
                       {entry.excerpt}
                     </div>
                   ))}
@@ -659,8 +659,8 @@ export function RelayOverlay() {
               ) : null}
 
               {snapshot.outgoingLinks.length > 0 ? (
-                <div className="hal-relay__links">
-                  <div className="hal-relay__label">{cfg.linksLabel}</div>
+                <div className="nova-relay__links">
+                  <div className="nova-relay__label">{cfg.linksLabel}</div>
                   {/* Text, never an anchor. An address on a page from the other side is
                       something the player may choose to send back through the relay — it is
                       never something this browser can be made to follow on its own. */}
@@ -668,7 +668,7 @@ export function RelayOverlay() {
                     <button
                       key={link.url}
                       type="button"
-                      className="hal-relay__link"
+                      className="nova-relay__link"
                       data-url={link.url}
                       aria-disabled={!affordsOpen && !alreadyObserved(link.url)}
                       onClick={() => void openAddress(link.url)}

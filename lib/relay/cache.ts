@@ -46,7 +46,7 @@ export function snapshotIdFor(canonicalUrl: string, contentHash: string): string
 }
 
 /**
- * Markdown or plain text into blocks HALCYON can draw.
+ * Markdown or plain text into blocks NOVA can draw.
  *
  * Only the block kinds the renderer knows are produced; anything unrecognised becomes a
  * paragraph. Nothing here can emit markup: the output is text in a discriminated union, and the
@@ -185,7 +185,7 @@ export function normaliseLinks(urls: readonly string[]): RelayLink[] {
  *
  * This is not a parser and does not try to be: it strips the things that execute or style, then
  * takes the text. Anything it fails to understand degrades into plain text, which is the safe
- * direction — the output is rendered by HALCYON as text blocks and is never inserted as markup.
+ * direction — the output is rendered by NOVA as text blocks and is never inserted as markup.
  */
 export function extractFromHtml(
   html: string,

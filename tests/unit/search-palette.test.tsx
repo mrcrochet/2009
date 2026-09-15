@@ -350,7 +350,7 @@ describe('directory', () => {
 
     expect(screen.getByText('DOES NOT ADD UP')).toBeInTheDocument()
     expect(screen.getByText('Two things you have cannot both be true.')).toBeInTheDocument()
-    const pair = document.querySelector('.hal-dir__conflict')!
+    const pair = document.querySelector('.nova-dir__conflict')!
     // The lines, not the file names — the disagreement itself is what the player reads.
     expect(pair).toHaveTextContent('“Marc still has the Saab”')
     expect(pair).toHaveTextContent('“no car in the driveway on the ninth”')

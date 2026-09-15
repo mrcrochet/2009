@@ -12,13 +12,13 @@ import { createGameStore, type GameStoreApi } from '@/state/store'
 import { BootSequence } from './BootSequence'
 import { GameErrorBoundary } from './GameErrorBoundary'
 import { GameProvider } from './GameContext'
-import { HalcyonDesktop } from './HalcyonDesktop'
+import { Workstation } from './Workstation'
 import { prefetchApp } from './WindowManager'
 import { WorldGate } from './WorldContext'
 import { useAudioUnlock, playEventCue } from './useGameSound'
 import { useDesktopKeys } from './useDesktopKeys'
 import { pace, useReducedMotion } from './useReducedMotion'
-import '@/styles/halcyon.css'
+import '@/styles/nova.css'
 
 interface Props {
   readonly content: CaseContent
@@ -238,20 +238,20 @@ export function GameRoot({ content, investigationId, mode, world }: Props) {
 
   const stage = useStage(api)
 
-  if (!ready) return <div className="hal-boot" aria-busy="true" />
+  if (!ready) return <div className="nova-boot" aria-busy="true" />
 
   return (
     <GameProvider value={api}>
       <GameErrorBoundary onReset={() => api.getState().dispatch({ type: 'BOOT_COMPLETED' })}>
-        <div className="hal-root">
+        <div className="nova-root">
           {stage === 'boot' ? (
             <BootSequence />
           ) : world ? (
             <WorldGate index={world}>
-              <HalcyonDesktop onFileReport={fileReport} />
+              <Workstation onFileReport={fileReport} />
             </WorldGate>
           ) : (
-            <HalcyonDesktop onFileReport={fileReport} />
+            <Workstation onFileReport={fileReport} />
           )}
         </div>
       </GameErrorBoundary>

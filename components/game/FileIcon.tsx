@@ -1,5 +1,5 @@
 /**
- * File icons for HALCYON 4.1. Hand-drawn SVG in the idiom of a 2009 desktop: a warm off-white
+ * File icons for NOVA 3.2. Hand-drawn SVG in the idiom of a 2009 desktop: a warm off-white
  * page with a folded corner, a manila folder, a sealed binary. Never emoji, never a modern flat
  * pictogram, never an icon-library import.
  *
@@ -8,9 +8,9 @@
  */
 type FileIconKind = 'document' | 'encrypted' | 'folder' | 'image'
 
-const PAPER_ID = 'hal-icn-paper'
-const FOLDER_ID = 'hal-icn-folder'
-const SEAL_ID = 'hal-icn-seal'
+const PAPER_ID = 'nova-icn-paper'
+const FOLDER_ID = 'nova-icn-folder'
+const SEAL_ID = 'nova-icn-seal'
 
 export function FileIcon({ kind, size = 54 }: { kind: FileIconKind; size?: number }) {
   const width = Math.round((size * 44) / 54)

@@ -551,6 +551,14 @@ export const CaseContentSchema = z.object({
   report: ReportSchema,
   /** What has to have happened before a report can be filed. */
   requiredBeats: z.array(z.string().min(1)).min(1),
+  /**
+   * What the gate says is still outstanding, per beat.
+   *
+   * Authored, because it was a hardcoded map in the menu bar naming Day 01's characters — which
+   * meant the second case's gate would have told the player to answer somebody who is not in it.
+   * A beat with no hint here reads as its own id, which is ugly and honest rather than wrong.
+   */
+  beatHints: z.record(z.string().min(1), z.string().min(1)).default({}),
 })
 
 export type CaseContent = z.infer<typeof CaseContentSchema>

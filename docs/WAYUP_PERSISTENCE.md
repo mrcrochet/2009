@@ -55,7 +55,7 @@ would defeat the policy rather than satisfy it. Only the relay route writes visi
 request that captured the page and charged the signal.
 
 Snapshots are likewise service-role-only for writes. A client-writable cache would let one player
-author a document another player then reads inside HALCYON's own renderer: forged evidence, in a
+author a document another player then reads inside NOVA's own renderer: forged evidence, in a
 game about whether documents are real, and the end of the checksum mechanic.
 
 Verified against a real Postgres before this was written: a player who visited a page sees it, a

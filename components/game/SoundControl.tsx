@@ -18,7 +18,7 @@ export function SoundControl() {
   return (
     <button
       type="button"
-      className="hal-menubar__sound"
+      className="nova-menubar__sound"
       aria-pressed={muted}
       aria-label={muted ? 'Sound is off. Turn sound on.' : 'Sound is on. Turn sound off.'}
       title={muted ? 'Sound off' : 'Sound on'}

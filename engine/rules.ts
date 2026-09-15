@@ -12,16 +12,35 @@ const MENU_BAR_HEIGHT = 23
 const DOCK_RESERVE = 90
 const EDGE = 20
 
+/**
+ * Where a window opens.
+ *
+ * The first one is centred on the usable area rather than dropped at a fixed 150/70, and the
+ * rest fan down and right from it. The fixed origin came from a handoff drawn at one size: on a
+ * 1440-wide screen it piled every window into the top-left two thirds and left the bottom of the
+ * desktop empty, which is not what a workstation looks like when somebody is working.
+ *
+ * The stack still walks a constant step, because a cascade the player can predict is the whole
+ * value of a cascade — and it still clamps, so a narrow screen behaves exactly as before.
+ */
 export function cascadePosition(
   index: number,
   width: number,
   height: number,
   viewport: Viewport,
 ): { x: number; y: number } {
-  const x = Math.min(150 + index * 34, Math.max(EDGE, viewport.width - width - 40))
+  const usableTop = MENU_BAR_HEIGHT + EDGE
+  const usableHeight = viewport.height - usableTop - DOCK_RESERVE
+
+  // Biased above centre: a window sitting at the true middle reads as low, because the dock
+  // occupies the bottom and the eye counts it as floor.
+  const originX = Math.max(EDGE, Math.round((viewport.width - width) / 2) - 60)
+  const originY = Math.max(usableTop, usableTop + Math.round((usableHeight - height) * 0.38))
+
+  const x = Math.min(originX + index * 34, Math.max(EDGE, viewport.width - width - 40))
   const y = Math.min(
-    70 + index * 28,
-    Math.max(MENU_BAR_HEIGHT + EDGE, viewport.height - height - DOCK_RESERVE),
+    originY + index * 28,
+    Math.max(usableTop, viewport.height - height - DOCK_RESERVE),
   )
   return { x: Math.round(x), y: Math.round(y) }
 }

@@ -14,7 +14,7 @@
 | Location        | Portland, Oregon                           |
 | Currency        | USD (stored as integer cents)              |
 | Player identity | Owen T. Rask (not the player's own)        |
-| Fictional OS    | HALCYON 4.1 (build 4.1.882)                |
+| Fictional OS    | NOVA 3.2 (build 4.1.882)                |
 | Bank            | Meridian Savings & Loan, checking ····4471 |
 | Opening balance | $437.82 (43782 cents)                      |
 | Core mystery    | Aion Group                                 |
@@ -26,8 +26,8 @@
 `landing → boot → playing → day-end`
 
 - **landing** — the marketing surface. One action: `WAKE UP`.
-- **boot** — HALCYON 4.1 console boot, 10 lines at 170ms, then a 700ms hold.
-- **playing** — full-viewport HALCYON desktop. After 1100ms Ember Messenger opens itself with a
+- **boot** — NOVA 3.2 console boot, 10 lines at 170ms, then a 700ms hold.
+- **playing** — full-viewport NOVA desktop. After 1100ms Ember Messenger opens itself with a
   message from an unknown handle. After 2600ms `READ_ME.txt` appears on the desktop.
 - **day-end** — surveillance reveal (3400ms), then the Day 01 summary card.
 
@@ -37,7 +37,7 @@
 | -------- | ---------------- | ------------------------ |
 | `mail`   | Corvid Mail      | 640×410                  |
 | `msg`    | Ember Messenger  | 318×392                  |
-| `web`    | Halcyon Browser  | 720×472                  |
+| `web`    | Orbit  | 720×472                  |
 | `files`  | Files            | 600×352                  |
 | `bank`   | Meridian Savings | 472×364                  |
 | `mkt`    | Quoteline        | 520×340                  |

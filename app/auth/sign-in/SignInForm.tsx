@@ -64,7 +64,7 @@ export function SignInForm({ claim }: { claim: string | null }) {
         }}
       />
       <div className={styles.row}>
-        <button type="submit" className="hal-cta" disabled={state === 'sending'}>
+        <button type="submit" className="nova-cta" disabled={state === 'sending'}>
           {state === 'sending' ? 'SENDING…' : 'SEND THE LINK'}
         </button>
       </div>

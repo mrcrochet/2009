@@ -7,10 +7,10 @@ export function NotesApp() {
   const notes = useInvestigation((s) => s.notes)
 
   return (
-    <div className="hal-notes">
-      <div className="hal-notes__head">UNTITLED — NOT SAVED</div>
+    <div className="nova-notes">
+      <div className="nova-notes__head">UNTITLED — NOT SAVED</div>
       <textarea
-        className="hal-notes__area"
+        className="nova-notes__area"
         aria-label="Notes"
         value={notes}
         placeholder="Write down what you still remember. It will not stay accurate."

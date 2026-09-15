@@ -1,12 +1,12 @@
 /*
- * HALCYON 4.1 — the fictional OS surface.
+ * NOVA 3.2 — the fictional OS surface.
  * Loaded only by the game shell, so the marketing landing never ships it.
  * Every value here is taken from design/2009.dc.html.
  */
 
 /* Visible only to assistive technology. Used where the period visual carries meaning that
    would otherwise be lost — the surveillance beat, table headers. */
-.hal-sr-only {
+.nova-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -20,7 +20,7 @@
 
 /* ------------------------------------------------------------------ shell */
 
-.hal-root {
+.nova-root {
   position: relative;
   width: 100%;
   height: 100dvh;
@@ -30,7 +30,7 @@
   -webkit-font-smoothing: antialiased;
 }
 
-.hal-boot {
+.nova-boot {
   position: absolute;
   inset: 0;
   background: var(--boot-bg);
@@ -42,13 +42,13 @@
   overflow: hidden;
 }
 
-.hal-boot__line {
+.nova-boot__line {
   animation: fadein 0.18s both;
   min-height: 1.85em;
   white-space: pre;
 }
 
-.hal-boot__cursor {
+.nova-boot__cursor {
   display: inline-block;
   width: 7px;
   height: 14px;
@@ -57,34 +57,58 @@
   vertical-align: -2px;
 }
 
-.hal-desktop {
+.nova-desktop {
   position: absolute;
   inset: 0;
   animation: fadein 0.8s both;
 }
 
-.hal-desktop__bg {
+/* The way out of a crashed session. It used to borrow a button from an application that has
+   since been deleted, so it has been rendering unstyled. */
+.nova-boot__btn {
+  appearance: none;
+  margin-top: 4px;
+  padding: 7px 16px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-bright);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.nova-boot__btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nova-desktop__bg {
   position: absolute;
   inset: 0;
   background: var(--desktop-bg);
 }
 
-/* CRT aperture grid. The handoff had this layer nudged by a stray drag; here it is full-bleed,
-   which is the evident intent. */
-.hal-desktop__grid {
+/*
+ * The grain over the wallpaper.
+ *
+ * This was a CRT aperture grid, which was the single most costume-like thing on screen: a 2026
+ * workstation is an LCD and nobody has seen a shadow mask in twenty years. What replaced it is
+ * the thing a photograph of a dark room actually has — a little noise, so the gradient behind
+ * the windows does not band.
+ */
+.nova-desktop__grain {
   position: absolute;
   inset: 0;
-  opacity: 0.055;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.7) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.5) 0 1px, transparent 1px 3px);
-  mix-blend-mode: overlay;
+  opacity: 0.035;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.55) 0.5px, transparent 0.5px);
+  background-size: 3px 3px;
   pointer-events: none;
 }
 
 /* ---------------------------------------------------------------- menubar */
 
-.hal-menubar {
+.nova-menubar {
   position: absolute;
   top: 0;
   left: 0;
@@ -103,7 +127,7 @@
   backdrop-filter: blur(6px);
 }
 
-.hal-menubar__brand {
+.nova-menubar__brand {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -112,7 +136,7 @@
   flex: none;
 }
 
-.hal-menubar__mark {
+.nova-menubar__mark {
   width: 9px;
   height: 9px;
   border: 1.5px solid var(--menubar-accent);
@@ -120,7 +144,7 @@
   display: inline-block;
 }
 
-.hal-menubar__front {
+.nova-menubar__front {
   opacity: 0.72;
   white-space: nowrap;
   overflow: hidden;
@@ -128,12 +152,12 @@
   max-width: 34vw;
 }
 
-.hal-menubar__menu {
+.nova-menubar__menu {
   opacity: 0.5;
   font-size: 11px;
 }
 
-.hal-menubar__sound {
+.nova-menubar__sound {
   appearance: none;
   background: none;
   border: none;
@@ -147,23 +171,23 @@
   flex: none;
 }
 
-.hal-menubar__sound:hover {
+.nova-menubar__sound:hover {
   opacity: 1;
 }
 
-.hal-menubar__action--pending {
+.nova-menubar__action--pending {
   opacity: 0.55;
 }
 
-.hal-menubar__action--pending:hover {
+.nova-menubar__action--pending:hover {
   opacity: 1;
 }
 
-.hal-menubar__spacer {
+.nova-menubar__spacer {
   flex: 1;
 }
 
-.hal-menubar__action {
+.nova-menubar__action {
   appearance: none;
   background: none;
   border: none;
@@ -175,11 +199,11 @@
   white-space: nowrap;
 }
 
-.hal-menubar__action:hover {
+.nova-menubar__action:hover {
   color: #fff;
 }
 
-.hal-menubar__clock {
+.nova-menubar__clock {
   opacity: 0.85;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -187,7 +211,7 @@
 
 /* ----------------------------------------------------------- desktop icons */
 
-.hal-icons {
+.nova-icons {
   position: absolute;
   top: 44px;
   left: 26px;
@@ -197,7 +221,7 @@
   z-index: var(--z-desktop-icons);
 }
 
-.hal-icon {
+.nova-icon {
   width: 78px;
   display: flex;
   flex-direction: column;
@@ -211,18 +235,18 @@
   padding: 0;
 }
 
-.hal-icon__art {
+.nova-icon__art {
   display: block;
   filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.5));
   line-height: 0;
 }
 
-.hal-icon:hover .hal-icon__art,
-.hal-icon:focus-visible .hal-icon__art {
+.nova-icon:hover .nova-icon__art,
+.nova-icon:focus-visible .nova-icon__art {
   filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.5)) brightness(1.08);
 }
 
-.hal-icon__label {
+.nova-icon__label {
   font-size: 10.5px;
   color: #e6ebee;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
@@ -232,18 +256,18 @@
 
 /* --------------------------------------------------------------- windows */
 
-.hal-window {
+.nova-window {
   position: absolute;
 }
 
 /* A layer per window costs GPU memory for the whole session, so it is promoted only while it
    is actually moving. */
-.hal-window.is-dragging,
-.hal-phone.is-dragging {
+.nova-window.is-dragging,
+.nova-phone.is-dragging {
   will-change: transform;
 }
 
-.hal-window__chrome {
+.nova-window__chrome {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -254,7 +278,7 @@
   overflow: hidden;
 }
 
-.hal-window__bar {
+.nova-window__bar {
   height: var(--titlebar-height);
   flex: none;
   display: flex;
@@ -269,11 +293,11 @@
   touch-action: none;
 }
 
-.hal-window--front .hal-window__bar {
+.nova-window--front .nova-window__bar {
   background: var(--titlebar-front);
 }
 
-.hal-window__light {
+.nova-window__light {
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -282,17 +306,17 @@
   flex: none;
 }
 
-.hal-window__light--close {
+.nova-window__light--close {
   background: radial-gradient(circle at 35% 30%, #ff9c92, #c0392b);
   border: 1px solid #8e2b20;
 }
 
-.hal-window__light--min {
+.nova-window__light--min {
   background: radial-gradient(circle at 35% 30%, #d6d6d0, #a9a9a2);
   border: 1px solid #8a8a83;
 }
 
-.hal-window__title {
+.nova-window__title {
   flex: 1;
   text-align: center;
   font-size: 11.5px;
@@ -305,11 +329,11 @@
   text-overflow: ellipsis;
 }
 
-.hal-window--front .hal-window__title {
+.nova-window--front .nova-window__title {
   color: var(--titlebar-front-ink);
 }
 
-.hal-window__body {
+.nova-window__body {
   flex: 1;
   min-height: 0;
   display: flex;
@@ -318,7 +342,7 @@
 
 /* ------------------------------------------------------------ shared bits */
 
-.hal-pane {
+.nova-pane {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -326,13 +350,13 @@
   overflow: hidden;
 }
 
-.hal-scroll {
+.nova-scroll {
   flex: 1;
   min-height: 0;
   overflow: auto;
 }
 
-.hal-pin {
+.nova-pin {
   appearance: none;
   margin-top: 12px;
   border: 1px solid var(--control-border);
@@ -345,16 +369,16 @@
   border-radius: 2px;
 }
 
-.hal-pin:hover:not([aria-disabled='true']) {
+.nova-pin:hover:not([aria-disabled='true']) {
   border-color: var(--control-focus);
 }
 
-.hal-pin[aria-disabled='true'] {
+.nova-pin[aria-disabled='true'] {
   cursor: default;
   color: #6d7c88;
 }
 
-.hal-pin--sm {
+.nova-pin--sm {
   margin-top: 0;
   border-radius: 0;
   background: #fff;
@@ -363,7 +387,7 @@
   padding: 4px 8px;
 }
 
-.hal-pin--row {
+.nova-pin--row {
   margin-top: 0;
   padding: 2px 6px;
   font-size: 9px;
@@ -372,7 +396,7 @@
 
 /* --------------------------------------------------------------- mail */
 
-.hal-mail__list {
+.nova-mail__list {
   width: 214px;
   flex: none;
   border-right: 1px solid var(--hairline);
@@ -380,7 +404,7 @@
   overflow: auto;
 }
 
-.hal-mail__listhead {
+.nova-mail__listhead {
   padding: 6px 9px;
   font-size: 9.5px;
   letter-spacing: 0.12em;
@@ -388,7 +412,7 @@
   border-bottom: 1px solid #dcdcd6;
 }
 
-.hal-mail__row {
+.nova-mail__row {
   display: block;
   width: 100%;
   text-align: left;
@@ -400,17 +424,17 @@
   background: transparent;
 }
 
-.hal-mail__row[aria-selected='true'] {
+.nova-mail__row[aria-selected='true'] {
   background: var(--selected);
 }
 
-.hal-mail__rowtop {
+.nova-mail__rowtop {
   display: flex;
   justify-content: space-between;
   gap: 6px;
 }
 
-.hal-mail__from {
+.nova-mail__from {
   font-size: 11.5px;
   color: var(--titlebar-front-ink);
   white-space: nowrap;
@@ -419,17 +443,17 @@
   font-weight: 400;
 }
 
-.hal-mail__row--unread .hal-mail__from {
+.nova-mail__row--unread .nova-mail__from {
   font-weight: 700;
 }
 
-.hal-mail__time {
+.nova-mail__time {
   font-size: 10px;
   color: var(--label);
   flex: none;
 }
 
-.hal-mail__subj {
+.nova-mail__subj {
   font-size: 11px;
   color: var(--body-ink-soft);
   margin-top: 2px;
@@ -438,7 +462,7 @@
   text-overflow: ellipsis;
 }
 
-.hal-mail__read {
+.nova-mail__read {
   flex: 1;
   min-width: 0;
   background: var(--paper);
@@ -446,14 +470,14 @@
   padding: 16px 20px;
 }
 
-.hal-mail__readsubj {
+.nova-mail__readsubj {
   font-size: 15px;
   font-weight: 600;
   color: #15181c;
   margin-bottom: 3px;
 }
 
-.hal-mail__meta {
+.nova-mail__meta {
   font-size: 11px;
   color: #6b727c;
   border-bottom: 1px solid #e6e6e0;
@@ -461,7 +485,7 @@
   margin-bottom: 13px;
 }
 
-.hal-mail__p {
+.nova-mail__p {
   margin: 0 0 11px;
   font-size: 12.5px;
   line-height: 1.62;
@@ -471,7 +495,7 @@
 
 /* ----------------------------------------------------------- messenger */
 
-.hal-msg {
+.nova-msg {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -479,14 +503,14 @@
   background: var(--panel-alt);
 }
 
-.hal-msg__tabs {
+.nova-msg__tabs {
   display: flex;
   border-bottom: 1px solid var(--hairline);
   background: linear-gradient(180deg, #e9e9e4, #dadad4);
   flex: none;
 }
 
-.hal-msg__tab {
+.nova-msg__tab {
   appearance: none;
   flex: 1;
   border: none;
@@ -499,24 +523,24 @@
   font-weight: 400;
 }
 
-.hal-msg__tab[aria-selected='true'] {
+.nova-msg__tab[aria-selected='true'] {
   background: var(--panel-alt);
   color: var(--titlebar-front-ink);
   font-weight: 600;
 }
 
-.hal-msg__panel {
+.nova-msg__panel {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
-.hal-msg__panel:focus {
+.nova-msg__panel:focus {
   outline: none;
 }
 
-.hal-msg__log {
+.nova-msg__log {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -526,24 +550,24 @@
   gap: 9px;
 }
 
-.hal-msg__line {
+.nova-msg__line {
   display: flex;
   flex-direction: column;
   gap: 2px;
   align-items: flex-start;
 }
 
-.hal-msg__line--mine {
+.nova-msg__line--mine {
   align-items: flex-end;
 }
 
-.hal-msg__who {
+.nova-msg__who {
   font-size: 9.5px;
   color: #9a9a92;
   letter-spacing: 0.06em;
 }
 
-.hal-msg__bubble {
+.nova-msg__bubble {
   max-width: 88%;
   padding: 7px 10px;
   border-radius: 3px;
@@ -554,13 +578,13 @@
   color: var(--body-ink);
 }
 
-.hal-msg__line--mine .hal-msg__bubble {
+.nova-msg__line--mine .nova-msg__bubble {
   background: #dbe7f1;
   border: 1px solid #b9cddd;
   color: #1d2932;
 }
 
-.hal-msg__composer {
+.nova-msg__composer {
   flex: none;
   border-top: 1px solid var(--hairline);
   padding: 9px 11px;
@@ -570,7 +594,7 @@
   gap: 6px;
 }
 
-.hal-msg__choice {
+.nova-msg__choice {
   appearance: none;
   text-align: left;
   border: 1px solid var(--control-border);
@@ -582,12 +606,12 @@
   cursor: pointer;
 }
 
-.hal-msg__choice:hover {
+.nova-msg__choice:hover {
   border-color: var(--control-focus);
   background: #fff;
 }
 
-.hal-msg__typing {
+.nova-msg__typing {
   font-size: 10.5px;
   color: #9a9a92;
   font-style: italic;
@@ -595,7 +619,7 @@
 
 /* ------------------------------------------------------------- browser */
 
-.hal-web {
+.nova-web {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -603,7 +627,7 @@
   background: var(--paper);
 }
 
-.hal-web__toolbar {
+.nova-web__toolbar {
   flex: none;
   display: flex;
   align-items: center;
@@ -613,7 +637,7 @@
   border-bottom: 1px solid #a9a9a2;
 }
 
-.hal-web__nav {
+.nova-web__nav {
   appearance: none;
   width: 23px;
   height: 20px;
@@ -631,17 +655,17 @@
   padding: 0;
 }
 
-.hal-web__nav:hover:not(:disabled) {
+.nova-web__nav:hover:not(:disabled) {
   border-color: #6f7680;
   background: linear-gradient(180deg, #fff, #e6e6e0);
 }
 
-.hal-web__nav:disabled {
+.nova-web__nav:disabled {
   opacity: 0.4;
   cursor: default;
 }
 
-.hal-web__bookmarks {
+.nova-web__bookmarks {
   flex: none;
   display: flex;
   align-items: center;
@@ -653,11 +677,11 @@
   scrollbar-width: none;
 }
 
-.hal-web__bookmarks::-webkit-scrollbar {
+.nova-web__bookmarks::-webkit-scrollbar {
   display: none;
 }
 
-.hal-web__bookmarkslabel {
+.nova-web__bookmarkslabel {
   flex: none;
   font-size: 9.5px;
   letter-spacing: 0.1em;
@@ -666,7 +690,7 @@
   text-transform: uppercase;
 }
 
-.hal-web__bookmark {
+.nova-web__bookmark {
   appearance: none;
   flex: none;
   border: 1px solid transparent;
@@ -680,12 +704,12 @@
   white-space: nowrap;
 }
 
-.hal-web__bookmark:hover {
+.nova-web__bookmark:hover {
   border-color: #a9a9a2;
   background: #fbfbf9;
 }
 
-.hal-web__url {
+.nova-web__url {
   flex: 1;
   min-width: 0;
   height: 21px;
@@ -697,14 +721,14 @@
   color: var(--titlebar-front-ink);
 }
 
-.hal-web__engine {
+.nova-web__engine {
   font-size: 10px;
   color: #6f7680;
   letter-spacing: 0.06em;
   flex: none;
 }
 
-.hal-web__home {
+.nova-web__home {
   padding: 64px 30px;
   display: flex;
   flex-direction: column;
@@ -713,25 +737,25 @@
   font-family: var(--font-web);
 }
 
-.hal-web__logo {
+.nova-web__logo {
   font-size: 38px;
   font-weight: 700;
   color: #1f4e79;
   letter-spacing: -0.02em;
 }
 
-.hal-web__logo span {
+.nova-web__logo span {
   color: #c0392b;
 }
 
-.hal-web__searchrow {
+.nova-web__searchrow {
   display: flex;
   gap: 6px;
   /* The directory link belongs to the search box, not to the row below it. */
   margin-bottom: -12px;
 }
 
-.hal-web__q {
+.nova-web__q {
   width: 300px;
   max-width: 52vw;
   height: 24px;
@@ -740,7 +764,7 @@
   font-size: 12px;
 }
 
-.hal-web__go {
+.nova-web__go {
   height: 24px;
   border: 1px solid #7f7f7f;
   background: linear-gradient(180deg, #f2f2f2, #dcdcdc);
@@ -749,17 +773,17 @@
   cursor: pointer;
 }
 
-.hal-web__homefoot {
+.nova-web__homefoot {
   font-size: 10.5px;
   color: #8a8a8a;
 }
 
-.hal-web__results {
+.nova-web__results {
   padding: 14px 18px;
   font-family: var(--font-web);
 }
 
-.hal-web__resulthead {
+.nova-web__resulthead {
   font-size: 11px;
   color: #767676;
   border-bottom: 1px solid #e2e2e2;
@@ -767,12 +791,12 @@
   margin-bottom: 14px;
 }
 
-.hal-web__result {
+.nova-web__result {
   margin-bottom: 17px;
   max-width: 520px;
 }
 
-.hal-web__resulttitle {
+.nova-web__resulttitle {
   appearance: none;
   background: none;
   border: none;
@@ -785,70 +809,70 @@
   cursor: pointer;
 }
 
-.hal-web__resulturl {
+.nova-web__resulturl {
   font-size: 11px;
   color: #2a7a2a;
   margin: 2px 0 3px;
 }
 
-.hal-web__resultsnip {
+.nova-web__resultsnip {
   font-size: 11.5px;
   color: #3a3a3a;
   line-height: 1.5;
 }
 
-.hal-web__empty {
+.nova-web__empty {
   font-size: 12px;
   color: #3a3a3a;
   line-height: 1.7;
   white-space: pre-line;
 }
 
-.hal-web__page {
+.nova-web__page {
   padding: 20px 24px;
   min-height: 100%;
   font-family: var(--font-web);
   color: #2a2a2a;
 }
 
-.hal-web__page--dark {
+.nova-web__page--dark {
   color: #9fb4c4;
 }
 
-.hal-web__block {
+.nova-web__block {
   margin-bottom: 12px;
 }
 
-.hal-web__h {
+.nova-web__h {
   font-size: 19px;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
-.hal-web__sub {
+.nova-web__sub {
   font-size: 11px;
   color: #777;
   letter-spacing: 0.04em;
 }
 
-.hal-web__h2 {
+.nova-web__h2 {
   font-size: 13.5px;
   font-weight: 700;
   margin-bottom: 3px;
 }
 
-.hal-web__p {
+.nova-web__p {
   font-size: 12.5px;
   line-height: 1.65;
   white-space: pre-wrap;
 }
 
-.hal-web__rule {
+.nova-web__rule {
   height: 1px;
   background: #d5d5cf;
 }
 
-.hal-web__listing {
+.nova-web__listing {
   border: 1px solid #cfcfc7;
   background: #fbfbf7;
   padding: 10px 12px;
@@ -857,36 +881,36 @@
   gap: 5px;
 }
 
-.hal-web__listingtop {
+.nova-web__listingtop {
   display: flex;
   justify-content: space-between;
   gap: 10px;
 }
 
-.hal-web__listingtitle {
+.nova-web__listingtitle {
   font-size: 13px;
   font-weight: 600;
   color: #1f4e79;
 }
 
-.hal-web__listingprice {
+.nova-web__listingprice {
   font-size: 13px;
   font-weight: 700;
   color: #2a2a2a;
 }
 
-.hal-web__listingloc {
+.nova-web__listingloc {
   font-size: 11px;
   color: #777;
 }
 
-.hal-web__listingtext {
+.nova-web__listingtext {
   font-size: 12px;
   line-height: 1.55;
   color: #3a3a3a;
 }
 
-.hal-web__sitenav {
+.nova-web__sitenav {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -895,10 +919,10 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.09);
 }
 
-.hal-web__navlink,
-.hal-web__pagelink,
-.hal-web__inlinelink,
-.hal-web__homelink {
+.nova-web__navlink,
+.nova-web__pagelink,
+.nova-web__inlinelink,
+.nova-web__homelink {
   appearance: none;
   background: none;
   border: none;
@@ -910,58 +934,58 @@
   text-align: left;
 }
 
-.hal-web__navlink {
+.nova-web__navlink {
   font-size: 11.5px;
 }
 
-.hal-web__pagelink {
+.nova-web__pagelink {
   font-size: 13px;
 }
 
-.hal-web__inlinelink,
-.hal-web__homelink {
+.nova-web__inlinelink,
+.nova-web__homelink {
   font-family: var(--font-web);
   font-size: 11.5px;
 }
 
-.hal-web__navlink:hover,
-.hal-web__pagelink:hover,
-.hal-web__inlinelink:hover,
-.hal-web__homelink:hover {
+.nova-web__navlink:hover,
+.nova-web__pagelink:hover,
+.nova-web__inlinelink:hover,
+.nova-web__homelink:hover {
   color: #8a3b2c;
 }
 
-.hal-web__pagelink:disabled {
+.nova-web__pagelink:disabled {
   color: #8a8a84;
   text-decoration: none;
   cursor: default;
 }
 
-.hal-web__page--dark .hal-web__navlink,
-.hal-web__page--dark .hal-web__pagelink {
+.nova-web__page--dark .nova-web__navlink,
+.nova-web__page--dark .nova-web__pagelink {
   color: #8fb6d4;
 }
 
-.hal-web__page--dark .hal-web__sitenav {
+.nova-web__page--dark .nova-web__sitenav {
   border-bottom-color: rgba(255, 255, 255, 0.12);
 }
 
-.hal-web__linknote {
+.nova-web__linknote {
   display: block;
   margin-top: 2px;
   font-size: 10.5px;
   color: #777;
 }
 
-.hal-web__page--dark .hal-web__linknote {
+.nova-web__page--dark .nova-web__linknote {
   color: #6f8391;
 }
 
-.hal-web__empty > div {
+.nova-web__empty > div {
   margin-top: 12px;
 }
 
-.hal-web__act {
+.nova-web__act {
   appearance: none;
   border: 1px solid var(--control-border);
   background: linear-gradient(180deg, #fff, #ececea);
@@ -972,18 +996,18 @@
   cursor: pointer;
 }
 
-.hal-web__act--live {
+.nova-web__act--live {
   border-color: #2a6a3a;
   background: linear-gradient(180deg, #e6f2e6, #cfe4d0);
 }
 
-.hal-web__act:disabled {
+.nova-web__act:disabled {
   cursor: default;
 }
 
 /* --------------------------------------------------------------- files */
 
-.hal-files__places {
+.nova-files__places {
   width: 140px;
   flex: none;
   background: linear-gradient(180deg, #e2e6ea, #d3d8dd);
@@ -993,29 +1017,29 @@
   color: #2a3138;
 }
 
-.hal-files__placeshead {
+.nova-files__placeshead {
   padding: 3px 12px;
   font-size: 9.5px;
   letter-spacing: 0.12em;
   color: #87909a;
 }
 
-.hal-files__place {
+.nova-files__place {
   padding: 4px 12px;
   opacity: 0.6;
 }
 
-.hal-files__place--active {
+.nova-files__place--active {
   background: #8fa8bd;
   color: #fff;
   opacity: 1;
 }
 
-.hal-files__place--off {
+.nova-files__place--off {
   opacity: 0.35;
 }
 
-.hal-files__list {
+.nova-files__list {
   width: 210px;
   flex: none;
   border-right: 1px solid var(--hairline);
@@ -1023,7 +1047,7 @@
   overflow: auto;
 }
 
-.hal-files__row {
+.nova-files__row {
   display: flex;
   width: 100%;
   justify-content: space-between;
@@ -1036,23 +1060,23 @@
   text-align: left;
 }
 
-.hal-files__row[aria-selected='true'] {
+.nova-files__row[aria-selected='true'] {
   background: var(--selected);
 }
 
-.hal-files__label {
+.nova-files__label {
   display: flex;
   align-items: center;
   gap: 7px;
   min-width: 0;
 }
 
-.hal-files__icon {
+.nova-files__icon {
   flex: none;
   line-height: 0;
 }
 
-.hal-files__name {
+.nova-files__name {
   font-size: 11.5px;
   color: var(--titlebar-front-ink);
   white-space: nowrap;
@@ -1060,14 +1084,14 @@
   text-overflow: ellipsis;
 }
 
-.hal-files__meta {
+.nova-files__meta {
   font-size: 10px;
   color: #9a9a92;
   flex: none;
   align-self: center;
 }
 
-.hal-files__body {
+.nova-files__body {
   flex: 1;
   min-width: 0;
   background: var(--paper-warm);
@@ -1075,7 +1099,7 @@
   padding: 14px 16px;
 }
 
-.hal-files__text {
+.nova-files__text {
   font-family: var(--font-terminal);
   font-size: 11.5px;
   line-height: 1.8;
@@ -1084,213 +1108,199 @@
   margin: 0;
 }
 
-/* ---------------------------------------------------------------- bank */
+/* ------------------------------------------------------------- devices */
 
-.hal-bank {
-  flex: 1;
-  min-width: 0;
+/*
+ * The sources on the desk.
+ *
+ * Two registers on one surface, deliberately: the devices read as hardware — a label, a state,
+ * a line of metadata — and the recovery offer reads as a notice from the platform rather than
+ * as part of the machine. It is the one place the product speaks in its own voice from inside
+ * the fiction, and it should not look like something the case wrote.
+ */
+.nova-devices {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--panel);
   overflow: auto;
-  background: var(--paper);
-  font-family: var(--font-web);
 }
 
-.hal-bank__head {
-  background: linear-gradient(180deg, #1f4e79, #163a5a);
-  color: #fff;
-  padding: 11px 16px;
+.nova-devices__list {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 10px;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--hairline-soft);
+  border-bottom: 1px solid var(--hairline);
 }
 
-.hal-bank__brand {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-.hal-bank__online {
-  font-size: 10px;
-  opacity: 0.8;
-}
-
-.hal-bank__balance {
-  padding: 14px 16px;
-  border-bottom: 1px solid #e2e2dc;
-}
-
-.hal-bank__acct {
-  font-size: 10.5px;
-  color: #777;
-  letter-spacing: 0.08em;
-}
-
-.hal-bank__amount {
-  font-size: 30px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-top: 4px;
-  font-variant-numeric: tabular-nums;
-}
-
-.hal-bank__sub {
-  font-size: 11px;
-  color: #8a8a8a;
-  margin-top: 3px;
-}
-
-.hal-bank__activity {
-  padding: 12px 16px;
-}
-
-.hal-bank__label {
-  font-size: 10.5px;
-  color: #777;
-  letter-spacing: 0.08em;
-  margin-bottom: 7px;
-}
-
-.hal-bank__txn {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 0;
-  border-bottom: 1px dotted #dedad2;
-  font-size: 11.5px;
-}
-
-.hal-bank__date {
-  color: #8a8a8a;
-  flex: none;
-  width: 52px;
-}
-
-.hal-bank__desc {
-  flex: 1;
-  min-width: 0;
-  color: #2a2a2a;
-}
-
-.hal-bank__amt {
-  flex: none;
-  font-variant-numeric: tabular-nums;
-  color: var(--debit);
-}
-
-.hal-bank__amt--credit {
-  color: var(--credit);
-}
-
-/* ----------------------------------------------------------- quoteline */
-
-.hal-mkt {
-  flex: 1;
-  min-width: 0;
-  overflow: auto;
-  background: var(--paper);
-}
-
-.hal-mkt__head {
-  padding: 9px 14px;
-  background: linear-gradient(180deg, #2b2f34, #1b1f23);
-  color: #cfd6dc;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.hal-mkt__head span:last-child {
-  opacity: 0.6;
-}
-
-.hal-mkt__row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 14px;
-  border-bottom: 1px solid #eee;
+.nova-devices__empty {
+  margin: 0;
+  padding: 18px 16px;
   font-size: 12px;
-}
-
-.hal-mkt__sym {
-  width: 56px;
-  flex: none;
-  font-weight: 700;
-  color: var(--titlebar-front-ink);
-}
-
-.hal-mkt__name {
-  flex: 1;
-  min-width: 0;
-  color: #6f7680;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.hal-mkt__px {
-  width: 64px;
-  flex: none;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  color: var(--titlebar-front-ink);
-}
-
-.hal-mkt__chg {
-  width: 56px;
-  flex: none;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  color: var(--debit);
-}
-
-.hal-mkt__chg--up {
-  color: var(--credit);
-}
-
-.hal-mkt__watch {
-  appearance: none;
-  width: 62px;
-  border: 1px solid var(--control-border);
-  background: var(--control-face);
-  color: #6f7680;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  padding: 3px 0;
-  cursor: pointer;
-  border-radius: 2px;
-}
-
-.hal-mkt__watch:hover {
-  border-color: var(--control-focus);
-}
-
-.hal-mkt__watch[aria-pressed='true'] {
-  background: linear-gradient(180deg, #e6f2e6, #cfe4d0);
-  border-color: #2a6a3a;
-  color: #2a2a2a;
-}
-
-.hal-mkt__notice {
-  padding: 13px 14px;
-  background: #faf6ea;
-  border-top: 1px solid #e6dcc0;
-  font-size: 11.5px;
-  color: #6b5a2a;
+  color: var(--body-ink-soft);
   line-height: 1.6;
 }
 
-.hal-mkt__notice span {
-  color: #9a8a5a;
+.nova-device {
+  background: var(--paper);
+  padding: 12px 14px;
+}
+
+.nova-device__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nova-device__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--body-ink);
+}
+
+.nova-device__state {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: var(--label);
+}
+
+/* Locked is a fact about the case, not a fault, so it is stated rather than alarmed. */
+.nova-device[data-unlocked='true'] .nova-device__state {
+  color: var(--credit);
+}
+
+.nova-device__meta {
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--body-ink-soft);
+}
+
+.nova-device__lock {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--hairline-soft);
+}
+
+.nova-device__hint {
+  margin: 0 0 9px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--body-ink-soft);
+}
+
+.nova-device__lock form {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.nova-device__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nova-device__fieldlabel {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--label);
+}
+
+.nova-device__field input {
+  width: 128px;
+  padding: 5px 7px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.18em;
+  color: var(--body-ink);
+  background: var(--paper);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-sm);
+}
+
+.nova-device__lock .nova-cta {
+  padding: 6px 14px;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+}
+
+.nova-device__lock .nova-cta:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.nova-device__refused {
+  margin: 9px 0 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--debit);
+}
+
+.nova-devices__services {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nova-devices__service {
+  border: 1px solid var(--hairline);
+  border-left: 3px solid var(--platform-accent);
+  background: var(--panel-alt);
+  padding: 12px 14px;
+}
+
+.nova-devices__servicetitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--body-ink);
+  margin-bottom: 6px;
+}
+
+.nova-devices__serviceline,
+.nova-devices__servicedone {
+  margin: 0 0 7px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--body-ink-soft);
+}
+
+.nova-devices__servicedone {
+  color: var(--credit);
+}
+
+/* The sentence that says the money is real. It is content, and it is not decoration. */
+.nova-devices__servicereal {
+  margin: 0 0 11px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--body-ink);
+  font-weight: 600;
+}
+
+.nova-devices__service .nova-cta {
+  padding: 7px 14px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  border-color: var(--control-border);
+  color: var(--body-ink);
+  background: var(--control-face);
+}
+
+.nova-devices__service .nova-cta:hover {
+  background: var(--paper);
+  color: var(--body-ink);
 }
 
 /* --------------------------------------------------------------- notes */
 
-.hal-notes {
+.nova-notes {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1298,7 +1308,7 @@
   background: #fffdf2;
 }
 
-.hal-notes__head {
+.nova-notes__head {
   flex: none;
   padding: 6px 10px;
   font-size: 9.5px;
@@ -1307,19 +1317,19 @@
   border-bottom: 1px solid #eae3c8;
 }
 
-.hal-notes__area:focus-visible,
-.hal-term__input:focus-visible,
-.hal-recall__input:focus-visible {
+.nova-notes__area:focus-visible,
+.nova-term__input:focus-visible,
+.nova-device__field input:focus-visible {
   outline: 1px solid var(--menubar-accent);
   outline-offset: -2px;
 }
 
-.hal-notes__area {
+.nova-notes__area {
   flex: 1;
   min-height: 0;
   border: none;
   outline: none;
-  /* The ring comes back on :focus-visible below — halcyon.css loads after tokens.css,
+  /* The ring comes back on :focus-visible below — nova.css loads after tokens.css,
      so a bare `outline: none` here would win and leave these three controls unmarked. */
   resize: none;
   background: transparent;
@@ -1332,7 +1342,7 @@
 
 /* ------------------------------------------------------------ terminal */
 
-.hal-term {
+.nova-term {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1340,7 +1350,7 @@
   background: #0d1013;
 }
 
-.hal-term__log {
+.nova-term__log {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -1351,27 +1361,27 @@
   color: #c2cdd4;
 }
 
-.hal-term__line {
+.nova-term__line {
   white-space: pre-wrap;
 }
 
-.hal-term__line--prompt {
+.nova-term__line--prompt {
   color: #6f9ab5;
 }
-.hal-term__line--out {
+.nova-term__line--out {
   color: #c2cdd4;
 }
-.hal-term__line--ok {
+.nova-term__line--ok {
   color: var(--conf-high);
 }
-.hal-term__line--err {
+.nova-term__line--err {
   color: var(--conf-fractured);
 }
-.hal-term__line--dim {
+.nova-term__line--dim {
   color: var(--ink-dim);
 }
 
-.hal-term__inputrow {
+.nova-term__inputrow {
   flex: none;
   display: flex;
   align-items: center;
@@ -1383,7 +1393,7 @@
   color: #6f9ab5;
 }
 
-.hal-term__input {
+.nova-term__input {
   flex: 1;
   min-width: 0;
   background: transparent;
@@ -1394,172 +1404,16 @@
   font-size: 11.5px;
 }
 
-/* -------------------------------------------------------------- recall */
-
-.hal-recall {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(180deg, #14181d, #0b0e11);
-}
-
-.hal-recall__head {
-  flex: none;
-  padding: 11px 14px;
-  border-bottom: 1px solid #262c33;
-}
-
-.hal-recall__label {
-  font-size: 9.5px;
-  letter-spacing: 0.16em;
-  color: var(--overlay-ink-dim);
-}
-
-.hal-recall__row {
-  display: flex;
-  gap: 6px;
-  margin-top: 9px;
-}
-
-.hal-recall__input {
-  flex: 1;
-  min-width: 0;
-  height: 24px;
-  background: #080a0c;
-  border: 1px solid #2c333a;
-  border-radius: 2px;
-  padding: 0 8px;
-  color: #dbe3e8;
-  font-size: 11.5px;
-  outline: none;
-}
-
-.hal-recall__btn {
-  height: 24px;
-  border: 1px solid #3d4a55;
-  background: linear-gradient(180deg, #2a323a, #1b2128);
-  color: #c6d2da;
-  font-size: 11px;
-  padding: 0 12px;
-  cursor: pointer;
-  border-radius: 2px;
-  flex: none;
-}
-
-.hal-recall__coherence {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.hal-recall__cohlabel {
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  color: var(--overlay-empty);
-}
-
-.hal-recall__bar {
-  flex: 1;
-  height: 3px;
-  background: #1d2329;
-  position: relative;
-  overflow: hidden;
-}
-
-.hal-recall__fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background: var(--integrity-good);
-}
-
-.hal-recall__fill--fair {
-  background: var(--integrity-fair);
-}
-.hal-recall__fill--bad {
-  background: var(--integrity-bad);
-}
-
-.hal-recall__cohvalue {
-  font-size: 10px;
-  color: #7d8b96;
-  font-variant-numeric: tabular-nums;
-}
-
-.hal-recall__list {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-}
-
-.hal-recall__item {
-  border-left: 2px solid var(--conf-none);
-  padding-left: 11px;
-}
-
-.hal-recall__item--good {
-  border-left-color: var(--conf-high);
-}
-.hal-recall__item--fair {
-  border-left-color: var(--conf-mid);
-}
-.hal-recall__item--bad {
-  border-left-color: var(--conf-fractured);
-}
-
-.hal-recall__q {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: var(--overlay-empty);
-}
-
-.hal-recall__text {
-  font-size: 12.5px;
-  line-height: 1.65;
-  color: #cfd8de;
-  margin: 5px 0 6px;
-  white-space: pre-wrap;
-}
-
-.hal-recall__conf {
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  color: var(--conf-none);
-}
-
-.hal-recall__item--good .hal-recall__conf {
-  color: var(--conf-high);
-}
-.hal-recall__item--fair .hal-recall__conf {
-  color: var(--conf-mid);
-}
-.hal-recall__item--bad .hal-recall__conf {
-  color: var(--conf-fractured);
-}
-
-.hal-recall__empty {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--overlay-prose);
-}
-
 /* --------------------------------------------------------------- phone */
 
-.hal-phone {
+.nova-phone {
   position: absolute;
   width: 296px;
   height: 552px;
   z-index: var(--z-phone);
 }
 
-.hal-phone__body {
+.nova-phone__body {
   height: 100%;
   background: linear-gradient(175deg, #2c3035, #14171a);
   border-radius: 22px;
@@ -1576,7 +1430,7 @@
   touch-action: none;
 }
 
-.hal-phone__device {
+.nova-phone__device {
   position: absolute;
   top: 11px;
   left: 0;
@@ -1587,7 +1441,7 @@
   color: #5f676e;
 }
 
-.hal-phone__screen {
+.nova-phone__screen {
   flex: 1;
   min-height: 0;
   background: #e9eaec;
@@ -1598,7 +1452,7 @@
   overflow: hidden;
 }
 
-.hal-phone__status {
+.nova-phone__status {
   flex: none;
   height: 19px;
   background: linear-gradient(180deg, #4d5b68, #334150);
@@ -1610,14 +1464,14 @@
   padding: 0 7px;
 }
 
-.hal-phone__tabs {
+.nova-phone__tabs {
   flex: none;
   display: flex;
   border-bottom: 1px solid #b9bcc0;
   background: #dcdee1;
 }
 
-.hal-phone__tab {
+.nova-phone__tab {
   appearance: none;
   flex: 1;
   border: none;
@@ -1630,36 +1484,36 @@
   color: #767c83;
 }
 
-.hal-phone__tab[aria-selected='true'] {
+.nova-phone__tab[aria-selected='true'] {
   background: #e9eaec;
   color: var(--body-ink);
 }
 
-.hal-phone__view {
+.nova-phone__view {
   flex: 1;
   min-height: 0;
   overflow: auto;
 }
 
-.hal-phone__view:focus {
+.nova-phone__view:focus {
   outline: none;
 }
 
-.hal-phone__sms {
+.nova-phone__sms {
   padding: 9px 9px 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.hal-phone__smswho {
+.nova-phone__smswho {
   font-size: 8.5px;
   color: #8b9098;
   letter-spacing: 0.06em;
   margin-bottom: 2px;
 }
 
-.hal-phone__smsbubble {
+.nova-phone__smsbubble {
   max-width: 90%;
   background: #fff;
   border: 1px solid #c6c9cd;
@@ -1670,7 +1524,7 @@
   color: var(--body-ink);
 }
 
-.hal-phone__smsactions {
+.nova-phone__smsactions {
   padding: 8px 9px;
   display: flex;
   flex-direction: column;
@@ -1678,7 +1532,7 @@
   border-top: 1px solid #c6c9cd;
 }
 
-.hal-phone__choice {
+.nova-phone__choice {
   appearance: none;
   text-align: left;
   border: 1px solid #a9adb3;
@@ -1690,31 +1544,31 @@
   cursor: pointer;
 }
 
-.hal-phone__choice:hover {
+.nova-phone__choice:hover {
   background: #fff;
   border-color: var(--control-focus);
 }
 
-.hal-phone__photos {
+.nova-phone__photos {
   padding: 9px;
   display: flex;
   flex-direction: column;
   gap: 9px;
 }
 
-.hal-phone__photo {
+.nova-phone__photo {
   border: 1px solid #b9bcc0;
   background: #fff;
 }
 
-.hal-phone__thumb {
+.nova-phone__thumb {
   position: relative;
   height: 78px;
   background: #c9ced4;
   overflow: hidden;
 }
 
-.hal-phone__frame {
+.nova-phone__frame {
   display: block;
   width: 100%;
   height: 78px;
@@ -1722,7 +1576,7 @@
 
 /* The camera burned the filename into the corner, the way they did. A scrim keeps it
    legible over a bright frame without lighting up a dark one. */
-.hal-phone__thumb::after {
+.nova-phone__thumb::after {
   content: '';
   position: absolute;
   left: 0;
@@ -1733,7 +1587,7 @@
   pointer-events: none;
 }
 
-.hal-phone__stamp {
+.nova-phone__stamp {
   position: absolute;
   right: 5px;
   bottom: 4px;
@@ -1744,22 +1598,22 @@
   z-index: 1;
 }
 
-.hal-phone__photometa {
+.nova-phone__photometa {
   padding: 6px 7px;
   font-size: 9.5px;
   color: #5f676e;
   line-height: 1.5;
 }
 
-.hal-phone__photopin {
+.nova-phone__photopin {
   padding: 0 7px 7px;
 }
 
-.hal-phone__contacts {
+.nova-phone__contacts {
   padding: 4px 0;
 }
 
-.hal-phone__contact {
+.nova-phone__contact {
   padding: 7px 10px;
   border-bottom: 1px solid #d6d9dd;
   font-size: 11px;
@@ -1769,12 +1623,12 @@
   gap: 8px;
 }
 
-.hal-phone__contact span:last-child {
+.nova-phone__contact span:last-child {
   color: #8b9098;
   font-size: 10px;
 }
 
-.hal-phone__foot {
+.nova-phone__foot {
   flex: none;
   height: 26px;
   display: flex;
@@ -1783,7 +1637,7 @@
   margin-top: 8px;
 }
 
-.hal-phone__home {
+.nova-phone__home {
   width: 34px;
   height: 14px;
   border-radius: 8px;
@@ -1795,7 +1649,7 @@
 
 /* ------------------------------------------------------- evidence tray */
 
-.hal-traytab {
+.nova-traytab {
   position: absolute;
   top: 50%;
   right: 0;
@@ -1814,7 +1668,7 @@
   box-shadow: -4px 0 14px rgba(0, 0, 0, 0.4);
 }
 
-.hal-tray {
+.nova-tray {
   position: absolute;
   top: var(--menubar-height);
   bottom: 0;
@@ -1829,7 +1683,7 @@
   backdrop-filter: blur(8px);
 }
 
-.hal-tray__head {
+.nova-tray__head {
   flex: none;
   padding: 12px 14px;
   display: flex;
@@ -1838,13 +1692,13 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.09);
 }
 
-.hal-tray__title {
+.nova-tray__title {
   font-size: 9.5px;
   letter-spacing: 0.16em;
   color: var(--overlay-ink);
 }
 
-.hal-tray__close {
+.nova-tray__close {
   appearance: none;
   background: none;
   border: none;
@@ -1855,7 +1709,7 @@
   padding: 0 2px;
 }
 
-.hal-tray__list {
+.nova-tray__list {
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -1865,7 +1719,7 @@
   gap: 9px;
 }
 
-.hal-evcard {
+.nova-evcard {
   border: 1px solid rgba(255, 255, 255, 0.13);
   background: rgba(255, 255, 255, 0.045);
   padding: 9px 10px;
@@ -1874,18 +1728,18 @@
   display: block;
 }
 
-.hal-evcard__src {
+.nova-evcard__src {
   display: block;
   font-size: 9px;
   letter-spacing: 0.12em;
   color: #7f8f9b;
 }
 
-.hal-evcard__day {
+.nova-evcard__day {
   color: #c0a87a;
 }
 
-.hal-evcard__text {
+.nova-evcard__text {
   display: block;
   font-size: 11.5px;
   line-height: 1.55;
@@ -1893,7 +1747,7 @@
   margin-top: 4px;
 }
 
-.hal-evcard__tags {
+.nova-evcard__tags {
   display: block;
   margin-top: 6px;
   font-size: 8.5px;
@@ -1901,19 +1755,19 @@
   color: #6d7c88;
 }
 
-.hal-tray__empty {
+.nova-tray__empty {
   font-size: 11.5px;
   line-height: 1.7;
   color: var(--overlay-prose);
 }
 
-.hal-tray__foot {
+.nova-tray__foot {
   flex: none;
   padding: 11px 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
 }
 
-.hal-tray__board {
+.nova-tray__board {
   width: 100%;
   appearance: none;
   border: 1px solid #3d4a55;
@@ -1926,14 +1780,14 @@
   border-radius: 2px;
 }
 
-.hal-tray__board:hover {
+.nova-tray__board:hover {
   border-color: #6f9ab5;
   color: #fff;
 }
 
 /* --------------------------------------------------- investigation board */
 
-.hal-board {
+.nova-board {
   position: absolute;
   inset: var(--menubar-height) 0 0 0;
   z-index: var(--z-board);
@@ -1946,7 +1800,7 @@
   animation: fadein 0.2s both;
 }
 
-.hal-board__panel {
+.nova-board__panel {
   width: min(860px, 100%);
   max-height: 100%;
   display: flex;
@@ -1956,7 +1810,7 @@
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7);
 }
 
-.hal-board__head {
+.nova-board__head {
   flex: none;
   display: flex;
   justify-content: space-between;
@@ -1965,13 +1819,13 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.hal-board__title {
+.nova-board__title {
   font-size: 10px;
   letter-spacing: 0.18em;
   color: var(--overlay-ink);
 }
 
-.hal-board__close {
+.nova-board__close {
   appearance: none;
   background: none;
   border: none;
@@ -1982,21 +1836,21 @@
   padding: 0 2px;
 }
 
-.hal-board__cols {
+.nova-board__cols {
   flex: 1;
   min-height: 0;
   display: flex;
   overflow: hidden;
 }
 
-.hal-board__left {
+.nova-board__left {
   width: 50%;
   border-right: 1px solid rgba(255, 255, 255, 0.09);
   overflow: auto;
   padding: 14px 15px;
 }
 
-.hal-board__right {
+.nova-board__right {
   width: 50%;
   overflow: auto;
   padding: 14px 15px;
@@ -2005,30 +1859,30 @@
   gap: 9px;
 }
 
-.hal-board__label {
+.nova-board__label {
   font-size: 9.5px;
   letter-spacing: 0.14em;
   color: var(--overlay-ink-dim);
   margin-bottom: 10px;
 }
 
-.hal-board__stack {
+.nova-board__stack {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.hal-evcard--pick {
+.nova-evcard--pick {
   cursor: pointer;
   appearance: none;
 }
 
-.hal-evcard--pick[aria-pressed='true'] {
+.nova-evcard--pick[aria-pressed='true'] {
   border-color: var(--menubar-accent);
   background: rgba(127, 166, 196, 0.14);
 }
 
-.hal-evcard__check:not(:empty) {
+.nova-evcard__check:not(:empty) {
   display: block;
   margin-top: 5px;
   font-size: 9px;
@@ -2036,7 +1890,7 @@
   color: var(--menubar-accent);
 }
 
-.hal-board__claim {
+.nova-board__claim {
   border: 1px solid rgba(255, 255, 255, 0.13);
   background: transparent;
   padding: 10px 11px;
@@ -2048,12 +1902,12 @@
   width: 100%;
 }
 
-.hal-board__claim[aria-pressed='true'] {
+.nova-board__claim[aria-pressed='true'] {
   border-color: var(--menubar-accent);
   background: rgba(127, 166, 196, 0.14);
 }
 
-.hal-board__submit {
+.nova-board__submit {
   margin-top: 5px;
   appearance: none;
   border: 1px solid #4b5b68;
@@ -2065,17 +1919,17 @@
   cursor: pointer;
 }
 
-.hal-board__submit:hover:not(:disabled) {
+.nova-board__submit:hover:not(:disabled) {
   border-color: var(--menubar-accent);
   color: #fff;
 }
 
-.hal-board__submit:disabled {
+.nova-board__submit:disabled {
   opacity: 0.5;
   cursor: default;
 }
 
-.hal-board__verdict {
+.nova-board__verdict {
   margin-top: 6px;
   border: 1px solid #7a4a42;
   background: rgba(122, 74, 66, 0.16);
@@ -2085,13 +1939,13 @@
   color: #e8bfb7;
 }
 
-.hal-board__verdict--accepted {
+.nova-board__verdict--accepted {
   border-color: #4a7a5a;
   background: rgba(74, 122, 90, 0.16);
   color: #bfe0c9;
 }
 
-.hal-board__verdictkind {
+.nova-board__verdictkind {
   display: block;
   font-size: 9px;
   letter-spacing: 0.16em;
@@ -2099,20 +1953,20 @@
   opacity: 0.85;
 }
 
-.hal-board__log {
+.nova-board__log {
   margin-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
   padding-top: 9px;
 }
 
-.hal-board__loglabel {
+.nova-board__loglabel {
   font-size: 9px;
   letter-spacing: 0.14em;
   color: var(--overlay-ink-dim);
   margin-bottom: 6px;
 }
 
-.hal-board__logitem {
+.nova-board__logitem {
   font-size: 10.5px;
   line-height: 1.6;
   color: #7e8b95;
@@ -2125,7 +1979,7 @@
  * column: hard edges, one monospace measure, and no affordance that had not been invented yet.
  */
 
-.hal-relay {
+.nova-relay {
   position: absolute;
   inset: var(--menubar-height) 0 0 0;
   z-index: var(--z-board);
@@ -2139,7 +1993,7 @@
   animation: fadein 0.2s both;
 }
 
-.hal-relay__panel {
+.nova-relay__panel {
   width: min(760px, 100%);
   max-height: 100%;
   display: flex;
@@ -2153,7 +2007,7 @@
   color: #c2cdd4;
 }
 
-.hal-relay__head {
+.nova-relay__head {
   flex: none;
   display: flex;
   align-items: baseline;
@@ -2162,11 +2016,11 @@
   border-bottom: 1px solid #22282d;
 }
 
-.hal-relay__title {
+.nova-relay__title {
   color: #6f9ab5;
 }
 
-.hal-relay__sub {
+.nova-relay__sub {
   flex: 1;
   min-width: 0;
   color: var(--ink-dimmer);
@@ -2176,7 +2030,7 @@
   white-space: nowrap;
 }
 
-.hal-relay__close {
+.nova-relay__close {
   appearance: none;
   background: none;
   border: none;
@@ -2187,7 +2041,7 @@
   cursor: pointer;
 }
 
-.hal-relay__send {
+.nova-relay__send {
   flex: none;
   display: flex;
   align-items: center;
@@ -2196,13 +2050,13 @@
   border-bottom: 1px solid #22282d;
 }
 
-.hal-relay__label {
+.nova-relay__label {
   color: #6f9ab5;
   font-size: 10.5px;
   letter-spacing: 0.04em;
 }
 
-.hal-relay__input {
+.nova-relay__input {
   flex: 1;
   min-width: 0;
   background: transparent;
@@ -2213,12 +2067,12 @@
   font-size: 11.5px;
 }
 
-.hal-relay__input:focus-visible {
+.nova-relay__input:focus-visible {
   outline: 1px solid var(--menubar-accent);
   outline-offset: -2px;
 }
 
-.hal-relay__go {
+.nova-relay__go {
   appearance: none;
   border: 1px solid #3c4750;
   background: #171c21;
@@ -2230,21 +2084,21 @@
   cursor: pointer;
 }
 
-.hal-relay__go:hover[aria-disabled='false'] {
+.nova-relay__go:hover[aria-disabled='false'] {
   border-color: var(--menubar-accent);
   color: #fff;
 }
 
 /* aria-disabled rather than disabled, so the control never drops a keyboard player to <body>. */
-.hal-relay__go[aria-disabled='true'],
-.hal-relay__row[aria-disabled='true'],
-.hal-relay__link[aria-disabled='true'],
-.hal-relay__keep[aria-disabled='true'] {
+.nova-relay__go[aria-disabled='true'],
+.nova-relay__row[aria-disabled='true'],
+.nova-relay__link[aria-disabled='true'],
+.nova-relay__keep[aria-disabled='true'] {
   opacity: 0.45;
   cursor: default;
 }
 
-.hal-relay__meter {
+.nova-relay__meter {
   flex: none;
   display: flex;
   gap: 12px;
@@ -2253,32 +2107,32 @@
   font-size: 10.5px;
 }
 
-.hal-relay__signal {
+.nova-relay__signal {
   flex: none;
   color: var(--ink-dimmer);
 }
 
-.hal-relay__say {
+.nova-relay__say {
   flex: 1;
   min-width: 0;
   color: var(--conf-mid);
 }
 
-.hal-relay__out {
+.nova-relay__out {
   flex: 1;
   min-height: 0;
   overflow: auto;
   padding: 13px;
 }
 
-.hal-relay__notice {
+.nova-relay__notice {
   border: 1px solid #3a3330;
   border-left: 3px solid #7a4a42;
   padding: 13px 15px;
   max-width: 60ch;
 }
 
-.hal-relay__noticetitle {
+.nova-relay__noticetitle {
   margin: 0 0 8px;
   font-family: var(--font-terminal);
   font-size: 12px;
@@ -2288,19 +2142,19 @@
   color: #e2887a;
 }
 
-.hal-relay__noticebody {
+.nova-relay__noticebody {
   margin: 0;
   color: var(--overlay-prose);
   line-height: 1.85;
 }
 
-.hal-relay__empty {
+.nova-relay__empty {
   margin: 0;
   color: var(--overlay-empty);
   max-width: 60ch;
 }
 
-.hal-relay__rows {
+.nova-relay__rows {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -2309,7 +2163,7 @@
   border: 1px solid #22282d;
 }
 
-.hal-relay__row {
+.nova-relay__row {
   appearance: none;
   display: block;
   width: 100%;
@@ -2323,23 +2177,23 @@
   color: #c2cdd4;
 }
 
-.hal-relay__row:hover[aria-disabled='false'] {
+.nova-relay__row:hover[aria-disabled='false'] {
   background: #171e24;
 }
 
-.hal-relay__rowtitle {
+.nova-relay__rowtitle {
   display: block;
   color: #dfe7ec;
 }
 
-.hal-relay__rowurl {
+.nova-relay__rowurl {
   display: block;
   color: #6f9ab5;
   font-size: 10.5px;
   word-break: break-all;
 }
 
-.hal-relay__rowsnip {
+.nova-relay__rowsnip {
   display: block;
   margin-top: 4px;
   color: var(--ink-dim);
@@ -2347,7 +2201,7 @@
   line-height: 1.6;
 }
 
-.hal-relay__rowcost:not(:empty) {
+.nova-relay__rowcost:not(:empty) {
   display: block;
   margin-top: 5px;
   color: var(--ink-dimmer);
@@ -2355,14 +2209,14 @@
   letter-spacing: 0.08em;
 }
 
-.hal-relay__docbar {
+.nova-relay__docbar {
   display: flex;
   gap: 8px;
   margin-bottom: 11px;
 }
 
-.hal-relay__back,
-.hal-relay__keep {
+.nova-relay__back,
+.nova-relay__keep {
   appearance: none;
   border: 1px solid #3c4750;
   background: #171c21;
@@ -2374,13 +2228,13 @@
   cursor: pointer;
 }
 
-.hal-relay__back:hover,
-.hal-relay__keep:hover[aria-disabled='false'] {
+.nova-relay__back:hover,
+.nova-relay__keep:hover[aria-disabled='false'] {
   border-color: var(--menubar-accent);
   color: #fff;
 }
 
-.hal-relay__doctitle {
+.nova-relay__doctitle {
   margin: 0;
   font-family: var(--font-terminal);
   font-size: 13px;
@@ -2388,58 +2242,58 @@
   color: #dfe7ec;
 }
 
-.hal-relay__docurl {
+.nova-relay__docurl {
   color: #6f9ab5;
   font-size: 10.5px;
   word-break: break-all;
   margin-bottom: 12px;
 }
 
-.hal-relay__blocks {
+.nova-relay__blocks {
   border-top: 1px solid #22282d;
   border-bottom: 1px solid #22282d;
   padding: 12px 0;
   max-width: 74ch;
 }
 
-.hal-relay__h {
+.nova-relay__h {
   margin: 16px 0 6px;
   font-family: var(--font-terminal);
   font-weight: 400;
   color: #dfe7ec;
 }
 
-h3.hal-relay__h {
+h3.nova-relay__h {
   font-size: 12.5px;
 }
-h4.hal-relay__h {
+h4.nova-relay__h {
   font-size: 11.5px;
   letter-spacing: 0.06em;
 }
-h5.hal-relay__h {
+h5.nova-relay__h {
   font-size: 11px;
   color: #a9b6bf;
 }
 
-.hal-relay__p {
+.nova-relay__p {
   margin: 0 0 10px;
   line-height: 1.85;
 }
 
-.hal-relay__quote {
+.nova-relay__quote {
   margin: 0 0 10px;
   padding-left: 11px;
   border-left: 2px solid #3c4750;
   color: var(--ink-dim);
 }
 
-.hal-relay__list {
+.nova-relay__list {
   margin: 0 0 10px;
   padding-left: 18px;
   line-height: 1.85;
 }
 
-.hal-relay__code {
+.nova-relay__code {
   margin: 0 0 10px;
   padding: 9px 11px;
   background: #080b0e;
@@ -2451,34 +2305,34 @@ h5.hal-relay__h {
   white-space: pre-wrap;
 }
 
-.hal-relay__rule {
+.nova-relay__rule {
   border: none;
   border-top: 1px solid #22282d;
   margin: 14px 0;
 }
 
-.hal-relay__captured {
+.nova-relay__captured {
   margin-top: 10px;
   color: var(--ink-dimmer);
   font-size: 10.5px;
   letter-spacing: 0.04em;
 }
 
-.hal-relay__hint {
+.nova-relay__hint {
   margin: 4px 0 0;
   color: var(--overlay-empty);
   font-size: 10.5px;
   max-width: 62ch;
 }
 
-.hal-relay__kept,
-.hal-relay__links {
+.nova-relay__kept,
+.nova-relay__links {
   margin-top: 14px;
   border-top: 1px solid #22282d;
   padding-top: 10px;
 }
 
-.hal-relay__keptline {
+.nova-relay__keptline {
   color: var(--conf-high);
   font-size: 10.5px;
   line-height: 1.7;
@@ -2486,7 +2340,7 @@ h5.hal-relay__h {
   max-width: 70ch;
 }
 
-.hal-relay__link {
+.nova-relay__link {
   display: block;
   appearance: none;
   background: none;
@@ -2500,13 +2354,13 @@ h5.hal-relay__h {
   word-break: break-all;
 }
 
-.hal-relay__link:hover[aria-disabled='false'] {
+.nova-relay__link:hover[aria-disabled='false'] {
   color: #a9c9de;
 }
 
 /* ---------------------------------------------------------------- dock */
 
-.hal-dock {
+.nova-dock {
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -2527,11 +2381,11 @@ h5.hal-relay__h {
   scrollbar-width: none;
 }
 
-.hal-dock::-webkit-scrollbar {
+.nova-dock::-webkit-scrollbar {
   display: none;
 }
 
-.hal-dockitem {
+.nova-dockitem {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2545,7 +2399,7 @@ h5.hal-relay__h {
   padding: 0;
 }
 
-.hal-dockitem__icon {
+.nova-dockitem__icon {
   width: 38px;
   height: 38px;
   border-radius: 8px;
@@ -2561,32 +2415,32 @@ h5.hal-relay__h {
   transition: transform 0.14s ease;
 }
 
-.hal-dockitem:hover .hal-dockitem__icon,
-.hal-dockitem:focus-visible .hal-dockitem__icon {
+.nova-dockitem:hover .nova-dockitem__icon,
+.nova-dockitem:focus-visible .nova-dockitem__icon {
   transform: translateY(-3px);
 }
 
-.hal-dockitem__dot {
+.nova-dockitem__dot {
   width: 3px;
   height: 3px;
   border-radius: 50%;
   background: transparent;
 }
 
-.hal-dockitem[data-open='true'] .hal-dockitem__dot {
+.nova-dockitem[data-open='true'] .nova-dockitem__dot {
   background: #9fc6e2;
 }
 
 /* --------------------------------------------------------- surveillance */
 
-.hal-watched {
+.nova-watched {
   position: absolute;
   inset: 0;
   z-index: var(--z-watched);
   pointer-events: none;
 }
 
-.hal-watched__glow {
+.nova-watched__glow {
   position: absolute;
   top: 0;
   left: 50%;
@@ -2596,7 +2450,7 @@ h5.hal-relay__h {
   background: radial-gradient(60% 100% at 50% 0%, rgba(190, 215, 235, 0.13), transparent 72%);
 }
 
-.hal-watched__dot {
+.nova-watched__dot {
   position: absolute;
   top: 16px;
   left: 50%;
@@ -2609,7 +2463,7 @@ h5.hal-relay__h {
   animation: glowpulse 2.4s ease-in-out infinite;
 }
 
-.hal-watched__lens {
+.nova-watched__lens {
   position: absolute;
   top: 34px;
   left: 50%;
@@ -2622,10 +2476,10 @@ h5.hal-relay__h {
 
 /* ------------------------------------------------------------- day card */
 
-.hal-daycard {
+.nova-daycard {
   position: absolute;
   inset: 0;
-  z-index: var(--z-daycard);
+  z-index: var(--z-reportcard);
   background: rgba(4, 6, 7, 0.94);
   display: flex;
   align-items: center;
@@ -2636,7 +2490,7 @@ h5.hal-relay__h {
   overflow: auto;
 }
 
-.hal-daycard__inner {
+.nova-daycard__inner {
   width: min(560px, 100%);
   display: flex;
   flex-direction: column;
@@ -2644,14 +2498,14 @@ h5.hal-relay__h {
   animation: riseup 0.8s 0.2s both;
 }
 
-.hal-daycard__ts {
+.nova-daycard__ts {
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.22em;
   color: #7b848b;
 }
 
-.hal-daycard__title {
+.nova-daycard__title {
   font-size: clamp(30px, 4.6vw, 52px);
   font-weight: 800;
   letter-spacing: -0.02em;
@@ -2661,7 +2515,7 @@ h5.hal-relay__h {
   white-space: pre-line;
 }
 
-.hal-daycard__stats {
+.nova-daycard__stats {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -2671,15 +2525,15 @@ h5.hal-relay__h {
   line-height: 1.7;
 }
 
-.hal-daycard__stats .shifted {
+.nova-daycard__stats .shifted {
   color: #c0a87a;
 }
 
-.hal-daycard__stats .watched {
+.nova-daycard__stats .watched {
   color: var(--ink);
 }
 
-.hal-daycard__deeds {
+.nova-daycard__deeds {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -2691,38 +2545,38 @@ h5.hal-relay__h {
   color: #a2adb5;
 }
 
-.hal-daycard__rule {
+.nova-daycard__rule {
   height: 1px;
   background: rgba(255, 255, 255, 0.12);
 }
 
-.hal-daycard__block {
+.nova-daycard__block {
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.hal-daycard__headline {
+.nova-daycard__headline {
   font-size: 19px;
   font-weight: 600;
   color: #dfe3e6;
   letter-spacing: -0.01em;
 }
 
-.hal-daycard__body {
+.nova-daycard__body {
   font-family: var(--font-mono);
   font-size: 11.5px;
   color: var(--ink-dim);
   line-height: 1.7;
 }
 
-.hal-daycard__ctas {
+.nova-daycard__ctas {
   display: flex;
   gap: 11px;
   flex-wrap: wrap;
 }
 
-.hal-daycard__price {
+.nova-daycard__price {
   font-family: var(--font-mono);
   font-size: 10.5px;
   color: #7b848b;
@@ -2731,78 +2585,78 @@ h5.hal-relay__h {
 
 /* --------------------------------------------------------------- mobile */
 
-.hal-taskswitcher {
+.nova-taskswitcher {
   display: none;
 }
 
 @media (max-width: 860px), (pointer: coarse) and (max-width: 1024px) {
   /* The menu bar keeps the two things that matter on a small screen: what day it is and
      whether it can be ended. The Apple-style menus and the front-window title go. */
-  .hal-menubar {
+  .nova-menubar {
     gap: 10px;
   }
 
-  .hal-menubar__menu,
-  .hal-menubar__front {
+  .nova-menubar__menu,
+  .nova-menubar__front {
     display: none;
   }
 
-  .hal-icons {
+  .nova-icons {
     top: 34px;
     left: 14px;
   }
 
   /* One foregrounded app at a time. The desktop is never miniaturised. */
-  .hal-window {
+  .nova-window {
     inset: var(--menubar-height) 0 76px 0 !important;
     width: auto !important;
     height: auto !important;
     transform: none !important;
   }
 
-  .hal-window:not(.hal-window--front) {
+  .nova-window:not(.nova-window--front) {
     display: none;
   }
 
-  .hal-window__chrome {
+  .nova-window__chrome {
     border-radius: 0;
     border-left: none;
     border-right: none;
   }
 
-  .hal-window__body {
+  .nova-window__body {
     flex-direction: column;
   }
 
-  .hal-mail__list,
-  .hal-files__list {
+  .nova-mail__list,
+  .nova-files__list {
     width: auto;
     max-height: 34%;
     border-right: none;
     border-bottom: 1px solid var(--hairline);
   }
 
-  .hal-files__places {
+  .nova-files__places {
     display: none;
   }
 
   /* The dock sits at z-index 8800, above both of these. Reserving its strip is not cosmetic:
      the home button and OPEN BOARD are the only ways out of these two surfaces, and a dock
      item was intercepting the tap. */
-  .hal-phone {
+  .nova-phone {
     inset: var(--menubar-height) 0 76px 0 !important;
     width: auto !important;
     height: auto !important;
     transform: none !important;
   }
 
-  .hal-phone__body {
+  .nova-phone__body {
     border-radius: 0;
     padding: 20px 10px 26px;
   }
 
   /* The tray becomes a bottom sheet. */
-  .hal-tray {
+  .nova-tray {
     top: auto;
     left: 0;
     right: 0;
@@ -2813,7 +2667,7 @@ h5.hal-relay__h {
     bottom: 76px;
   }
 
-  .hal-traytab {
+  .nova-traytab {
     top: auto;
     bottom: 84px;
     writing-mode: horizontal-tb;
@@ -2821,58 +2675,58 @@ h5.hal-relay__h {
     padding: 8px 12px;
   }
 
-  .hal-board {
+  .nova-board {
     padding: 0;
     inset: var(--menubar-height) 0 0 0;
   }
 
-  .hal-board__panel {
+  .nova-board__panel {
     width: 100%;
     height: 100%;
     max-height: none;
   }
 
-  .hal-board__cols {
+  .nova-board__cols {
     flex-direction: column;
   }
 
-  .hal-board__left,
-  .hal-board__right {
+  .nova-board__left,
+  .nova-board__right {
     width: 100%;
     border-right: none;
   }
 
-  .hal-board__left {
+  .nova-board__left {
     border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   }
 
-  .hal-relay {
+  .nova-relay {
     padding: 0;
     inset: var(--menubar-height) 0 0 0;
   }
 
-  .hal-relay__panel {
+  .nova-relay__panel {
     width: 100%;
     height: 100%;
     max-height: none;
   }
 
-  .hal-relay__head {
+  .nova-relay__head {
     flex-wrap: wrap;
   }
 
-  .hal-relay__sub {
+  .nova-relay__sub {
     order: 3;
     flex-basis: 100%;
     white-space: normal;
   }
 
   /* Full height on a phone, so the dock is over the panel rather than beside it. */
-  .hal-relay__out {
+  .nova-relay__out {
     padding-bottom: 82px;
   }
 
-  .hal-dock {
+  .nova-dock {
     left: 0;
     right: 0;
     transform: none;
@@ -2884,7 +2738,7 @@ h5.hal-relay__h {
 
 /* The blink keyframe ends at opacity 0, so freezing it would delete the caret entirely. */
 @media (prefers-reduced-motion: reduce) {
-  .hal-boot__cursor {
+  .nova-boot__cursor {
     animation: none;
     opacity: 1;
   }
@@ -2894,11 +2748,11 @@ h5.hal-relay__h {
 
 /*
  * A Find window, not a command palette. It sits in the same chrome as every other window in
- * HALCYON — hard edges, a real titlebar, the period greys — because a translucent rounded card
+ * NOVA — hard edges, a real titlebar, the period greys — because a translucent rounded card
  * floating in a blur is 2020, and this machine is not.
  */
 
-.hal-search {
+.nova-search {
   position: absolute;
   inset: var(--menubar-height) 0 0 0;
   z-index: var(--z-board);
@@ -2910,7 +2764,7 @@ h5.hal-relay__h {
   animation: fadein 0.14s both;
 }
 
-.hal-search__panel {
+.nova-search__panel {
   width: min(680px, 100%);
   max-height: 100%;
   display: flex;
@@ -2922,7 +2776,7 @@ h5.hal-relay__h {
   overflow: hidden;
 }
 
-.hal-search__bar {
+.nova-search__bar {
   height: var(--titlebar-height);
   flex: none;
   display: flex;
@@ -2935,7 +2789,7 @@ h5.hal-relay__h {
   user-select: none;
 }
 
-.hal-search__title {
+.nova-search__title {
   flex: 1;
   text-align: center;
   font-size: 11.5px;
@@ -2945,7 +2799,7 @@ h5.hal-relay__h {
   padding-left: 18px;
 }
 
-.hal-search__close {
+.nova-search__close {
   appearance: none;
   width: 11px;
   height: 11px;
@@ -2959,7 +2813,7 @@ h5.hal-relay__h {
   font-size: 0;
 }
 
-.hal-search__field {
+.nova-search__field {
   flex: none;
   display: flex;
   align-items: center;
@@ -2969,13 +2823,13 @@ h5.hal-relay__h {
   border-bottom: 1px solid #a9a9a2;
 }
 
-.hal-search__label {
+.nova-search__label {
   font-size: 11.5px;
   color: var(--body-ink-soft);
   flex: none;
 }
 
-.hal-search__input {
+.nova-search__input {
   flex: 1;
   min-width: 0;
   height: 21px;
@@ -2987,7 +2841,7 @@ h5.hal-relay__h {
   color: var(--titlebar-front-ink);
 }
 
-.hal-search__only {
+.nova-search__only {
   flex: none;
   display: flex;
   align-items: center;
@@ -2997,14 +2851,14 @@ h5.hal-relay__h {
   white-space: nowrap;
 }
 
-.hal-search__cols {
+.nova-search__cols {
   flex: 1;
   min-height: 0;
   display: flex;
   overflow: hidden;
 }
 
-.hal-search__filters {
+.nova-search__filters {
   width: 132px;
   flex: none;
   background: linear-gradient(180deg, #e2e6ea, #d3d8dd);
@@ -3013,7 +2867,7 @@ h5.hal-relay__h {
   overflow: auto;
 }
 
-.hal-search__filter {
+.nova-search__filter {
   appearance: none;
   display: flex;
   justify-content: space-between;
@@ -3028,23 +2882,23 @@ h5.hal-relay__h {
   text-align: left;
 }
 
-.hal-search__filter[aria-pressed='true'] {
+.nova-search__filter[aria-pressed='true'] {
   background: #8fa8bd;
   color: #fff;
 }
 
-.hal-search__filter:disabled {
+.nova-search__filter:disabled {
   opacity: 0.35;
   cursor: default;
 }
 
-.hal-search__filtercount {
+.nova-search__filtercount {
   font-variant-numeric: tabular-nums;
   color: inherit;
   opacity: 0.75;
 }
 
-.hal-search__resultpane {
+.nova-search__resultpane {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -3052,30 +2906,30 @@ h5.hal-relay__h {
   background: var(--paper);
 }
 
-.hal-search__results {
+.nova-search__results {
   flex: 1;
   min-height: 0;
   overflow: auto;
 }
 
-.hal-search__hit {
+.nova-search__hit {
   display: block;
   padding: 7px 11px;
   border-bottom: 1px solid #eee;
   cursor: pointer;
 }
 
-.hal-search__hit[aria-selected='true'] {
+.nova-search__hit[aria-selected='true'] {
   background: var(--selected);
 }
 
-.hal-search__hittop {
+.nova-search__hittop {
   display: flex;
   justify-content: space-between;
   gap: 10px;
 }
 
-.hal-search__hittitle {
+.nova-search__hittitle {
   font-size: 11.5px;
   color: var(--titlebar-front-ink);
   white-space: nowrap;
@@ -3083,7 +2937,7 @@ h5.hal-relay__h {
   text-overflow: ellipsis;
 }
 
-.hal-search__hitsurface {
+.nova-search__hitsurface {
   flex: none;
   font-size: 9px;
   letter-spacing: 0.1em;
@@ -3091,21 +2945,21 @@ h5.hal-relay__h {
   color: var(--label);
 }
 
-.hal-search__hitdetail {
+.nova-search__hitdetail {
   display: block;
   font-size: 10.5px;
   color: #79808a;
   margin-top: 2px;
 }
 
-.hal-search__empty {
+.nova-search__empty {
   padding: 18px 14px;
   font-size: 11.5px;
   line-height: 1.7;
   color: #6b727c;
 }
 
-.hal-search__foot {
+.nova-search__foot {
   flex: none;
   display: flex;
   justify-content: space-between;
@@ -3119,7 +2973,7 @@ h5.hal-relay__h {
 
 /* ---------------------------------------------------------------- directory */
 
-.hal-dir__list {
+.nova-dir__list {
   width: 190px;
   flex: none;
   border-right: 1px solid var(--hairline);
@@ -3127,14 +2981,14 @@ h5.hal-relay__h {
   overflow: auto;
 }
 
-.hal-dir__grouphead {
+.nova-dir__grouphead {
   padding: 7px 12px 3px;
   font-size: 9.5px;
   letter-spacing: 0.12em;
   color: var(--label);
 }
 
-.hal-dir__row {
+.nova-dir__row {
   display: block;
   width: 100%;
   text-align: left;
@@ -3148,11 +3002,11 @@ h5.hal-relay__h {
   cursor: pointer;
 }
 
-.hal-dir__row[aria-selected='true'] {
+.nova-dir__row[aria-selected='true'] {
   background: var(--selected);
 }
 
-.hal-dir__page {
+.nova-dir__page {
   flex: 1;
   min-width: 0;
   overflow: auto;
@@ -3160,14 +3014,14 @@ h5.hal-relay__h {
   padding: 16px 20px;
 }
 
-.hal-dir__empty {
+.nova-dir__empty {
   padding: 16px 20px;
   font-size: 11.5px;
   line-height: 1.7;
   color: #6b727c;
 }
 
-.hal-dir__name {
+.nova-dir__name {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
@@ -3175,7 +3029,7 @@ h5.hal-relay__h {
   letter-spacing: -0.01em;
 }
 
-.hal-dir__type {
+.nova-dir__type {
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -3183,64 +3037,64 @@ h5.hal-relay__h {
   margin-top: 2px;
 }
 
-.hal-dir__aliases {
+.nova-dir__aliases {
   font-size: 11px;
   color: #6b727c;
   margin-top: 6px;
 }
 
-.hal-dir__section {
+.nova-dir__section {
   margin-top: 18px;
   border-top: 1px solid var(--hairline-soft);
   padding-top: 11px;
 }
 
-.hal-dir__sectionhead {
+.nova-dir__sectionhead {
   font-size: 9.5px;
   letter-spacing: 0.14em;
   color: var(--label);
   margin-bottom: 8px;
 }
 
-.hal-dir__counts {
+.nova-dir__counts {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 18px;
   margin: 0;
 }
 
-.hal-dir__count {
+.nova-dir__count {
   display: flex;
   align-items: baseline;
   gap: 6px;
 }
 
-.hal-dir__count dt {
+.nova-dir__count dt {
   font-size: 11.5px;
   color: var(--body-ink);
 }
 
-.hal-dir__count dd {
+.nova-dir__count dd {
   margin: 0;
   font-size: 11.5px;
   font-variant-numeric: tabular-nums;
   color: var(--body-ink-soft);
 }
 
-.hal-dir__gap {
+.nova-dir__gap {
   margin: 10px 0 0;
   font-size: 11.5px;
   color: #6b727c;
 }
 
-.hal-dir__span,
-.hal-dir__none {
+.nova-dir__span,
+.nova-dir__none {
   margin: 4px 0 0;
   font-size: 11px;
   color: #79808a;
 }
 
-.hal-dir__facts {
+.nova-dir__facts {
   margin: 0;
   padding-left: 16px;
   font-size: 11.5px;
@@ -3252,13 +3106,13 @@ h5.hal-relay__h {
    No red, no warning triangle, no "SUSPICIOUS" — the machine is not smart enough to know which
    one is lying and would be lying itself if it implied otherwise. It rules a line and puts them
    on either side of it, the way a case file does. */
-.hal-dir__conflicts {
+.nova-dir__conflicts {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.hal-dir__conflict {
+.nova-dir__conflict {
   display: grid;
   grid-template-columns: 1fr 14px 1fr;
   align-items: start;
@@ -3269,13 +3123,13 @@ h5.hal-relay__h {
   margin-bottom: 6px;
 }
 
-.hal-dir__conflictside {
+.nova-dir__conflictside {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.hal-dir__conflicttitle {
+.nova-dir__conflicttitle {
   font-size: 11.5px;
   color: var(--body-ink);
   overflow: hidden;
@@ -3283,7 +3137,7 @@ h5.hal-relay__h {
   white-space: nowrap;
 }
 
-.hal-dir__conflictmeta {
+.nova-dir__conflictmeta {
   font-size: 10px;
   color: #79808a;
   overflow: hidden;
@@ -3291,7 +3145,7 @@ h5.hal-relay__h {
   white-space: nowrap;
 }
 
-.hal-dir__conflictvs {
+.nova-dir__conflictvs {
   text-align: center;
   font-size: 11px;
   color: #9aa1a9;
@@ -3299,23 +3153,23 @@ h5.hal-relay__h {
 
 /* Confidence is carried by grammar and grouping, not by colour: a rumour is written as reported
    speech, so it cannot be read as a document even at a glance. Weight only reinforces it. */
-.hal-dir__rel {
+.nova-dir__rel {
   margin-bottom: 12px;
 }
 
-.hal-dir__relhead {
+.nova-dir__relhead {
   font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--body-ink);
 }
 
-.hal-dir__relnote {
+.nova-dir__relnote {
   font-size: 10.5px;
   color: #79808a;
   margin: 2px 0 5px;
 }
 
-.hal-dir__rellist {
+.nova-dir__rellist {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -3324,60 +3178,60 @@ h5.hal-relay__h {
   color: var(--body-ink);
 }
 
-.hal-dir__rellist li {
+.nova-dir__rellist li {
   display: flex;
   gap: 7px;
 }
 
-.hal-dir__relmark {
+.nova-dir__relmark {
   flex: none;
   width: 9px;
   color: var(--label);
 }
 
-.hal-dir__rel--inferred .hal-dir__rellist {
+.nova-dir__rel--inferred .nova-dir__rellist {
   color: var(--body-ink-soft);
 }
 
-.hal-dir__rel--rumoured .hal-dir__relhead {
+.nova-dir__rel--rumoured .nova-dir__relhead {
   color: #8a6a28;
 }
 
-.hal-dir__rel--rumoured .hal-dir__rellist {
+.nova-dir__rel--rumoured .nova-dir__rellist {
   color: #79808a;
   font-style: italic;
 }
 
-.hal-dir__meta {
+.nova-dir__meta {
   margin: 0;
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.hal-dir__metarow {
+.nova-dir__metarow {
   display: flex;
   gap: 10px;
   font-size: 11.5px;
 }
 
-.hal-dir__metarow dt {
+.nova-dir__metarow dt {
   width: 120px;
   flex: none;
   color: var(--label);
 }
 
-.hal-dir__metarow dd {
+.nova-dir__metarow dd {
   margin: 0;
   color: var(--body-ink);
 }
 
 @media (max-width: 860px), (pointer: coarse) and (max-width: 1024px) {
-  .hal-search {
+  .nova-search {
     padding: 0;
   }
 
-  .hal-search__panel {
+  .nova-search__panel {
     width: 100%;
     height: 100%;
     max-height: none;
@@ -3386,11 +3240,11 @@ h5.hal-relay__h {
     border-right: none;
   }
 
-  .hal-search__cols {
+  .nova-search__cols {
     flex-direction: column;
   }
 
-  .hal-search__filters {
+  .nova-search__filters {
     width: auto;
     display: flex;
     overflow-x: auto;
@@ -3399,13 +3253,13 @@ h5.hal-relay__h {
     padding: 4px 6px;
   }
 
-  .hal-search__filter {
+  .nova-search__filter {
     width: auto;
     flex: none;
     gap: 5px;
   }
 
-  .hal-dir__list {
+  .nova-dir__list {
     width: auto;
     max-height: 34%;
     border-right: none;
@@ -3415,13 +3269,13 @@ h5.hal-relay__h {
 
 /* A corpus page's structured detail — an EXIF block, a parking stub's in and out times.
    Set as a table because in 2009 that is what it would have been. */
-.hal-web__fields {
+.nova-web__fields {
   border-collapse: collapse;
   font-size: 11.5px;
   margin: 4px 0 0;
 }
 
-.hal-web__fields th {
+.nova-web__fields th {
   text-align: left;
   font-weight: 400;
   color: #6b727c;
@@ -3430,14 +3284,14 @@ h5.hal-relay__h {
   white-space: nowrap;
 }
 
-.hal-web__fields td {
+.nova-web__fields td {
   padding: 2px 0;
   color: var(--body-ink);
 }
 
 /* A document that aligned its own columns — a stub, a log, a printout. The web had plenty of
    these pasted straight into a <pre>, and the alignment is the information. */
-.hal-web__pre {
+.nova-web__pre {
   white-space: pre-wrap;
   font-family: var(--mono, ui-monospace, Menlo, Monaco, 'Courier New', monospace);
   font-size: 11.5px;
@@ -3448,7 +3302,7 @@ h5.hal-relay__h {
 
 /* The line at issue, not the file name. Quoted rather than styled, because a quotation mark is
    the only mark that says "somebody wrote this" without saying whether it is true. */
-.hal-dir__conflictquote {
+.nova-dir__conflictquote {
   font-size: 11.5px;
   color: var(--body-ink);
   line-height: 1.35;
@@ -3458,32 +3312,32 @@ h5.hal-relay__h {
    Set apart from evidence by paper rather than by colour: evidence is a card you can pick up,
    this is a slip of something that should not be here, ruled off and quoted. It is never a
    button, because the one thing it cannot do is hold up a claim. */
-.hal-kept {
+.nova-kept {
   border-top: 1px solid var(--rule, #cdd2d8);
   margin-top: 10px;
   padding-top: 9px;
 }
 
-.hal-kept__head {
+.nova-kept__head {
   font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--body-ink);
 }
 
-.hal-kept__note {
+.nova-kept__note {
   font-size: 10.5px;
   line-height: 1.5;
   color: #79808a;
   margin: 3px 0 7px;
 }
 
-.hal-kept__list {
+.nova-kept__list {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.hal-kept__item {
+.nova-kept__item {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -3499,13 +3353,13 @@ h5.hal-relay__h {
   );
 }
 
-.hal-kept__excerpt {
+.nova-kept__excerpt {
   font-size: 11.5px;
   line-height: 1.45;
   color: var(--body-ink);
 }
 
-.hal-kept__src {
+.nova-kept__src {
   font-size: 10px;
   color: #79808a;
   overflow: hidden;
@@ -3516,18 +3370,18 @@ h5.hal-relay__h {
 /* A captured document is a list of lines: one tab stop, arrows to move, Enter to keep. The
    active line is marked by a rule in the margin rather than by colour, so it survives a screen
    that cannot show colour and a reader that does not look at one. */
-.hal-relay__line {
+.nova-relay__line {
   border-left: 2px solid transparent;
   padding-left: 8px;
   margin-left: -10px;
 }
 
-.hal-relay__line[aria-selected='true'] {
+.nova-relay__line[aria-selected='true'] {
   border-left-color: currentColor;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.hal-relay__blocks:focus-visible {
+.nova-relay__blocks:focus-visible {
   outline: 1px dotted currentColor;
   outline-offset: 3px;
 }

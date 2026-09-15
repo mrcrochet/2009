@@ -38,7 +38,7 @@ function WindowFrameImpl({ def, win, front, children }: Props) {
   return (
     <div
       ref={ref}
-      className={`hal-window${front ? ' hal-window--front' : ''}`}
+      className={`nova-window${front ? ' nova-window--front' : ''}`}
       style={{ ...geometry, zIndex: win.z }}
       data-app={def.id}
       data-front={front}
@@ -49,27 +49,27 @@ function WindowFrameImpl({ def, win, front, children }: Props) {
       // something they cannot see.
       onFocusCapture={focus}
     >
-      <div className="hal-window__chrome">
+      <div className="nova-window__chrome">
         <div
-          className="hal-window__bar"
+          className="nova-window__bar"
           onDoubleClick={() => dispatch({ type: 'APP_ZOOM_TOGGLED', app: def.id })}
           {...drag}
         >
           <button
             type="button"
-            className="hal-window__light hal-window__light--close"
+            className="nova-window__light nova-window__light--close"
             aria-label={`Close ${def.title}`}
             onClick={() => dispatch({ type: 'APP_CLOSED', app: def.id })}
           />
           <button
             type="button"
-            className="hal-window__light hal-window__light--min"
+            className="nova-window__light nova-window__light--min"
             aria-label={`Minimise ${def.title}`}
             onClick={() => dispatch({ type: 'APP_MINIMIZED', app: def.id })}
           />
-          <span className="hal-window__title">{def.title}</span>
+          <span className="nova-window__title">{def.title}</span>
         </div>
-        <div className="hal-window__body">{children}</div>
+        <div className="nova-window__body">{children}</div>
       </div>
     </div>
   )

@@ -14,10 +14,10 @@ export default function NotFound() {
           existed.
         </p>
         <div className={styles.row}>
-          <Link className="hal-cta" href="/">
+          <Link className="nova-cta" href="/">
             BACK TO THE START
           </Link>
-          <Link className="hal-cta hal-cta--ghost" href="/play">
+          <Link className="nova-cta nova-cta--ghost" href="/play">
             Wake up
           </Link>
         </div>

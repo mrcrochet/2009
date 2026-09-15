@@ -36,7 +36,7 @@ test.describe('Case 001', () => {
     const dockItems = page.getByRole('navigation', { name: 'Dock' }).getByRole('button')
     // Eight applications this case ships, and the handset it supplies.
     await expect(dockItems).toHaveCount(9)
-    await expect(page.locator('.hal-desktop')).toBeVisible()
+    await expect(page.locator('.nova-desktop')).toBeVisible()
     // The tray is the only aside, and it stays collapsed until something is pinned.
     await expect(page.locator('aside')).toHaveCount(0)
     await expect(page.getByRole('navigation')).toHaveCount(1)
@@ -48,7 +48,7 @@ test.describe('Case 001', () => {
     await expect(messenger.getByText(/what was still switched on at 22:51/)).toBeVisible()
 
     // --- the intake note appears on the desktop --------------------------
-    const readmeIcon = page.locator('.hal-icon').filter({ hasText: 'CASE_24-118.txt' })
+    const readmeIcon = page.locator('.nova-icon').filter({ hasText: 'CASE_24-118.txt' })
     await expect(readmeIcon).toBeVisible({ timeout: 10_000 })
     await readmeIcon.click()
 
@@ -181,7 +181,7 @@ test.describe('Case 001', () => {
 
     // --- cliffhanger, then the report -------------------------------------
     await expect(page.getByTestId('surveillance')).toBeVisible()
-    await expect(page.locator('.hal-window')).toHaveCount(0)
+    await expect(page.locator('.nova-window')).toHaveCount(0)
 
     const card = page.getByTestId('report-card')
     await expect(card).toBeVisible({ timeout: 15_000 })

@@ -13,13 +13,13 @@ export function SurveillanceOverlay() {
   if (!watched) return null
   return (
     <>
-      <p className="hal-sr-only" role="status">
+      <p className="nova-sr-only" role="status">
         {content.report.watchedLine}
       </p>
-      <div className="hal-watched" data-testid="surveillance" aria-hidden="true">
-        <div className="hal-watched__glow" />
-        <div className="hal-watched__dot" />
-        <div className="hal-watched__lens" />
+      <div className="nova-watched" data-testid="surveillance" aria-hidden="true">
+        <div className="nova-watched__glow" />
+        <div className="nova-watched__dot" />
+        <div className="nova-watched__lens" />
       </div>
     </>
   )

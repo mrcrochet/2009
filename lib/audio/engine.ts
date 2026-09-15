@@ -1,7 +1,7 @@
 /**
  * A very small Web Audio synth.
  *
- * Everything HALCYON makes a noise about is generated at runtime — no audio files ship, which
+ * Everything NOVA makes a noise about is generated at runtime — no audio files ship, which
  * keeps the bundle honest and happens to be exactly right for the period: these are system
  * beeps out of a 2009 machine, not a sound designer's library.
  *

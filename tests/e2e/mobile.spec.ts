@@ -6,7 +6,7 @@ import { expect, test, type Page } from '@playwright/test'
  */
 
 const dock = (page: Page) => page.getByRole('navigation', { name: 'Dock' })
-const win = (page: Page, app: string) => page.locator(`.hal-window[data-app="${app}"]`)
+const win = (page: Page, app: string) => page.locator(`.nova-window[data-app="${app}"]`)
 const tray = (page: Page) => page.getByRole('complementary', { name: 'Pinned evidence' })
 const board = (page: Page) => page.getByRole('dialog', { name: 'Investigation board' })
 
@@ -27,7 +27,7 @@ const focused = (page: Page) =>
     return {
       className: el?.className ?? '',
       text: (el?.textContent ?? '').trim().slice(0, 48),
-      inBoard: Boolean(el?.closest('.hal-board__panel')),
+      inBoard: Boolean(el?.closest('.nova-board__panel')),
     }
   })
 
@@ -131,7 +131,7 @@ test.describe('The workstation on a narrow screen', () => {
     expect(panel!.height).toBeGreaterThan(780)
 
     // The two columns stack instead of sitting side by side at ~194px each.
-    const left = await page.locator('.hal-board__left').boundingBox()
+    const left = await page.locator('.nova-board__left').boundingBox()
     expect(left!.width).toBeGreaterThan(300)
   })
 
@@ -169,8 +169,8 @@ test.describe('The workstation on a narrow screen', () => {
   })
 
   /**
-   * KNOWN BUG. `.hal-window` reserves the dock's strip on mobile
-   * (`inset: var(--menubar-height) 0 76px 0`), but `.hal-phone` and `.hal-tray` both run to
+   * KNOWN BUG. `.nova-window` reserves the dock's strip on mobile
+   * (`inset: var(--menubar-height) 0 76px 0`), but `.nova-phone` and `.nova-tray` both run to
    * `bottom: 0` beneath a dock at z-index 8800. The phone's home button and the tray's OPEN
    * BOARD button — the only ways out of each — are unreachable by touch. Reserving the same
    * strip on both fixes it; this test will start failing as "unexpectedly passed" when it does.
@@ -211,7 +211,7 @@ test.describe('The workstation on a narrow screen', () => {
     await expect(bar).toContainText(/Wed 17 Jun \d{2}:\d{2}/)
     await expect(bar.getByRole('button', { name: /Case 001 — \d things left/ })).toBeVisible()
     // File / Edit / View are period scenery and are not worth the width here.
-    await expect(page.locator('.hal-menubar__menu').first()).toBeHidden()
+    await expect(page.locator('.nova-menubar__menu').first()).toBeHidden()
   })
 
   test('the search stacks its filters instead of shrinking them out of reach', async ({ page }) => {
@@ -221,7 +221,7 @@ test.describe('The workstation on a narrow screen', () => {
     await expect(search).toBeVisible()
     await page.keyboard.type('fremont')
 
-    const panel = page.locator('.hal-search__panel')
+    const panel = page.locator('.nova-search__panel')
     const box = (await panel.boundingBox())!
     // The window fits the screen rather than hanging off the side of it.
     expect(box.width).toBeLessThanOrEqual(390)
@@ -239,7 +239,7 @@ test.describe('The workstation on a narrow screen', () => {
     await expect(list).toBeVisible()
     await list.getByRole('option').first().click()
 
-    const dossier = page.locator('.hal-dir__page')
+    const dossier = page.locator('.nova-dir__page')
     const box = (await dossier.boundingBox())!
     // A two-column dossier at 390px would give each column 190px and neither would be readable.
     expect(box.width).toBeGreaterThan(300)
@@ -254,7 +254,7 @@ test.describe('keyboard routes through the workstation', () => {
     await boot(page)
 
     await page.keyboard.press('Control+d')
-    await expect.poll(async () => (await focused(page)).className).toContain('hal-dockitem')
+    await expect.poll(async () => (await focused(page)).className).toContain('nova-dockitem')
 
     await page.keyboard.press('Control+e')
     await expect(tray(page)).toBeVisible()

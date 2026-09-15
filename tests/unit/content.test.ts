@@ -23,6 +23,7 @@ describe('case 001 content', () => {
 
   it('has no leftover 2009 content', () => {
     const blob = JSON.stringify(content)
+    // The machine is called NOVA now, so the old machine's name is the token to forbid.
     for (const legacy of ['HALCYON', 'Owen T. Rask', 'Aion', 'Meridian', 'Quoteline', 'Recall']) {
       expect(blob.includes(legacy), `found legacy token "${legacy}"`).toBe(false)
     }

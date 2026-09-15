@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import type { GameStoreApi } from '@/state/store'
 
 /**
- * Keyboard routes through HALCYON. With nine windows open the dock sits about a hundred Tab
+ * Keyboard routes through NOVA. With nine windows open the dock sits about a hundred Tab
  * presses away, so a keyboard player needs the same shortcuts a 2009 machine gave everyone else.
  */
 export function useDesktopKeys(api: GameStoreApi): void {
@@ -23,14 +23,14 @@ export function useDesktopKeys(api: GameStoreApi): void {
         const behind = open.filter((w) => w.app !== front.app).reduce((a, b) => (b.z > a.z ? b : a))
         dispatch({ type: 'APP_FOCUSED', app: behind.app })
         requestAnimationFrame(() => {
-          document.querySelector<HTMLElement>(`.hal-window[data-app="${behind.app}"]`)?.focus()
+          document.querySelector<HTMLElement>(`.nova-window[data-app="${behind.app}"]`)?.focus()
         })
         return
       }
 
       // Ctrl+D — the dock.
       if (key === 'd') {
-        const dock = document.querySelector<HTMLElement>('.hal-dockitem')
+        const dock = document.querySelector<HTMLElement>('.nova-dockitem')
         if (!dock) return
         event.preventDefault()
         dock.focus()
@@ -43,7 +43,7 @@ export function useDesktopKeys(api: GameStoreApi): void {
         event.preventDefault()
         if (!investigation.ui.trayOpen) dispatch({ type: 'TRAY_TOGGLED', open: true })
         requestAnimationFrame(() => {
-          document.querySelector<HTMLElement>('.hal-tray__board')?.focus()
+          document.querySelector<HTMLElement>('.nova-tray__board')?.focus()
         })
       }
     }

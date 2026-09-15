@@ -34,7 +34,7 @@ app/
 components/
   game/
     GameRoot.tsx                 stage machine + autosave + boot orchestration
-    HalcyonDesktop.tsx  MenuBar.tsx  Dock.tsx  DesktopIcons.tsx
+    Workstation.tsx  MenuBar.tsx  Dock.tsx  DesktopIcons.tsx
     WindowManager.tsx  WindowFrame.tsx  useDragMove.ts
     PhoneOverlay.tsx  EvidenceTray.tsx  InvestigationBoard.tsx
     SearchPalette.tsx  WayUpOverlay.tsx  KeptLines.tsx
@@ -66,7 +66,7 @@ lib/
 state/
   store.ts       Zustand store wrapping the pure reducer
 styles/
-  tokens.css  halcyon.css
+  tokens.css  nova.css
 supabase/migrations/
 tests/unit/  tests/e2e/
 design/      the Claude Design handoff, kept for reference

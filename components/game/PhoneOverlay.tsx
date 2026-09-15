@@ -49,20 +49,20 @@ export function PhoneOverlay() {
   if (!device || !phone.open) return null
 
   return (
-    <div ref={ref} className="hal-phone" style={{ left: x, top: y }} data-testid="phone-overlay">
-      <div className="hal-phone__body" {...drag}>
-        <div className="hal-phone__device">{device.device}</div>
-        <div className="hal-phone__screen">
-          <div className="hal-phone__status">
+    <div ref={ref} className="nova-phone" style={{ left: x, top: y }} data-testid="phone-overlay">
+      <div className="nova-phone__body" {...drag}>
+        <div className="nova-phone__device">{device.device}</div>
+        <div className="nova-phone__screen">
+          <div className="nova-phone__status">
             <span>{device.carrier}</span>
             <span>{clock}</span>
           </div>
-          <div className="hal-phone__tabs" role="tablist" aria-label="Phone">
+          <div className="nova-phone__tabs" role="tablist" aria-label="Phone">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 type="button"
-                className="hal-phone__tab"
+                className="nova-phone__tab"
                 {...tabProps(t.id)}
                 onClick={() => dispatch({ type: 'PHONE_TAB_CHANGED', tab: t.id })}
               >
@@ -70,16 +70,16 @@ export function PhoneOverlay() {
               </button>
             ))}
           </div>
-          <div className="hal-phone__view" {...panelProps}>
+          <div className="nova-phone__view" {...panelProps}>
             {phone.tab === 'sms' ? <Sms /> : null}
             {phone.tab === 'photos' ? <Photos /> : null}
             {phone.tab === 'contacts' ? <Contacts /> : null}
           </div>
         </div>
-        <div className="hal-phone__foot">
+        <div className="nova-phone__foot">
           <button
             type="button"
-            className="hal-phone__home"
+            className="nova-phone__home"
             aria-label="Put the phone down"
             onClick={() => dispatch({ type: 'PHONE_TOGGLED' })}
           />
@@ -100,11 +100,11 @@ function Sms() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {shown.map((m, i) => (
-        <div key={i} className="hal-phone__sms">
-          <div className="hal-phone__smswho">
+        <div key={i} className="nova-phone__sms">
+          <div className="nova-phone__smswho">
             {m.who} · {m.time}
           </div>
-          <div className="hal-phone__smsbubble">{m.text}</div>
+          <div className="nova-phone__smsbubble">{m.text}</div>
           {m.evidenceId ? (
             <div style={{ paddingTop: 6 }}>
               <PinButton evidenceId={m.evidenceId} via="phone" size="sm" />
@@ -113,12 +113,12 @@ function Sms() {
         </div>
       ))}
       {node && node.choices.length > 0 ? (
-        <div className="hal-phone__smsactions">
+        <div className="nova-phone__smsactions">
           {node.choices.map((c) => (
             <button
               key={c}
               type="button"
-              className="hal-phone__choice"
+              className="nova-phone__choice"
               onClick={() => dispatch({ type: 'SMS_ADVANCED' })}
             >
               {c}
@@ -133,16 +133,16 @@ function Sms() {
 function Photos() {
   const content = useContent()
   return (
-    <div className="hal-phone__photos">
+    <div className="nova-phone__photos">
       {(content.phone?.photos ?? []).map((p) => (
-        <div key={p.id} className="hal-phone__photo">
-          <div className="hal-phone__thumb">
+        <div key={p.id} className="nova-phone__photo">
+          <div className="nova-phone__thumb">
             <PhotoFrame subject={p.subject} label={p.label} />
-            <span className="hal-phone__stamp">{p.label}</span>
+            <span className="nova-phone__stamp">{p.label}</span>
           </div>
-          <div className="hal-phone__photometa">{p.meta}</div>
+          <div className="nova-phone__photometa">{p.meta}</div>
           {p.evidenceId ? (
-            <div className="hal-phone__photopin">
+            <div className="nova-phone__photopin">
               <PinButton evidenceId={p.evidenceId} via="phone" size="sm" />
             </div>
           ) : null}
@@ -155,9 +155,9 @@ function Photos() {
 function Contacts() {
   const content = useContent()
   return (
-    <div className="hal-phone__contacts">
+    <div className="nova-phone__contacts">
       {(content.phone?.contacts ?? []).map((c) => (
-        <div key={c.name} className="hal-phone__contact">
+        <div key={c.name} className="nova-phone__contact">
           <span>{c.name}</span>
           <span>{c.number}</span>
         </div>

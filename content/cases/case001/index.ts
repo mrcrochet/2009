@@ -681,4 +681,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
   },
 
   requiredBeats: ['statement', 'claire', 'claim'],
+  beatHints: {
+    statement: 'read what he was drafting',
+    claire: 'answer the client',
+    device: 'get into the handset',
+    claim: 'put a finding on the record',
+  },
 }

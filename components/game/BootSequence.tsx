@@ -8,13 +8,13 @@ export function BootSequence() {
   const shown = content.boot.slice(0, line)
 
   return (
-    <div className="hal-boot" data-testid="boot" role="status" aria-live="polite">
+    <div className="nova-boot" data-testid="boot" role="status" aria-live="polite">
       {shown.map((text, i) => (
-        <div key={i} className="hal-boot__line">
+        <div key={i} className="nova-boot__line">
           {text || ' '}
         </div>
       ))}
-      <span className="hal-boot__cursor" aria-hidden="true" />
+      <span className="nova-boot__cursor" aria-hidden="true" />
     </div>
   )
 }

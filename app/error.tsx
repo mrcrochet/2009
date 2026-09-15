@@ -6,7 +6,7 @@ import { reportError } from '@/lib/errors'
 import styles from './shell.module.css'
 
 /**
- * The route-level fault page. Deliberately *not* in character — a crash is not something HALCYON
+ * The route-level fault page. Deliberately *not* in character — a crash is not something NOVA
  * did, and dressing a real failure up as fiction would leave the player unsure whether their
  * timeline is safe. It says so plainly instead.
  */
@@ -31,10 +31,10 @@ export default function RouteError({
           happening the reference below will tell us where to look.
         </p>
         <div className={styles.row}>
-          <button type="button" className="hal-cta" onClick={reset}>
+          <button type="button" className="nova-cta" onClick={reset}>
             TRY AGAIN
           </button>
-          <Link className="hal-cta hal-cta--ghost" href="/">
+          <Link className="nova-cta nova-cta--ghost" href="/">
             Back to the start
           </Link>
         </div>

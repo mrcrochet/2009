@@ -13,7 +13,7 @@ export function Dock() {
   const open = new Set(openApps ? openApps.split(',') : [])
 
   return (
-    <nav className="hal-dock" aria-label="Dock">
+    <nav className="nova-dock" aria-label="Dock">
       {(content.dock as DockId[])
         // A case that supplies no phone does not put one in the dock.
         .filter((id) => id !== 'phone' || content.phone !== null)
@@ -27,7 +27,7 @@ export function Dock() {
             <button
               key={id}
               type="button"
-              className="hal-dockitem"
+              className="nova-dockitem"
               data-open={isOpen}
               data-dock={id}
               aria-label={isPhone ? label : isOpen ? `${label}, open` : label}
@@ -40,12 +40,12 @@ export function Dock() {
               }}
             >
               <span
-                className="hal-dockitem__icon"
+                className="nova-dockitem__icon"
                 style={{ background: `linear-gradient(180deg, ${top}, ${bottom})` }}
               >
                 <DockGlyph id={id} />
               </span>
-              <span className="hal-dockitem__dot" aria-hidden="true" />
+              <span className="nova-dockitem__dot" aria-hidden="true" />
             </button>
           )
         })}

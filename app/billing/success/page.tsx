@@ -30,11 +30,11 @@ export default async function BillingSuccess({
         </p>
         <div className={styles.row}>
           {entitlement.active && claim ? (
-            <Link className="hal-cta" href={`/play/${claim}?day=2`}>
+            <Link className="nova-cta" href={`/play/${claim}?day=2`}>
               CONTINUE YOUR TIMELINE
             </Link>
           ) : null}
-          <Link className="hal-cta hal-cta--ghost" href="/account">
+          <Link className="nova-cta nova-cta--ghost" href="/account">
             Account
           </Link>
         </div>

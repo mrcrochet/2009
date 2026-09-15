@@ -36,7 +36,7 @@ export class RelayRefused extends Error {
 
 /**
  * A block of remote content, already normalised. Deliberately not HTML: the client renders these
- * with HALCYON's own renderer, so no third-party markup is ever handed to the game's origin.
+ * with NOVA's own renderer, so no third-party markup is ever handed to the game's origin.
  */
 export type RelayBlock =
   | { readonly kind: 'heading'; readonly text: string; readonly level: 1 | 2 | 3 }

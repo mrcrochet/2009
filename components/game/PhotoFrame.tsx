@@ -9,16 +9,16 @@ export function PhotoFrame({ subject, label }: { subject: PhotoSubject; label: s
     <svg
       viewBox="0 0 240 78"
       preserveAspectRatio="xMidYMid slice"
-      className="hal-phone__frame"
+      className="nova-phone__frame"
       role="img"
       aria-label={label}
     >
       <defs>
-        <linearGradient id={`hal-ph-${subject}-sky`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`nova-ph-${subject}-sky`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#2b3339" />
           <stop offset="1" stopColor="#161b1f" />
         </linearGradient>
-        <radialGradient id={`hal-ph-${subject}-flash`} cx="0.5" cy="0.45" r="0.62">
+        <radialGradient id={`nova-ph-${subject}-flash`} cx="0.5" cy="0.45" r="0.62">
           <stop offset="0" stopColor="#ffffff" stopOpacity="0.5" />
           <stop offset="0.45" stopColor="#ffffff" stopOpacity="0.1" />
           <stop offset="1" stopColor="#000000" stopOpacity="0.3" />
@@ -30,7 +30,7 @@ export function PhotoFrame({ subject, label }: { subject: PhotoSubject; label: s
       {subject === 'scanned-page' ? <ScannedPage /> : null}
 
       {subject === 'scanned-page' ? null : (
-        <rect width="240" height="78" fill={`url(#hal-ph-${subject}-flash)`} />
+        <rect width="240" height="78" fill={`url(#nova-ph-${subject}-flash)`} />
       )}
     </svg>
   )
@@ -40,7 +40,7 @@ export function PhotoFrame({ subject, label }: { subject: PhotoSubject; label: s
 function ParkingStructure() {
   return (
     <g>
-      <rect width="240" height="78" fill="url(#hal-ph-parking-structure-sky)" />
+      <rect width="240" height="78" fill="url(#nova-ph-parking-structure-sky)" />
       <rect y="14" width="240" height="6" fill="#3a444c" />
       <rect y="58" width="240" height="20" fill="#20272c" />
       <g fill="#39434b">

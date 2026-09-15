@@ -154,7 +154,7 @@ describe('no carrier', () => {
     expect(document.body.textContent).not.toContain('the relay has no index on this side')
 
     // And nothing on this screen could spend the day's signal: there is nothing to open.
-    expect(container.querySelectorAll('.hal-relay__row')).toHaveLength(0)
+    expect(container.querySelectorAll('.nova-relay__row')).toHaveLength(0)
     expect(screen.queryByRole('button', { name: cfg.pinLabel })).not.toBeInTheDocument()
     expect(api.getState().investigation.relay.signalSpent).toBe(0)
     // Rendered from the case's own template, because the console's vocabulary is content.

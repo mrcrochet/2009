@@ -22,16 +22,16 @@ export function KeptLines({ variant }: { variant: 'tray' | 'board' }) {
   if (!cfg || kept.length === 0) return null
 
   return (
-    <div className={`hal-kept hal-kept--${variant}`} data-testid="kept-lines">
-      <div className="hal-kept__head">
+    <div className={`nova-kept nova-kept--${variant}`} data-testid="kept-lines">
+      <div className="nova-kept__head">
         {cfg.keptHeading} · {kept.length}
       </div>
-      {cfg.keptNote ? <p className="hal-kept__note">{cfg.keptNote}</p> : null}
-      <ul className="hal-kept__list">
+      {cfg.keptNote ? <p className="nova-kept__note">{cfg.keptNote}</p> : null}
+      <ul className="nova-kept__list">
         {kept.map((entry) => (
-          <li key={entry.id} className="hal-kept__item" data-kept={entry.id}>
-            <span className="hal-kept__excerpt">“{entry.excerpt}”</span>
-            <span className="hal-kept__src">
+          <li key={entry.id} className="nova-kept__item" data-kept={entry.id}>
+            <span className="nova-kept__excerpt">“{entry.excerpt}”</span>
+            <span className="nova-kept__src">
               {entry.sourceTitle || entry.sourceUrl || entry.snapshotId}
             </span>
           </li>

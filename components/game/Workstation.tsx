@@ -31,7 +31,7 @@ const SURFACE_APP: Record<string, AppId> = {
   archive: 'web',
 }
 
-export function HalcyonDesktop({ onFileReport }: { onFileReport: () => void }) {
+export function Workstation({ onFileReport }: { onFileReport: () => void }) {
   const content = useContent()
   const dispatch = useDispatch()
   const world = useWorldOptional()
@@ -110,9 +110,9 @@ export function HalcyonDesktop({ onFileReport }: { onFileReport: () => void }) {
   }
 
   return (
-    <div className="hal-desktop" data-testid="desktop">
-      <div className="hal-desktop__bg" />
-      <div className="hal-desktop__grid" aria-hidden="true" />
+    <div className="nova-desktop" data-testid="desktop">
+      <div className="nova-desktop__bg" />
+      <div className="nova-desktop__grain" aria-hidden="true" />
       <MenuBar onFileReport={onFileReport} />
       <DesktopIcons />
       <DirectoryFocusProvider value={directoryFocus}>

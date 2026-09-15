@@ -73,7 +73,7 @@ export function ClaimTimeline({ investigationId }: { investigationId: string | n
         <div className={styles.row}>
           <button
             type="button"
-            className="hal-cta hal-cta--ghost"
+            className="nova-cta nova-cta--ghost"
             onClick={() => {
               setStatus('working')
               setMessage(null)

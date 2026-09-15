@@ -1,7 +1,7 @@
 import type { Cue } from './engine'
 
 /**
- * The sounds HALCYON 4.1 makes. Short, dry, slightly cheap — a machine with one small speaker
+ * The sounds NOVA 3.2 makes. Short, dry, slightly cheap — a machine with one small speaker
  * behind a plastic grille. Nothing here is a modern UI chime.
  */
 
