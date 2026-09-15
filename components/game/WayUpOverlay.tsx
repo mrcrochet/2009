@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { canAfford, signalBudget, signalRemaining } from '@/engine/mysteries'
 import { reportError } from '@/lib/errors'
 import type { WayUpBlock, WayUpResult, WayUpSearchResponse, WayUpSnapshot } from '@/lib/wayup/types'
-import { useContent, useDispatch, useTimeline } from './GameContext'
+import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { useFocusTrap } from './useFocusTrap'
 import { pace, useReducedMotion } from './useReducedMotion'
 
@@ -163,13 +163,13 @@ function Block({ block }: { block: WayUpBlock }) {
 export function WayUpOverlay() {
   const content = useContent()
   const dispatch = useDispatch()
-  const cfg = content.wayup
-  const open = useTimeline((s) => s.ui.wayupOpen)
-  const observed = useTimeline((s) => s.wayup.observed)
-  const futureEvidence = useTimeline((s) => s.wayup.futureEvidence)
-  const remaining = useTimeline((s) => signalRemaining(s, content))
-  const affordsOpen = useTimeline((s) => canAfford(s, content, cfg?.openCost ?? 0))
-  const affordsSearch = useTimeline((s) => canAfford(s, content, cfg?.searchCost ?? 0))
+  const cfg = content.relay
+  const open = useInvestigation((s) => s.ui.wayupOpen)
+  const observed = useInvestigation((s) => s.wayup.observed)
+  const futureEvidence = useInvestigation((s) => s.wayup.kept)
+  const remaining = useInvestigation((s) => signalRemaining(s, content))
+  const affordsOpen = useInvestigation((s) => canAfford(s, content, cfg?.openCost ?? 0))
+  const affordsSearch = useInvestigation((s) => canAfford(s, content, cfg?.searchCost ?? 0))
   const reduced = useReducedMotion()
 
   const panelRef = useRef<HTMLDivElement>(null)
@@ -452,7 +452,7 @@ export function WayUpOverlay() {
     // two pieces of evidence, and the reducer's dedupe then means "this line, from this page".
     const excerptHash = await sha256Hex(`${snapshot.id}\n${excerpt}`)
     dispatch({
-      type: 'WAYUP_EVIDENCE_PINNED',
+      type: 'WAYUP_EXCERPT_KEPT',
       id: `fe_${excerptHash.slice(0, 16)}`,
       snapshotId: snapshot.id,
       excerpt,

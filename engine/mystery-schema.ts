@@ -27,8 +27,8 @@ export const InspirationModeSchema = z.enum(['original', 'historical', 'fictiona
 /**
  * How far a piece of content depends on what the player has done.
  *
- * T0 static · T1 small variants · T2 conditioned on divergence · T3 depends on Way Up
- * observations or contradictions between them · T4 shared state across players.
+ * T0 static · T1 small variants · T2 conditioned on what the investigator did · T3 depends on
+ * open-web observations or contradictions between them · T4 shared state across players.
  *
  * The higher the number the less a save can be replayed from its own log alone, which is a real
  * cost to weigh rather than a badge.
@@ -38,10 +38,10 @@ export const TimelineDependencySchema = z.enum(['T0', 'T1', 'T2', 'T3', 'T4'])
 /**
  * What looking costs, in signal rather than in requests.
  *
- * 0 is local 2009 content. 1–3 an archive or a single snapshot. 4–6 a search or a second hop
- * into 2026. 7–9 a source that is temporally unstable or deeply hidden. 10–12 is reserved for
- * the rare, world-level anomaly — and a day that spends 10 on something ordinary has spent the
- * word's meaning along with it.
+ * 0 is content inside the case file. 1–3 an archive or a single snapshot. 4–6 a search or a
+ * second hop onto the open web. 7–9 a source that is unstable or deeply hidden. 10–12 is
+ * reserved for the rare, world-level anomaly — and a case that spends 10 on something ordinary
+ * has spent the word's meaning along with it.
  */
 export const SignalCostSchema = z.number().int().min(0).max(12)
 
@@ -105,10 +105,9 @@ export const UnlockConditionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('evidence'), evidenceId: id }),
   z.object({ kind: z.literal('beat'), beat: z.string().min(1) }),
   z.object({ kind: z.literal('visitedUrl'), url: z.string().min(1) }),
-  z.object({ kind: z.literal('memoryIntegrityAtMost'), value: z.number().int().min(0).max(100) }),
-  z.object({ kind: z.literal('temporalShiftAtLeast'), value: z.number().int().min(0) }),
-  z.object({ kind: z.literal('heatAtLeast'), value: z.number().int().min(0) }),
-  z.object({ kind: z.literal('dayAtLeast'), value: z.number().int().min(1) }),
+  z.object({ kind: z.literal('exposureAtLeast'), value: z.number().int().min(0) }),
+  z.object({ kind: z.literal('serviceGranted'), serviceId: id }),
+  z.object({ kind: z.literal('deviceUnlocked'), deviceId: id }),
   z.object({ kind: z.literal('globalUnlock'), mysteryId: id }),
 ])
 

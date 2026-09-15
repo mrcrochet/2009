@@ -2,14 +2,18 @@ import { describe, expect, it } from 'vitest'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import { searchIndex } from '@/engine/rules'
 import { normalizeUrl } from '@/engine/url'
-import { isPageAltered, resolveBlocks } from '@/engine/temporal'
-import { BrowserPageSchema } from '@/engine/content-schema'
+import { resolveBlocks } from '@/engine/pages'
 import { content, dispatch, fresh, run } from './helpers'
+
+/** Every flag any page variant keys on, so a check can see every version of the web. */
+const EVERY_FLAG: Record<string, boolean> = Object.fromEntries(
+  content.browser.pages.flatMap((p) => p.variants.map((v) => [v.whenFlag, true])),
+)
 
 describe('fictional browser', () => {
   it('searches its own closed index', () => {
-    expect(searchIndex(content, 'phone')).toContain('idx-tradepost')
-    expect(searchIndex(content, 'owen rask')).toContain('idx-obit')
+    expect(searchIndex(content, 'richard vale')).toContain('i-vale')
+    expect(searchIndex(content, 'marlow')).toContain('i-marlow')
     expect(searchIndex(content, 'zzzz nothing here')).toEqual([])
   })
 
@@ -21,52 +25,57 @@ describe('fictional browser', () => {
 
   it('keeps a real back-stack', () => {
     let state = run(fresh(), [
-      { type: 'BROWSER_SEARCHED', query: 'rask' },
-      { type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/obits/rask' },
+      { type: 'BROWSER_SEARCHED', query: 'vale' },
+      { type: 'BROWSER_NAVIGATED', url: 'ridgelinepartners.com/team' },
     ])
     expect(state.browser.view).toBe('page')
 
     state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
     expect(state.browser.view).toBe('results')
-    expect(state.browser.query).toBe('rask')
+    expect(state.browser.query).toBe('vale')
 
     state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
     expect(state.browser.view).toBe('home')
-    expect(state.browser.url).toBe('corvid.com')
+    expect(state.browser.url).toBe('orbit.com')
   })
 
-  it('typing an unknown address gives a period-appropriate not-found, not a crash', () => {
-    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'google.com' })
+  it('typing an unknown address gives a not-found, not a crash', () => {
+    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'example.com' })
     expect(selectPage(state, content).found).toBe(false)
   })
 
-  it('forgives the things a 2009 address bar forgave', () => {
-    expect(normalizeUrl('http://www.TradePost.com/')).toBe('tradepost.com')
-    expect(normalizeUrl('  HTTPS://cluster.com/leavoss  ')).toBe('cluster.com/leavoss')
-    expect(normalizeUrl('corvid.com/search?q=Owen%20Rask')).toBe('corvid.com/search?q=Owen%20Rask')
+  it('forgives the things an address bar forgives', () => {
+    expect(normalizeUrl('http://www.FremontParking.com/')).toBe('fremontparking.com')
+    expect(normalizeUrl('  HTTPS://marlowfoundation.org/filings  ')).toBe(
+      'marlowfoundation.org/filings',
+    )
+    expect(normalizeUrl('orbit.com/search?q=Richard%20Vale')).toBe('orbit.com/search?q=Richard%20Vale')
 
-    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'http://www.tradepost.com/' })
-    expect(state.browser.url).toBe('tradepost.com')
+    const state = dispatch(fresh(), {
+      type: 'BROWSER_NAVIGATED',
+      url: 'http://www.fremontparking.com/',
+    })
+    expect(state.browser.url).toBe('fremontparking.com')
     expect(selectPage(state, content).found).toBe(true)
   })
 
   it('goes forward again after going back, and drops the stack on a new destination', () => {
     let state = run(fresh(), [
-      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' },
-      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com/pdx/electronics' },
+      { type: 'BROWSER_NAVIGATED', url: 'marlowfoundation.org' },
+      { type: 'BROWSER_NAVIGATED', url: 'marlowfoundation.org/filings' },
     ])
     expect(state.browser.forward).toHaveLength(0)
 
     state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
-    expect(state.browser.url).toBe('tradepost.com')
+    expect(state.browser.url).toBe('marlowfoundation.org')
     expect(state.browser.forward).toHaveLength(1)
 
     state = dispatch(state, { type: 'BROWSER_WENT_FORWARD' })
-    expect(state.browser.url).toBe('tradepost.com/pdx/electronics')
+    expect(state.browser.url).toBe('marlowfoundation.org/filings')
     expect(state.browser.forward).toHaveLength(0)
 
     state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
-    state = dispatch(state, { type: 'BROWSER_NAVIGATED', url: 'cluster.com' })
+    state = dispatch(state, { type: 'BROWSER_NAVIGATED', url: 'kgw-portland.com' })
     expect(state.browser.forward).toEqual([])
   })
 
@@ -78,7 +87,7 @@ describe('fictional browser', () => {
 
   it('the home button returns to the search page, not to a dead URL', () => {
     const state = run(fresh(), [
-      { type: 'BROWSER_NAVIGATED', url: 'aion-group.com' },
+      { type: 'BROWSER_NAVIGATED', url: 'kgw-portland.com' },
       { type: 'BROWSER_NAVIGATED', url: content.browser.home },
     ])
     expect(state.browser.view).toBe('home')
@@ -90,8 +99,8 @@ describe('the web is actually a web', () => {
 
   it('every link and nav item on every page resolves to a page that exists', () => {
     for (const page of content.browser.pages) {
-      for (const shift of [0, 2]) {
-        for (const block of resolveBlocks(page, shift)) {
+      for (const flags of [{}, EVERY_FLAG]) {
+        for (const block of resolveBlocks(page, flags)) {
           if (block.kind === 'nav') {
             for (const item of block.items) {
               expect(pageUrls.has(item.url), `${page.url} → ${item.url}`).toBe(true)
@@ -116,13 +125,15 @@ describe('the web is actually a web', () => {
     expect(directory).toBeDefined()
 
     const listed = new Set(
-      directory!.blocks.flatMap((b) => (b.kind === 'nav' ? b.items.map((i) => i.url) : [])),
+      directory!.blocks.flatMap((b) =>
+        b.kind === 'nav' ? b.items.map((i) => i.url) : b.kind === 'link' && b.url ? [b.url] : [],
+      ),
     )
-    // Every distinct host in the simulation is reachable from the directory, except the
-    // search engine itself and the archive you can only find by knowing what to look for.
+    // Every distinct host in the simulation is reachable from the directory, except the search
+    // engine itself.
     const hosts = new Set([...pageUrls].map((u) => u.split('/')[0]))
     for (const host of hosts) {
-      if (host === 'corvid.com' || host === 'metzdowd.archive') continue
+      if (host === content.browser.home) continue
       expect(
         [...listed].some((u) => u.split('/')[0] === host),
         `directory misses ${host}`,
@@ -141,8 +152,8 @@ describe('the web is actually a web', () => {
       grew = false
       for (const page of content.browser.pages) {
         if (!reachable.has(page.url)) continue
-        for (const shift of [0, 2]) {
-          for (const block of resolveBlocks(page, shift)) {
+        for (const flags of [{}, EVERY_FLAG]) {
+          for (const block of resolveBlocks(page, flags)) {
             const urls =
               block.kind === 'nav'
                 ? block.items.map((i) => i.url)
@@ -174,94 +185,33 @@ describe('the web is actually a web', () => {
   it('costs time to browse', () => {
     const before = fresh()
     const after = run(before, [
-      { type: 'BROWSER_SEARCHED', query: 'rask' },
-      { type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/obits/rask' },
+      { type: 'BROWSER_SEARCHED', query: 'vale' },
+      { type: 'BROWSER_NAVIGATED', url: 'ridgelinepartners.com/team' },
     ])
-    expect(after.minuteOfDay - before.minuteOfDay).toBe(3)
-  })
-})
-
-describe('a choice that rewrites a page', () => {
-  const leaPage = content.browser.pages.find((p) => p.url === 'cluster.com/leavoss')!
-
-  it('leaves her post alone by default, and the evidence with it', () => {
-    const blocks = resolveBlocks(leaPage, 0, {})
-    expect(blocks.some((b) => b.kind === 'evidence' && b.evidenceId === 'e9')).toBe(true)
-  })
-
-  it('records the plate when the player tells her to write it down', () => {
-    const blocks = resolveBlocks(leaPage, 0, { leaPostedAgain: true })
-    expect(blocks.some((b) => b.kind === 'p' && b.text.includes('oregon plate'))).toBe(true)
-    expect(blocks.some((b) => b.kind === 'evidence' && b.evidenceId === 'e9')).toBe(true)
-  })
-
-  it('deletes the evidence when the player talks her out of it', () => {
-    const blocks = resolveBlocks(leaPage, 0, { leaPostRemoved: true })
-    expect(blocks.some((b) => b.kind === 'evidence')).toBe(false)
-    expect(blocks.some((b) => b.kind === 'p' && b.text.includes('(post removed by author)'))).toBe(
-      true,
-    )
-  })
-
-  it('a decision outranks drift — the page the player changed stays changed', () => {
-    const blocks = resolveBlocks(leaPage, 9, { leaPostRemoved: true })
-    expect(blocks.some((b) => b.kind === 'evidence')).toBe(false)
-  })
-
-  it('ranks a flag above a shift even when both variants match', () => {
-    // No authored page carries both kinds, so the ranking has to be exercised directly —
-    // otherwise removing it passes the whole suite.
-    const page = BrowserPageSchema.parse({
-      url: 'test.local',
-      background: '#ffffff',
-      blocks: [{ kind: 'p', text: 'baseline' }],
-      variants: [
-        { minShift: 1, blocks: [{ kind: 'p', text: 'drifted' }] },
-        { whenFlag: 'decided', blocks: [{ kind: 'p', text: 'decided' }] },
-      ],
-    })
-    expect(resolveBlocks(page, 0, {})[0]).toMatchObject({ text: 'baseline' })
-    expect(resolveBlocks(page, 5, {})[0]).toMatchObject({ text: 'drifted' })
-    expect(resolveBlocks(page, 5, { decided: true })[0]).toMatchObject({ text: 'decided' })
-  })
-
-  it('does not report a decision as the timeline drifting under the player', () => {
-    // The Lea page changed because they asked for it. That is not the same thing as a page
-    // rewriting itself, and the day-end summary must not conflate them.
-    expect(isPageAltered(leaPage, 9)).toBe(false)
+    expect(after.minute - before.minute).toBe(3)
   })
 })
 
 describe('the address bar is not the location', () => {
   it('typing an address does not move the browser', () => {
-    let state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' })
-    state = dispatch(state, { type: 'BROWSER_URL_CHANGED', url: 'half-typ' })
-    expect(state.browser.url).toBe('tradepost.com')
-    expect(state.browser.draftUrl).toBe('half-typ')
-    expect(selectPage(state, content).found).toBe(true)
+    const state = dispatch(fresh(), { type: 'BROWSER_URL_CHANGED', url: 'marlowfoundation.org' })
+    expect(state.browser.draftUrl).toBe('marlowfoundation.org')
+    expect(state.browser.url).toBe(content.browser.home)
+    expect(state.browser.view).toBe('home')
   })
 
-  it('going back discards what was half-typed', () => {
-    let state = run(fresh(), [
-      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' },
-      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com/pdx/electronics' },
-      { type: 'BROWSER_URL_CHANGED', url: 'nonsen' },
-    ])
-    state = dispatch(state, { type: 'BROWSER_WENT_BACK' })
+  it('submitting it does, and clears the draft', () => {
+    let state = dispatch(fresh(), { type: 'BROWSER_URL_CHANGED', url: 'marlowfoundation.org' })
+    state = dispatch(state, { type: 'BROWSER_NAVIGATED', url: 'marlowfoundation.org' })
     expect(state.browser.draftUrl).toBeNull()
-    expect(state.browser.url).toBe('tradepost.com')
+    expect(state.browser.url).toBe('marlowfoundation.org')
   })
 })
 
 describe('a URL is not a lowercase string', () => {
   it('the host is case-insensitive and the path is not', () => {
-    // On a 2009 server `/Terminal/4417` and `/terminal/4417` were different pages, and the game
-    // authors paths with capitals. Lowercasing the whole address made an authored page
-    // unreachable and silently broke a mystery's unlock condition.
-    expect(normalizeUrl('http://GeoHost.COM/Terminal/4417')).toBe('geohost.com/Terminal/4417')
-    expect(normalizeUrl('WWW.TradePost.com/pdx/electronics')).toBe('tradepost.com/pdx/electronics')
-
-    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'GEOHOST.com/Terminal/4417' })
+    expect(normalizeUrl('MarlowFoundation.ORG/Filings')).toBe('marlowfoundation.org/Filings')
+    const state = dispatch(fresh(), { type: 'BROWSER_NAVIGATED', url: 'MARLOWFOUNDATION.ORG' })
     expect(selectPage(state, content).found).toBe(true)
   })
 })

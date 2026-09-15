@@ -1,10 +1,10 @@
 'use client'
 
-import { useDispatch, useTimeline } from '../GameContext'
+import { useDispatch, useInvestigation } from '../GameContext'
 
 export function NotesApp() {
   const dispatch = useDispatch()
-  const notes = useTimeline((s) => s.notes)
+  const notes = useInvestigation((s) => s.notes)
 
   return (
     <div className="hal-notes">

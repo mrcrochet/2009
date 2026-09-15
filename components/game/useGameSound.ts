@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect } from 'react'
-import type { GameEvent, TimelineState } from '@/engine/types'
-import { playCue, playRecall, unlockAudio } from '@/lib/audio'
+import type { GameEvent, InvestigationState } from '@/engine/types'
+import { playCue, unlockAudio } from '@/lib/audio'
 
 /**
  * Maps game events to sound. Every cue is a consequence of something the player did or something
  * the machine did to them — nothing here decorates a hover.
  */
-export function cueForEvent(event: GameEvent, next: TimelineState): (() => void) | null {
+export function cueForEvent(event: GameEvent, next: InvestigationState): (() => void) | null {
   switch (event.type) {
     case 'BOOT_COMPLETED':
       return () => playCue('boot')
@@ -22,17 +22,18 @@ export function cueForEvent(event: GameEvent, next: TimelineState): (() => void)
       return () => playCue('mail')
     case 'EVIDENCE_PINNED':
       return () => playCue('pin')
-    case 'RECALL_USED':
-      return () => playRecall(next.memoryIntegrity)
+    case 'DEVICE_UNLOCK_ATTEMPTED':
+      // Only when it actually opened. A refused passcode is silent, which is worse.
+      return next.devices[event.deviceId]?.unlocked ? () => playCue('unlocked') : null
     case 'CLAIM_ASSERTED':
       return next.lastVerdict?.verdict === 'accepted'
         ? () => playCue('claimAccepted')
         : () => playCue('claimRefused')
-    case 'ITEM_SOLD':
+    case 'SERVICE_GRANTED':
       return () => playCue('money')
     case 'TERMINAL_COMMAND_RUN':
       return next.terminal.lines.at(-1)?.tone === 'err' ? () => playCue('error') : null
-    case 'DAY_ENDED':
+    case 'REPORT_FILED':
       return () => playCue('watched')
     default:
       return null
@@ -56,7 +57,7 @@ export function useAudioUnlock(): void {
   }, [])
 }
 
-export function playEventCue(event: GameEvent, next: TimelineState, prev: TimelineState): void {
+export function playEventCue(event: GameEvent, next: InvestigationState, prev: InvestigationState): void {
   // A window that was already open makes no sound when the dock merely focuses it.
   if (event.type === 'APP_OPENED' && prev.windows.length === next.windows.length) return
   cueForEvent(event, next)?.()

@@ -1,10 +1,10 @@
 'use client'
 
-import { useContent, useTimeline } from './GameContext'
+import { useContent, useInvestigation } from './GameContext'
 
 export function BootSequence() {
   const content = useContent()
-  const line = useTimeline((s) => s.bootLine)
+  const line = useInvestigation((s) => s.bootLine)
   const shown = content.boot.slice(0, line)
 
   return (

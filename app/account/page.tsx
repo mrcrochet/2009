@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { getPlans, isBillingConfigured } from '@/lib/billing/plans'
 import { getServerEntitlement } from '@/lib/billing/entitlement'
 import { getCurrentUser } from '@/lib/supabase/server'
-import { listServerTimelines } from '@/lib/supabase/timelines'
+import { listServerInvestigations } from '@/lib/supabase/investigations'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
 import { ClaimTimeline } from './ClaimTimeline'
 import { BillingActions } from './BillingActions'
@@ -11,7 +11,8 @@ import styles from './account.module.css'
 interface Props {
   searchParams: Promise<{
     claim?: string
-    day?: string
+    case?: string
+    service?: string
     upgrade?: string
     checkout?: string
     soon?: string
@@ -21,39 +22,40 @@ interface Props {
 export const dynamic = 'force-dynamic'
 
 /**
- * The save / account / subscription surface. Reached only after Day 01 has earned the ask.
+ * The save / account / subscription surface. Reached only after Case 001 has earned the ask.
  * Entitlement is resolved here on the server; the client renders the answer.
  */
 export default async function AccountPage({ searchParams }: Props) {
-  const { claim, day, upgrade, checkout, soon } = await searchParams
+  const { claim, case: caseId, service, upgrade, checkout, soon } = await searchParams
   const user = await getCurrentUser()
   const entitlement = await getServerEntitlement(user?.id ?? null)
-  const timelines = user ? await listServerTimelines(user.id) : []
+  const investigations = user ? await listServerInvestigations(user.id) : []
   const plans = getPlans()
-  const nextDay = Number(day ?? 2) || 2
 
   return (
     <main className={styles.root}>
       <div className={styles.inner}>
-        <div className={styles.eyebrow}>2009 · account</div>
-        <h1 className={styles.title}>{user ? 'Your timelines' : 'Keep the 2009 you just made'}</h1>
+        <div className={styles.eyebrow}>unlisted · account</div>
+        <h1 className={styles.title}>
+          {user ? 'Your investigations' : 'Keep the investigation you just ran'}
+        </h1>
 
         {checkout === 'cancelled' ? (
           <div className={styles.notice}>Checkout was cancelled. Nothing was charged.</div>
         ) : null}
         {soon ? (
           <div className={styles.notice}>
-            Day {String(nextDay).padStart(2, '0')} is not written yet. Your timeline is safe where
-            it is.
+            {caseId ? `Case ${caseId} is not written yet.` : 'That case is not written yet.'} Your
+            investigation is safe where it is.
           </div>
         ) : null}
 
         {!user ? (
           <section className={styles.card}>
-            <div className={styles.cardTitle}>Save this timeline — free</div>
+            <div className={styles.cardTitle}>Save this investigation — free</div>
             <p className={styles.body}>
-              Day 01 lives in this browser only. Create an account and the version of 2009 you made
-              moves with you — and Day 02 opens.
+              Case 001 lives in this browser only. Create an account and the file you built moves
+              with you — and the rest of the case library opens.
             </p>
             <div className={styles.row}>
               <Link
@@ -68,14 +70,14 @@ export default async function AccountPage({ searchParams }: Props) {
             </div>
             {!isSupabaseConfigured() ? (
               <div className={styles.mono}>
-                Accounts are not configured in this environment. Your timeline is still saved
-                locally and Day 01 remains fully playable.
+                Accounts are not configured in this environment. Your investigation is still
+                saved locally and Case 001 remains fully playable.
               </div>
             ) : null}
           </section>
         ) : (
           <>
-            <ClaimTimeline timelineId={claim ?? null} />
+            <ClaimTimeline investigationId={claim ?? null} />
 
             <section className={styles.card}>
               <div className={styles.cardTitle}>Subscription</div>
@@ -93,8 +95,13 @@ export default async function AccountPage({ searchParams }: Props) {
               </div>
               {upgrade && !entitlement.active ? (
                 <div className={styles.notice}>
-                  Day {String(nextDay).padStart(2, '0')} needs full access. Day 01 stays free,
-                  always.
+                  That case needs full access. Case 001 stays free, always.
+                </div>
+              ) : null}
+              {service ? (
+                <div className={styles.notice}>
+                  Forensic recovery is sold separately and is never needed to close a case. It is
+                  not part of a subscription, and buying it charges a real card.
                 </div>
               ) : null}
               <BillingActions
@@ -107,23 +114,23 @@ export default async function AccountPage({ searchParams }: Props) {
                 }))}
                 entitled={entitlement.active}
                 configured={isBillingConfigured()}
-                timelineId={claim ?? null}
+                investigationId={claim ?? null}
               />
             </section>
 
             <section className={styles.card}>
-              <div className={styles.cardTitle}>Timelines</div>
-              {timelines.length === 0 ? (
-                <div className={styles.mono}>No cloud timelines yet.</div>
+              <div className={styles.cardTitle}>Investigations</div>
+              {investigations.length === 0 ? (
+                <div className={styles.mono}>No cloud investigations yet.</div>
               ) : (
-                <div className={styles.timelines}>
-                  {timelines.map((t) => (
+                <div className={styles.investigations}>
+                  {investigations.map((t) => (
                     <Link
                       key={t.id}
-                      className={styles.timeline}
-                      href={`/play/${t.id}?day=${t.day}`}
+                      className={styles.investigation}
+                      href={`/play/${t.id}?case=${encodeURIComponent(t.caseId)}`}
                     >
-                      <span>Day {String(t.day).padStart(2, '0')}</span>
+                      <span>{t.caseId}</span>
                       <span>{new Date(t.updatedAt).toLocaleString('en-US')}</span>
                     </Link>
                   ))}

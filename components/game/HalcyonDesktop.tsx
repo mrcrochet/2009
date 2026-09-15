@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Dock } from './Dock'
 import { SearchPalette } from './SearchPalette'
-import { DayEndCard } from './DayEndCard'
+import { ReportCard } from './ReportCard'
 import { DebugPanel } from './DebugPanel'
 import { DesktopIcons } from './DesktopIcons'
 import { EvidenceTray } from './EvidenceTray'
@@ -13,7 +13,7 @@ import { PhoneOverlay } from './PhoneOverlay'
 import { SurveillanceOverlay } from './SurveillanceOverlay'
 import { WayUpOverlay } from './WayUpOverlay'
 import { WindowManager } from './WindowManager'
-import { useDispatch, useTimeline } from './GameContext'
+import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { useWorldOptional } from './WorldContext'
 import { DirectoryFocusProvider } from './DirectoryFocus'
 import { artifactUrl } from '@/engine/world'
@@ -31,7 +31,8 @@ const SURFACE_APP: Record<string, AppId> = {
   archive: 'web',
 }
 
-export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
+export function HalcyonDesktop({ onFileReport }: { onFileReport: () => void }) {
+  const content = useContent()
   const dispatch = useDispatch()
   const world = useWorldOptional()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -42,10 +43,10 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
    * palette, and a cursor in the event log is noise a replay has to carry forever.
    */
   const [directoryFocus, setDirectoryFocus] = useState<string | null>(null)
-  const trayOpen = useTimeline((s) => s.ui.trayOpen)
-  const boardOpen = useTimeline((s) => s.ui.boardOpen)
-  const wayupOpen = useTimeline((s) => s.ui.wayupOpen)
-  const phoneOpen = useTimeline((s) => s.phone.open)
+  const trayOpen = useInvestigation((s) => s.ui.trayOpen)
+  const boardOpen = useInvestigation((s) => s.ui.boardOpen)
+  const wayupOpen = useInvestigation((s) => s.ui.wayupOpen)
+  const phoneOpen = useInvestigation((s) => s.phone.open)
 
   // One search across the whole machine. Ctrl+K rather than a dock icon: it is a route through
   // the system, not an application.
@@ -112,7 +113,7 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
     <div className="hal-desktop" data-testid="desktop">
       <div className="hal-desktop__bg" />
       <div className="hal-desktop__grid" aria-hidden="true" />
-      <MenuBar onEndDay={onEndDay} />
+      <MenuBar onFileReport={onFileReport} />
       <DesktopIcons />
       <DirectoryFocusProvider value={directoryFocus}>
         <WindowManager />
@@ -122,6 +123,7 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
       <InvestigationBoard />
       <WayUpOverlay />
       <SearchPalette
+        machine={content.osName.split(' ')[0] ?? 'the machine'}
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onOpenHit={(hit) => {
@@ -131,7 +133,7 @@ export function HalcyonDesktop({ onEndDay }: { onEndDay: () => void }) {
       />
       <Dock />
       <SurveillanceOverlay />
-      <DayEndCard />
+      <ReportCard />
       <DebugPanel />
     </div>
   )

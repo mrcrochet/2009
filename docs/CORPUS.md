@@ -1,5 +1,9 @@
 # Authoring the world
 
+> **Reading this after the pivot.** Where this document says *day*, read **case**. The corpus
+> rules are unchanged — one fact many surfaces, every page an address, the density targets — and
+> `tests/unit/content.test.ts` still enforces them.
+
 `docs/AUTHORING.md` covers a **day**: the thirty hours the player spends in front of the machine,
 the mail that arrives, the claim they can assert. This covers the **world** those hours happen
 inside — the corpus in `content/world/`, which is everything the machine can find that no day put

@@ -23,14 +23,14 @@ const SURFACE_LABEL: Readonly<Record<string, string>> = {
   msg: 'Messages',
   phone: 'Phone',
   files: 'Files',
-  bank: 'Bank',
+  device: 'Devices',
   web: 'Web',
   archive: 'Archive',
   term: 'System',
 }
 
 /** Filter order, chosen so the surfaces a player thinks in come first. */
-const SURFACES = ['people', 'mail', 'msg', 'phone', 'files', 'bank', 'web', 'archive', 'term']
+const SURFACES = ['people', 'mail', 'msg', 'phone', 'device', 'files', 'web', 'archive', 'term']
 
 const optionId = (hit: SearchHit) => `hal-search-opt-${hit.kind}-${hit.id}`
 
@@ -39,9 +39,17 @@ export interface SearchPaletteProps {
   readonly onClose: () => void
   /** The palette does not own the reducer; opening a hit is somebody else's decision. */
   readonly onOpenHit: (hit: SearchHit) => void
+  /**
+   * What this machine is called.
+   *
+   * Passed in rather than read from the store, because the palette is mountable on its own and
+   * a component that reaches for a provider to render its own title cannot be. It said HALCYON
+   * outright, which was a case's word living in a component.
+   */
+  readonly machine: string
 }
 
-export function SearchPalette({ open, onClose, onOpenHit }: SearchPaletteProps) {
+export function SearchPalette({ open, onClose, onOpenHit, machine }: SearchPaletteProps) {
   const world = useWorldOptional()
   const panelRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -167,12 +175,12 @@ export function SearchPalette({ open, onClose, onOpenHit }: SearchPaletteProps) 
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        aria-label="Search HALCYON"
+        aria-label={`Search ${machine}`}
         tabIndex={-1}
         onKeyDown={onKeyDown}
       >
         <div className="hal-search__bar">
-          <span className="hal-search__title">SEARCH HALCYON</span>
+          <span className="hal-search__title">SEARCH {machine.toUpperCase()}</span>
           <button
             type="button"
             className="hal-search__close"

@@ -1,14 +1,13 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import type { DayContent } from '@/engine/content-schema'
-import type { EventInput } from '@/engine/events'
-import { createTimeline } from '@/engine/initial-state'
-import type { GameEvent, ThreadId, TimelineState } from '@/engine/types'
+import type { CaseContent } from '@/engine/case-schema'
+import { createInvestigation } from '@/engine/initial-state'
+import type { GameEvent, ThreadId, InvestigationState } from '@/engine/types'
 import type { WorldIndex } from '@/engine/world'
-import { selectCanEndDay, selectDaySummary } from '@/engine/selectors'
+import { selectCanFileReport, selectReportSummary } from '@/engine/selectors'
 import { track } from '@/lib/analytics'
-import { createAutosave, loadTimeline } from '@/lib/persistence/local-store'
+import { createAutosave, loadInvestigation } from '@/lib/persistence/local-store'
 import { createGameStore, type GameStoreApi } from '@/state/store'
 import { BootSequence } from './BootSequence'
 import { GameErrorBoundary } from './GameErrorBoundary'
@@ -22,15 +21,12 @@ import { pace, useReducedMotion } from './useReducedMotion'
 import '@/styles/halcyon.css'
 
 interface Props {
-  readonly content: DayContent
-  readonly timelineId: string
-  /** `new` starts at the boot console (the player already pressed WAKE UP). */
+  readonly content: CaseContent
+  readonly investigationId: string
+  /** `new` starts at the boot console — the player already opened the case. */
   readonly mode: 'new' | 'resume'
-  /** Dispatched when a saved timeline is resumed on a later day than it was left on. */
-  readonly advanceEvent?: EventInput
-  readonly contentForDay?: (day: number) => DayContent
   /**
-   * The world graph. Optional so a test can mount a day without one; when it is absent the
+   * The world graph. Optional so a test can mount a case without one; when it is absent the
    * search and the directory simply are not on this machine, rather than being broken on it.
    */
   readonly world?: WorldIndex
@@ -40,12 +36,14 @@ interface Props {
  * Owns everything the pure engine deliberately does not: timers, persistence, viewport and
  * analytics. Every scheduled beat dispatches an ordinary event, so the log stays replayable.
  */
-export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDay, world }: Props) {
+export function GameRoot({ content, investigationId, mode, world }: Props) {
   const [api] = useState<GameStoreApi>(() =>
     createGameStore({
       content,
-      contentForDay,
-      timeline: createTimeline(content, { id: timelineId, now: new Date().toISOString() }),
+      investigation: createInvestigation(content, {
+        id: investigationId,
+        now: new Date().toISOString(),
+      }),
       onEvent: (event, next, prev) => {
         trackEvent(event, next, content)
         playEventCue(event, next, prev)
@@ -64,30 +62,24 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
   useEffect(() => {
     let cancelled = false
     if (mode === 'new') {
-      api.getState().dispatch({ type: 'WOKE_UP' })
+      api.getState().dispatch({ type: 'CASE_OPENED' })
       bootStartedAt.current = Date.now()
       return
     }
-    void loadTimeline(timelineId).then((saved) => {
+    void loadInvestigation(investigationId).then((saved) => {
       if (cancelled) return
       if (!saved) {
-        api.getState().dispatch({ type: 'WOKE_UP' })
+        api.getState().dispatch({ type: 'CASE_OPENED' })
         setReady(true)
         return
       }
       api.getState().hydrate(saved)
-      // The player finished a day and came back for the next one. This is the only place the
-      // night happens: everything they became carries, everything that was one day's surface
-      // is cleared.
-      if (saved.day < content.day && advanceEvent) {
-        api.getState().dispatch(advanceEvent)
-      }
       setReady(true)
     })
     return () => {
       cancelled = true
     }
-  }, [api, mode, timelineId, content.day, advanceEvent])
+  }, [api, mode, investigationId])
 
   // --- viewport ------------------------------------------------------------
   useEffect(() => {
@@ -101,8 +93,8 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
   // --- autosave ------------------------------------------------------------
   useEffect(() => {
     const unsub = api.subscribe((s, prev) => {
-      if (s.timeline === prev.timeline) return
-      autosave.schedule(s.timeline)
+      if (s.investigation === prev.investigation) return
+      autosave.schedule(s.investigation)
     })
     return () => {
       unsub()
@@ -117,20 +109,20 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
     let hold: ReturnType<typeof setTimeout> | null = null
 
     const unsub = api.subscribe((s, prev) => {
-      if (s.timeline.stage === 'boot' && prev.timeline.stage !== 'boot') startBoot()
+      if (s.investigation.stage === 'boot' && prev.investigation.stage !== 'boot') startBoot()
     })
-    if (api.getState().timeline.stage === 'boot') startBoot()
+    if (api.getState().investigation.stage === 'boot') startBoot()
 
     function startBoot() {
       if (interval) return
       bootStartedAt.current = Date.now()
-      // Ember opens itself the moment the desktop settles; fetch it while the console runs.
+      // Dispatch opens itself the moment the desktop settles; fetch it while the console runs.
       prefetchApp('msg')
       prefetchApp('files')
       interval = setInterval(
         () => {
           const state = api.getState()
-          if (state.timeline.bootLine >= content.boot.length) {
+          if (state.investigation.bootLine >= content.boot.length) {
             if (interval) clearInterval(interval)
             interval = null
             hold = setTimeout(
@@ -174,14 +166,15 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
       )
       icon = setTimeout(
         () => {
-          api.getState().dispatch({ type: 'DESKTOP_ICON_APPEARED', iconId: 'readme' })
+          api.getState()
+            .dispatch({ type: 'DESKTOP_ICON_APPEARED', iconId: content.desktopIconFileId })
         },
         pace(content.desktopIconAtMs, reducedMotion),
       )
     }
 
     const unsub = api.subscribe((s, prev) => {
-      if (s.timeline.stage === 'playing' && prev.timeline.stage === 'boot') schedule()
+      if (s.investigation.stage === 'playing' && prev.investigation.stage === 'boot') schedule()
     })
     return () => {
       unsub()
@@ -196,8 +189,8 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
     const unsub = api.subscribe((s, prev) => {
       // Per thread, because two people can be mid-reply at once — and one starting must not
       // cancel the other's timer, or put its answer in the wrong person's mouth.
-      for (const thread of Object.keys(s.timeline.chat.waiting) as ThreadId[]) {
-        if (!s.timeline.chat.waiting[thread] || prev.timeline.chat.waiting[thread]) continue
+      for (const thread of Object.keys(s.investigation.chat.waiting) as ThreadId[]) {
+        if (!s.investigation.chat.waiting[thread] || prev.investigation.chat.waiting[thread]) continue
         const timer = setTimeout(
           () => {
             api.getState().dispatch({ type: 'CHAT_ADVANCED', thread })
@@ -213,62 +206,33 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
     }
   }, [api, content, reducedMotion])
 
-  // --- resale settlement ---------------------------------------------------
-  useEffect(() => {
-    const timers = new Set<ReturnType<typeof setTimeout>>()
-    const unsub = api.subscribe((s, prev) => {
-      for (const item of s.timeline.inventory) {
-        if (item.state !== 'listed') continue
-        const before = prev.timeline.inventory.find((i) => i.id === item.id)
-        if (before?.state === 'listed') continue
-        const opp = content.economy.opportunities.find((o) => o.id === item.id)
-        if (!opp) continue
-        track('money_action_started', { itemId: item.id })
-        const timer = setTimeout(
-          () => {
-            api
-              .getState()
-              .dispatch({ type: 'ITEM_SOLD', itemId: item.id, amountCents: opp.sellCents })
-            track('money_action_completed', { itemId: item.id, amountCents: opp.sellCents })
-          },
-          pace(opp.settleMs, reducedMotion),
-        )
-        timers.add(timer)
-      }
-    })
-    return () => {
-      unsub()
-      for (const t of timers) clearTimeout(t)
-    }
-  }, [api, content, reducedMotion])
-
-  // --- day 01 gate ---------------------------------------------------------
+  // --- the report gate -----------------------------------------------------
   useEffect(() => {
     let fired = false
     const unsub = api.subscribe((s) => {
       if (fired) return
-      if (!selectCanEndDay(s.timeline, content)) return
+      if (!selectCanFileReport(s.investigation, content)) return
       fired = true
-      track('day01_requirements_completed', { minuteOfDay: s.timeline.minuteOfDay })
+      track('case_requirements_completed', { minute: s.investigation.minute })
     })
     return unsub
   }, [api, content])
 
-  // --- day end -------------------------------------------------------------
-  const endDay = useCallback(() => {
-    const { dispatch, timeline } = api.getState()
-    if (timeline.stage === 'day-end') return
-    dispatch({ type: 'DAY_ENDED' })
-    const summary = selectDaySummary(api.getState().timeline, content)
-    track('day01_completed', {
-      cashCents: api.getState().timeline.cashCents,
-      integrity: api.getState().timeline.memoryIntegrity,
+  // --- filing the report ---------------------------------------------------
+  const fileReport = useCallback(() => {
+    const { dispatch, investigation } = api.getState()
+    if (investigation.stage === 'report') return
+    dispatch({ type: 'REPORT_FILED' })
+    const summary = selectReportSummary(api.getState().investigation, content)
+    track('case_completed', {
+      evidenceCount: summary.evidenceCount,
       claimsOnRecord: summary.claimCount,
-      shifted: summary.shifted,
+      exposure: summary.exposure,
+      changed: summary.changed,
     })
     setTimeout(
-      () => api.getState().dispatch({ type: 'DAY_CARD_SHOWN' }),
-      pace(content.dayEnd.surveillanceDelayMs, reducedMotion),
+      () => api.getState().dispatch({ type: 'REPORT_CARD_SHOWN' }),
+      pace(content.report.surveillanceDelayMs, reducedMotion),
     )
   }, [api, content, reducedMotion])
 
@@ -284,10 +248,10 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
             <BootSequence />
           ) : world ? (
             <WorldGate index={world}>
-              <HalcyonDesktop onEndDay={endDay} />
+              <HalcyonDesktop onFileReport={fileReport} />
             </WorldGate>
           ) : (
-            <HalcyonDesktop onEndDay={endDay} />
+            <HalcyonDesktop onFileReport={fileReport} />
           )}
         </div>
       </GameErrorBoundary>
@@ -295,8 +259,8 @@ export function GameRoot({ content, timelineId, mode, advanceEvent, contentForDa
   )
 }
 
-function useStage(api: GameStoreApi): TimelineState['stage'] {
-  const read = useCallback(() => api.getState().timeline.stage, [api])
+function useStage(api: GameStoreApi): InvestigationState['stage'] {
+  const read = useCallback(() => api.getState().investigation.stage, [api])
   return useSyncExternalStore(api.subscribe, read, read)
 }
 
@@ -305,13 +269,13 @@ function measure() {
   return { width: window.innerWidth, height: window.innerHeight }
 }
 
-function trackEvent(event: GameEvent, next: TimelineState, content: DayContent) {
+function trackEvent(event: GameEvent, next: InvestigationState, content: CaseContent) {
   switch (event.type) {
     case 'APP_OPENED':
       track('app_opened', { app: event.app })
       break
     case 'FILE_OPENED':
-      if (event.fileId === 'readme') track('readme_opened', {})
+      if (event.fileId === content.desktopIconFileId) track('readme_opened', {})
       break
     case 'EVIDENCE_PINNED':
       track('evidence_pinned', {
@@ -320,15 +284,12 @@ function trackEvent(event: GameEvent, next: TimelineState, content: DayContent) 
         total: next.evidence.length,
       })
       break
-    case 'RECALL_USED': {
-      const latest = next.recalls[0]
-      track('recall_used', {
-        confidence: latest?.confidence ?? 'NONE',
-        matched: Boolean(latest?.memoryId),
-        integrityAfter: next.memoryIntegrity,
-      })
+    case 'DEVICE_UNLOCK_ATTEMPTED':
+      track('device_unlocked', { deviceId: event.deviceId })
       break
-    }
+    case 'SERVICE_GRANTED':
+      track('service_granted', { serviceId: event.serviceId })
+      break
     case 'CLAIM_ASSERTED':
       track('claim_asserted', {
         claimId: event.claimId,
@@ -339,5 +300,4 @@ function trackEvent(event: GameEvent, next: TimelineState, content: DayContent) 
     default:
       break
   }
-  void content
 }

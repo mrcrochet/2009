@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MysterySchema } from '@/engine/mystery-schema'
 import { MYSTERIES, mysteryById } from '@/content/mysteries'
 import { isUnlocked, signalRemaining, unlockedMysteries, unmetConditions } from '@/engine/mysteries'
-import { selectDaySummary } from '@/engine/selectors'
+import { selectReportSummary } from '@/engine/selectors'
 import { content, dispatch, fresh, run } from './helpers'
 
 const ctx = (state: ReturnType<typeof fresh>, globallyUnlocked: string[] = []) => ({
@@ -81,48 +81,42 @@ describe('the editorial line', () => {
 })
 
 describe('unlocking', () => {
-  const deadCity = mysteryById('dead-city')!
+  const mirror = mysteryById('session-mirror')!
 
   it('stays shut until the player has been where it lives', () => {
-    expect(isUnlocked(deadCity, ctx(fresh()))).toBe(false)
-    expect(unmetConditions(deadCity, ctx(fresh())).length).toBeGreaterThan(0)
+    expect(isUnlocked(mirror, ctx(fresh()))).toBe(false)
+    expect(unmetConditions(mirror, ctx(fresh())).length).toBeGreaterThan(0)
   })
 
   it('opens on state the player produced, never on a script', () => {
-    // Visiting the page is necessary but not sufficient: they also have to have seen the eye
-    // somewhere it had no business being, or come back after the timeline started moving.
-    const visited = dispatch(fresh(), {
-      type: 'BROWSER_NAVIGATED',
-      url: 'geohost.com/Terminal/4417',
-    })
-    expect(isUnlocked(deadCity, ctx(visited))).toBe(false)
+    // Reading the statement is necessary but not sufficient: they also have to have opened a
+    // device, or have been loud enough that somebody would have had a reason to look.
+    const read = dispatch(fresh(), { type: 'FILE_OPENED', fileId: 'f2' })
+    expect(isUnlocked(mirror, ctx(read))).toBe(false)
 
-    const withWhois = dispatch(visited, {
-      type: 'EVIDENCE_PINNED',
-      evidenceId: 'e10',
-      via: 'browser',
+    const opened = dispatch(read, {
+      type: 'DEVICE_UNLOCK_ATTEMPTED',
+      deviceId: 'dev-phone',
+      key: '190455',
     })
-    expect(isUnlocked(deadCity, ctx(withWhois))).toBe(true)
+    expect(isUnlocked(mirror, ctx(opened))).toBe(true)
 
-    const shifted = run(visited, [
-      { type: 'RECALL_USED', query: 'bitcoin' },
-      { type: 'RECALL_USED', query: 'amazon' },
-    ])
-    expect(isUnlocked(deadCity, ctx(shifted))).toBe(true)
+    const loud = { ...read, exposure: 24 }
+    expect(isUnlocked(mirror, ctx(loud))).toBe(true)
   })
 
-  it('a visit still counts once the player has browsed on', () => {
-    const later = run(fresh(), [
-      { type: 'BROWSER_NAVIGATED', url: 'geohost.com/Terminal/4417' },
-      { type: 'BROWSER_NAVIGATED', url: 'geohost.com/ring' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e10', via: 'browser' },
+  it('a wrong passcode does not open the device, and so does not open this', () => {
+    const refused = run(fresh(), [
+      { type: 'FILE_OPENED', fileId: 'f2' },
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '000000' },
     ])
-    expect(isUnlocked(deadCity, ctx(later))).toBe(true)
+    expect(refused.devices['dev-phone']?.unlocked).toBe(false)
+    expect(isUnlocked(mirror, ctx(refused))).toBe(false)
   })
 
   it('an unknown condition fails closed', () => {
     const rogue = {
-      ...deadCity,
+      ...mirror,
       unlock: { all: [{ kind: 'wishful' } as never], any: [] },
     }
     expect(isUnlocked(rogue, ctx(fresh()))).toBe(false)
@@ -130,25 +124,33 @@ describe('unlocking', () => {
 
   it('a community unlock is honoured, and absent when playing offline', () => {
     const gated = {
-      ...deadCity,
-      unlock: { all: [{ kind: 'globalUnlock' as const, mysteryId: 'null-broadcast' }], any: [] },
+      ...mirror,
+      unlock: { all: [{ kind: 'globalUnlock' as const, mysteryId: 'session-mirror' }], any: [] },
     }
     expect(isUnlocked(gated, ctx(fresh()))).toBe(false)
-    expect(isUnlocked(gated, ctx(fresh(), ['null-broadcast']))).toBe(true)
+    expect(isUnlocked(gated, ctx(fresh(), ['session-mirror']))).toBe(true)
   })
 
   it('lists what has opened', () => {
     const open = run(fresh(), [
-      { type: 'BROWSER_NAVIGATED', url: 'geohost.com/Terminal/4417' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e10', via: 'browser' },
+      { type: 'FILE_OPENED', fileId: 'f2' },
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
     ])
-    expect(unlockedMysteries(MYSTERIES, ctx(open)).map((m) => m.id)).toEqual(['dead-city'])
+    expect(unlockedMysteries(MYSTERIES, ctx(open)).map((m) => m.id)).toEqual(['session-mirror'])
   })
 
   it('every unlock condition points at something that exists', () => {
     const evidenceIds = new Set(content.evidence.map((e) => e.id))
     const urls = new Set(content.browser.pages.map((p) => p.url))
     const mysteryIds = new Set(MYSTERIES.map((m) => m.id))
+    const deviceIds = new Set(content.devices.map((d) => d.id))
+    const serviceIds = new Set(content.services.map((s) => s.id))
+    const beats = new Set([
+      ...content.files.flatMap((f) => (f.beat ? [f.beat] : [])),
+      ...content.threads.flatMap((t) => (t.beat ? [t.beat] : [])),
+      ...content.devices.flatMap((d) => (d.beat ? [d.beat] : [])),
+      'claim',
+    ])
     for (const m of MYSTERIES) {
       for (const c of [...m.unlock.all, ...m.unlock.any]) {
         if (c.kind === 'evidence')
@@ -156,6 +158,11 @@ describe('unlocking', () => {
         if (c.kind === 'visitedUrl') expect(urls.has(c.url), `${m.id} → ${c.url}`).toBe(true)
         if (c.kind === 'globalUnlock')
           expect(mysteryIds.has(c.mysteryId), `${m.id} → ${c.mysteryId}`).toBe(true)
+        if (c.kind === 'deviceUnlocked')
+          expect(deviceIds.has(c.deviceId), `${m.id} → ${c.deviceId}`).toBe(true)
+        if (c.kind === 'serviceGranted')
+          expect(serviceIds.has(c.serviceId), `${m.id} → ${c.serviceId}`).toBe(true)
+        if (c.kind === 'beat') expect(beats.has(c.beat), `${m.id} → ${c.beat}`).toBe(true)
       }
     }
   })
@@ -183,32 +190,26 @@ describe('signal', () => {
     expect(state.wayup.observed).toEqual([])
   })
 
-  it('refills overnight, and what was read stays read', () => {
-    let state = run(fresh(), [
+  /**
+   * There is no night any more, and so no refill.
+   *
+   * A case is worked in one sitting, and the budget is the case's whole allowance. What a
+   * thirty-day season spent per day, an investigation spends once — which is what makes an
+   * investigator choose what they most need to know instead of looking up everything.
+   */
+  it('does not refill, because a case is one sitting', () => {
+    const state = run(fresh(), [
       { type: 'WAYUP_UNLOCKED', via: 'terminal' },
       { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 9 },
     ])
-    expect(signalRemaining(state, content)).toBeLessThan(24)
-
-    state = dispatch(state, {
-      type: 'DAY_ADVANCED',
-      day: 2,
-      dateISO: '2009-01-16',
-      wakeMinute: 400,
-      threadIds: ['unknown', 'marc', 'lea'],
-      firstMailId: 'm1',
-      firstFileId: 'readme',
-      browserHome: 'corvid.com',
-      terminalBanner: content.terminal.banner,
-    })
-    expect(signalRemaining(state, content)).toBe(24)
+    expect(signalRemaining(state, content)).toBe(content.relay!.signalBudget - 9)
     expect(state.wayup.observed).toEqual(['wu_a'])
     expect(state.wayup.unlocked).toBe(true)
   })
 
   it('an excerpt can only be pinned from a page actually seen', () => {
     const unseen = dispatch(fresh(), {
-      type: 'WAYUP_EVIDENCE_PINNED',
+      type: 'WAYUP_EXCERPT_KEPT',
       id: 'f1',
       snapshotId: 'wu_never',
       excerpt: 'x',
@@ -216,13 +217,13 @@ describe('signal', () => {
       sourceTitle: 'A page',
       excerptHash: 'a'.repeat(64),
     })
-    expect(unseen.wayup.futureEvidence).toEqual([])
+    expect(unseen.wayup.kept).toEqual([])
 
     const seen = run(fresh(), [
       { type: 'WAYUP_UNLOCKED', via: 'terminal' },
       { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
       {
-        type: 'WAYUP_EVIDENCE_PINNED',
+        type: 'WAYUP_EXCERPT_KEPT',
         id: 'f1',
         snapshotId: 'wu_a',
         excerpt: 'Its incorporation date has changed.',
@@ -231,8 +232,8 @@ describe('signal', () => {
         excerptHash: 'b'.repeat(64),
       },
     ])
-    expect(seen.wayup.futureEvidence).toHaveLength(1)
-    expect(seen.wayup.futureEvidence[0]?.capturedDay).toBe(1)
+    expect(seen.wayup.kept).toHaveLength(1)
+    expect(seen.wayup.kept[0]?.capturedAt).toBe(seen.minute)
   })
 })
 
@@ -242,7 +243,7 @@ describe('signal', () => {
  */
 describe('what a kept line costs, and where it goes', () => {
   const keep = (id: string, hash: string) => ({
-    type: 'WAYUP_EVIDENCE_PINNED' as const,
+    type: 'WAYUP_EXCERPT_KEPT' as const,
     id,
     snapshotId: 'wu_a',
     excerpt: 'a sentence that has not happened',
@@ -260,28 +261,28 @@ describe('what a kept line costs, and where it goes', () => {
   it('moves the world, because the sentence is now somewhere it was not', () => {
     const before = seen()
     const after = dispatch(before, keep('f1', 'a'.repeat(64)))
-    expect(after.temporalShift).toBe(before.temporalShift + content.wayup!.keepShift)
-    expect(after.wayup.futureEvidence).toHaveLength(1)
+    expect(after.exposure).toBe(before.exposure + content.relay!.keepExposure)
+    expect(after.wayup.kept).toHaveLength(1)
   })
 
   it('remembers where it came from, so an offline replay can still say', () => {
     const after = dispatch(seen(), keep('f1', 'a'.repeat(64)))
-    expect(after.wayup.futureEvidence[0]?.sourceUrl).toBe('example.test/a')
-    expect(after.wayup.futureEvidence[0]?.sourceTitle).toBe('A page')
+    expect(after.wayup.kept[0]?.sourceUrl).toBe('example.test/a')
+    expect(after.wayup.kept[0]?.sourceTitle).toBe('A page')
   })
 
-  it('is read back on the card at the end of the day', () => {
+  it('is read back on the report', () => {
     const after = dispatch(seen(), keep('f1', 'a'.repeat(64)))
-    const summary = selectDaySummary(after, content)
-    expect(summary.deeds.join('\n')).toContain('1 things that have not happened')
+    const summary = selectReportSummary(after, content)
+    expect(summary.deeds.join('\n')).toContain('carried 1 lines in from outside the case')
   })
 
   it('the same line kept twice is one line and costs once', () => {
     let state = dispatch(seen(), keep('f1', 'a'.repeat(64)))
-    const once = state.temporalShift
+    const once = state.exposure
     state = dispatch(state, keep('f2', 'a'.repeat(64)))
-    expect(state.wayup.futureEvidence).toHaveLength(1)
-    expect(state.temporalShift).toBe(once)
+    expect(state.wayup.kept).toHaveLength(1)
+    expect(state.exposure).toBe(once)
   })
 })
 
@@ -289,18 +290,18 @@ describe('asking costs, even when nothing comes back', () => {
   it('spends signal on the question, not only on the answer', () => {
     const state = run(fresh(), [
       { type: 'WAYUP_UNLOCKED', via: 'terminal' },
-      { type: 'WAYUP_SEARCHED', signalCost: content.wayup!.searchCost },
+      { type: 'WAYUP_SEARCHED', signalCost: content.relay!.searchCost },
     ])
     expect(signalRemaining(state, content)).toBe(
-      content.wayup!.signalBudget - content.wayup!.searchCost,
+      content.relay!.signalBudget - content.relay!.searchCost,
     )
   })
 
-  it('cannot be asked past the day’s budget', () => {
+  it('cannot be asked past the case’s budget', () => {
     const unlocked = dispatch(fresh(), { type: 'WAYUP_UNLOCKED', via: 'terminal' })
     const over = dispatch(unlocked, {
       type: 'WAYUP_SEARCHED',
-      signalCost: content.wayup!.signalBudget + 1,
+      signalCost: content.relay!.signalBudget + 1,
     })
     expect(over).toBe(unlocked)
   })

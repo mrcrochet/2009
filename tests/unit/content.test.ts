@@ -1,137 +1,156 @@
 import { describe, expect, it } from 'vitest'
-import { DayContentSchema } from '@/engine/content-schema'
-import { day01 } from '@/content/day01'
-import { BY_DAY, GAME_WORLD } from '@/content'
+import { CaseContentSchema } from '@/engine/case-schema'
+import { case001 } from '@/content/cases/case001'
+import { BY_CASE, GAME_WORLD } from '@/content'
 import { artifactUrl } from '@/engine/world'
 import { WORLD } from '@/content/world'
-import { resolveBlocks } from '@/engine/temporal'
+import { resolveBlocks } from '@/engine/pages'
 import { content } from './helpers'
 
 /** Authored content is data, and data has to hold together. */
-describe('day 01 content', () => {
+describe('case 001 content', () => {
   it('validates against the schema', () => {
-    expect(() => DayContentSchema.parse(day01)).not.toThrow()
+    expect(() => CaseContentSchema.parse(case001)).not.toThrow()
   })
 
   it('is set in the canonical world', () => {
-    expect(content.dateISO).toBe('2009-01-15')
+    expect(content.id).toBe('case001')
+    expect(content.dateISO).toBe('2026-06-17')
     expect(content.location).toBe('Portland, Oregon')
-    expect(content.identity).toBe('Owen T. Rask')
-    expect(content.osName).toBe('HALCYON 4.1')
-    expect(content.economy.bankName).toBe('MERIDIAN SAVINGS & LOAN')
-    expect(content.economy.openingCashCents).toBe(43782)
+    expect(content.osName).toBe('NOVA 3.2')
+    expect(content.client).toBe('Claire Mercer')
   })
 
-  it('has no leftover Paris/euro prototype content', () => {
+  it('has no leftover 2009 content', () => {
     const blob = JSON.stringify(content)
-    for (const legacy of ['Paris', 'euro', '€', 'EUR']) {
+    for (const legacy of ['HALCYON', 'Owen T. Rask', 'Aion', 'Meridian', 'Quoteline', 'Recall']) {
       expect(blob.includes(legacy), `found legacy token "${legacy}"`).toBe(false)
     }
   })
 
   it('ships no emoji anywhere in the authored copy', () => {
-    // Emoji-by-default code points, plus any character explicitly asking for emoji
-    // presentation. Text-presentation symbols a 2009 page would really print — (c), (r) —
-    // are not emoji and are allowed.
-    const emoji = /\p{Emoji_Presentation}|\uFE0F/u
+    // Emoji-by-default code points, plus any character explicitly asking for emoji presentation.
+    // Text-presentation symbols a real page would print — (c), (r) — are not emoji.
+    const emoji = /\p{Emoji_Presentation}|️/u
     expect(emoji.test(JSON.stringify(content))).toBe(false)
   })
 
-  it.each(Object.entries(BY_DAY))('day %s references only evidence that exists', (_day, day) => {
-    // A claim may rest on an earlier day's evidence by naming it outright, which is the whole
-    // point of `carriedEvidence` — so the set a claim is checked against is both.
-    const ids = new Set([...day.evidence, ...day.carriedEvidence].map((e) => e.id))
-    for (const claim of day.claims) {
+  it.each(Object.entries(BY_CASE))('case %s references only evidence that exists', (_id, kase) => {
+    const ids = new Set(kase.evidence.map((e) => e.id))
+    for (const claim of kase.claims) {
       for (const need of claim.need) expect(ids.has(need), `${claim.id} → ${need}`).toBe(true)
     }
-    // A page, a decrypt or a pin can only ever offer today's, because that is what pinning does.
-    const today = new Set(day.evidence.map((e) => e.id))
-    for (const page of day.browser.pages) {
-      for (const shift of [0, 9]) {
-        for (const block of resolveBlocks(page, shift)) {
-          if (block.kind === 'evidence') expect(today.has(block.evidenceId)).toBe(true)
+    // A page, a decrypt or a pin can only ever offer evidence this case authored.
+    for (const page of kase.browser.pages) {
+      for (const flags of [{}, everyFlag(kase)]) {
+        for (const block of resolveBlocks(page, flags)) {
+          if (block.kind === 'evidence') expect(ids.has(block.evidenceId)).toBe(true)
         }
       }
     }
-    expect(today.has(day.terminal.decrypt.evidenceId)).toBe(true)
+    expect(ids.has(kase.terminal.decrypt.evidenceId)).toBe(true)
+    for (const service of kase.services) {
+      for (const granted of service.grantsEvidenceIds) expect(ids.has(granted)).toBe(true)
+    }
   })
 
   /**
-   * An unqualified id in `carriedEvidence` means "today's", which is exactly what it is not.
-   * Nothing would throw: the claim would simply never be satisfiable, because the id the player
-   * holds is `1:e3` and the id the claim wants is `2:e3`.
+   * The rule the business model rests on.
+   *
+   * A forensic service may deepen a case. It may never *be* the case: if a sound claim can only
+   * be assembled by paying, then the thing being sold is the ending, and every sentence in the
+   * offer copy saying otherwise is false. This is the check that makes that promise true, and it
+   * fails the build rather than a refund request.
    */
-  it.each(Object.entries(BY_DAY))(
-    'day %s names carried evidence by the day it came from',
-    (_day, day) => {
-      for (const carried of day.carriedEvidence) {
-        const [from] = carried.id.split(':')
-        expect(carried.id, `${carried.id} is not qualified`).toContain(':')
-        expect(Number(from), `${carried.id} is not from an earlier day`).toBeLessThan(day.day)
-      }
-    },
-  )
-
-  it.each(Object.entries(BY_DAY))('day %s promises no page it does not have', (_day, day) => {
-    const urls = new Set(day.browser.pages.map((p) => p.url))
-    for (const entry of day.browser.index) {
-      if (entry.go) expect(urls.has(entry.go), `${entry.id} → ${entry.go}`).toBe(true)
-    }
-    for (const bookmark of day.browser.bookmarks) {
-      expect(urls.has(bookmark.url) || bookmark.url === day.browser.home, bookmark.url).toBe(true)
-    }
-    expect(urls.has(day.browser.directoryUrl)).toBe(true)
+  it.each(Object.entries(BY_CASE))('case %s can be closed without paying', (_id, kase) => {
+    const withheld = new Set(kase.services.flatMap((s) => s.grantsEvidenceIds))
+    const soundClaims = kase.claims.filter((c) => c.sound)
+    expect(soundClaims.length, 'a case with no sound claim cannot be closed at all').toBeGreaterThan(
+      0,
+    )
+    const free = soundClaims.filter((claim) => claim.need.every((id) => !withheld.has(id)))
+    expect(
+      free.length,
+      `every sound claim in ${kase.id} needs evidence that is behind a paid service`,
+    ).toBeGreaterThan(0)
   })
 
-  it.each(Object.entries(BY_DAY))(
-    'day %s wires every buyable listing to an opportunity',
-    (_day, day) => {
-      const ids = new Set(day.economy.opportunities.map((o) => o.id))
-      for (const page of day.browser.pages) {
-        for (const shift of [0, 9]) {
-          for (const block of resolveBlocks(page, shift)) {
-            if (block.kind === 'listing' && block.action === 'buy') {
-              // A listing pointing at another day's item renders as an inert "CONTACT SELLER" —
-              // yesterday's advertisement, still priced, silently doing nothing.
-              expect(block.itemId && ids.has(block.itemId), `${page.url} → ${block.title}`).toBe(
-                true,
-              )
-            }
-          }
+  it.each(Object.entries(BY_CASE))('case %s promises no page it does not have', (_id, kase) => {
+    const urls = new Set(kase.browser.pages.map((p) => p.url))
+    for (const entry of kase.browser.index) {
+      if (entry.go) expect(urls.has(entry.go), `${entry.id} → ${entry.go}`).toBe(true)
+    }
+    for (const bookmark of kase.browser.bookmarks) {
+      expect(urls.has(bookmark.url) || bookmark.url === kase.browser.home, bookmark.url).toBe(true)
+    }
+    expect(urls.has(kase.browser.directoryUrl)).toBe(true)
+  })
+
+  /**
+   * Which applications exist is a case's decision now. That freedom is only safe if a dock entry
+   * or an `opensApp` link naming an application the case never declared fails here — otherwise it
+   * is a button that opens nothing, discovered by a player.
+   */
+  it.each(Object.entries(BY_CASE))('case %s only names apps it declares', (_id, kase) => {
+    const declared = new Set(kase.apps.map((a) => a.id))
+    for (const id of kase.dock) {
+      expect(declared.has(id) || id === 'phone', `dock names an undeclared app "${id}"`).toBe(true)
+    }
+    for (const page of kase.browser.pages) {
+      for (const block of resolveBlocks(page, everyFlag(kase))) {
+        if (block.kind === 'link' && block.opensApp) {
+          expect(declared.has(block.opensApp), `${page.url} opens "${block.opensApp}"`).toBe(true)
         }
       }
-    },
-  )
+    }
+    // A case that ships a phone has to put one in the dock, and one that does not, must not.
+    expect(kase.dock.includes('phone')).toBe(kase.phone !== null)
+  })
 
-  it.each(Object.entries(BY_DAY))('day %s can actually be finished', (_day, day) => {
+  it.each(Object.entries(BY_CASE))('case %s can actually be finished', (_id, kase) => {
     // Every beat the gate asks for has to be reachable from something authored.
     const fireable = new Set<string>()
-    for (const f of day.files) if (f.beat) fireable.add(f.beat)
-    for (const t of day.threads) if (t.beat) fireable.add(t.beat)
-    for (const o of day.economy.opportunities) if (o.beat) fireable.add(o.beat)
-    // `recall` and `claim` are fired by the engine, not by authored content.
-    fireable.add('recall')
+    for (const f of kase.files) if (f.beat) fireable.add(f.beat)
+    for (const t of kase.threads) if (t.beat) fireable.add(t.beat)
+    for (const d of kase.devices) if (d.beat) fireable.add(d.beat)
+    // `claim` is fired by the engine, not by authored content.
     fireable.add('claim')
-    for (const beat of day.requiredBeats) {
+    for (const beat of kase.requiredBeats) {
       expect(fireable.has(beat), `no authored source fires the "${beat}" beat`).toBe(true)
     }
   })
 
-  it.each(Object.entries(BY_DAY))('day %s names its own beats', (_day, day) => {
-    expect(new Set(day.requiredBeats).size).toBe(day.requiredBeats.length)
+  it.each(Object.entries(BY_CASE))('case %s names its own beats', (_id, kase) => {
+    expect(new Set(kase.requiredBeats).size).toBe(kase.requiredBeats.length)
   })
 
-  it('the resale is worth doing and the quota is not reachable in one day', () => {
-    const opp = content.economy.opportunities[0]!
-    expect(opp.sellCents).toBeGreaterThan(opp.buyCents)
-    expect(content.economy.openingCashCents + opp.sellCents).toBeLessThan(
-      content.economy.quotaCents,
-    )
+  /**
+   * A device nothing can open is a locked box with no key in the world — which is a different
+   * thing from a device the player has not opened yet, and only one of them is a case.
+   */
+  it.each(Object.entries(BY_CASE))('case %s can open every device it locks', (_id, kase) => {
+    const blob = JSON.stringify({ files: kase.files, mail: kase.mail, threads: kase.threads })
+    for (const device of kase.devices) {
+      if (device.unlocked || !device.unlockKey) continue
+      expect(
+        blob.includes(device.unlockKey),
+        `nothing in ${kase.id} carries the key to "${device.label}"`,
+      ).toBe(true)
+    }
   })
 })
 
+/** Every flag any authored variant keys on, so a check can see every version of a page. */
+function everyFlag(kase: (typeof BY_CASE)[string]): Record<string, boolean> {
+  const flags: Record<string, boolean> = {}
+  for (const page of kase.browser.pages) {
+    for (const variant of page.variants) flags[variant.whenFlag] = true
+  }
+  return flags
+}
+
 /**
- * The world corpus, checked the way the day content is checked.
+ * The world corpus, checked the way the case content is checked.
  *
  * These are the invariants a content file can break silently. A relation nothing supports does
  * not throw and does not fail to render — it simply never appears, and the author never learns
@@ -178,21 +197,17 @@ describe('the world corpus holds together', () => {
     }
   })
 
-  it('gives no artifact the same id twice, including the projected days', () => {
+  it('gives no artifact the same id twice, including the projected cases', () => {
     expect(ids.size).toBe(GAME_WORLD.artifacts.length)
   })
 
   /**
    * The ratio the whole corpus exists to hold.
    *
-   * If every site on the web is about Aion, the world is artificial inside twenty minutes. The
-   * target is roughly 65 ordinary / 20 economic / 10 side-story / 4 suggestive / 1 anomalous per
-   * hundred pages, and it is measured per artifact rather than per fact because the thing being
+   * If every site on the web is about the case, the world is artificial inside twenty minutes.
+   * The target is roughly 65 ordinary / 20 economic / 10 side-story / 4 suggestive / 1 anomalous
+   * per hundred pages, measured per artifact rather than per fact because the thing being
    * rationed is what a player reads, not what an author files.
-   *
-   * The bounds are wide on purpose. A plot fact needs four to six traces to be solvable from any
-   * two of them, so the suggestive layer cannot shrink below a floor — it converges by the
-   * ordinary layer growing, and this fails when it has stopped growing.
    */
   it('is mostly not about the case', () => {
     const register = new Map(WORLD.facts.map((f) => [f.id, f.register]))
@@ -224,11 +239,8 @@ describe('the world corpus holds together', () => {
   })
 
   /**
-   * A page nobody can reach is not on the web.
-   *
-   * The corpus is the rest of the internet — the classified from November, the thread nobody
-   * links to. All of it is findable through search, and all of it has to be *openable*, or the
-   * search is a list of places the player is not allowed to go.
+   * A page nobody can reach is not on the web. The corpus is the rest of the internet, and all of
+   * it has to be *openable*, or the search is a list of places the player is not allowed to go.
    */
   it('gives every page on the web an address', () => {
     const unreachable = GAME_WORLD.artifacts
@@ -277,8 +289,8 @@ describe('the world corpus holds together', () => {
   })
 
   /**
-   * One fact, many surfaces. A fact carried by a single artifact is a key: lose it and the
-   * chain is dead, find it and there was nothing to work out.
+   * One fact, many surfaces. A fact carried by a single artifact is a key: lose it and the chain
+   * is dead, find it and there was nothing to work out.
    */
   it('carries every fact on at least two traces', () => {
     for (const fact of GAME_WORLD.facts) {

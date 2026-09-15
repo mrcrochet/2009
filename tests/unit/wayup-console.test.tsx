@@ -22,7 +22,7 @@ import { content, fresh } from './helpers'
  * humoured: it is the screen a player actually gets, and the first test is about that.
  */
 
-const cfg = content.wayup!
+const cfg = content.relay!
 
 const SNAPSHOT: WayUpSnapshot = {
   id: 'wu_0123456789abcdef0123456789abcdef',
@@ -99,7 +99,7 @@ const ATTACHED: EventInput[] = [
 ]
 
 function mount(seed: readonly EventInput[] = ATTACHED) {
-  const api: GameStoreApi = createGameStore({ content, timeline: fresh() })
+  const api: GameStoreApi = createGameStore({ content, investigation: fresh() })
   for (const input of seed) api.getState().dispatch(input)
   const utils = render(
     <GameProvider value={api}>
@@ -126,7 +126,7 @@ function selectContentsOf(node: Node) {
 }
 
 const observations = (api: GameStoreApi) =>
-  api.getState().timeline.eventLog.filter((e) => e.type === 'WAYUP_SNAPSHOT_OBSERVED')
+  api.getState().investigation.eventLog.filter((e) => e.type === 'WAYUP_SNAPSHOT_OBSERVED')
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -141,7 +141,7 @@ describe('no carrier', () => {
    * and this is the whole feature as most people will meet it. It has to be a screen the machine
    * would print, not a failed request wearing a stack trace.
    */
-  it('renders the day’s own words when the relay has no index', async () => {
+  it('renders the case’s own words when the relay has no index', async () => {
     const user = userEvent.setup()
     stubFetch({ search: reply(503, { error: 'the relay has no index on this side' }) })
     const { api, container } = mount()
@@ -156,9 +156,12 @@ describe('no carrier', () => {
     // And nothing on this screen could spend the day's signal: there is nothing to open.
     expect(container.querySelectorAll('.hal-wayup__row')).toHaveLength(0)
     expect(screen.queryByRole('button', { name: cfg.pinLabel })).not.toBeInTheDocument()
-    expect(api.getState().timeline.wayup.signalSpent).toBe(0)
+    expect(api.getState().investigation.wayup.signalSpent).toBe(0)
+    // Rendered from the case's own template, because the console's vocabulary is content.
     expect(screen.getByTestId('wayup-signal')).toHaveTextContent(
-      `signal ${cfg.signalBudget} of ${cfg.signalBudget}`,
+      cfg.signalTemplate
+        .replace('{{left}}', String(cfg.signalBudget))
+        .replace('{{budget}}', String(cfg.signalBudget)),
     )
   })
 })
@@ -234,13 +237,16 @@ describe('the budget', () => {
     expect(screen.getByText(SNAPSHOT.title)).toBeInTheDocument()
     expect(
       screen.getByText(
-        `received ${SNAPSHOT.remoteFetchedAt} · ${SNAPSHOT.byteLength} bytes · via firecrawl`,
+        cfg.capturedTemplate
+          .replace('{{when}}', SNAPSHOT.remoteFetchedAt)
+          .replace('{{bytes}}', String(SNAPSHOT.byteLength))
+          .replace('{{provider}}', 'firecrawl'),
       ),
     ).toBeInTheDocument()
 
-    expect(api.getState().timeline.wayup.observed).toEqual([SNAPSHOT.id])
+    expect(api.getState().investigation.wayup.observed).toEqual([SNAPSHOT.id])
     // Asking cost too. The question is charged on the answer, the page on the opening.
-    expect(api.getState().timeline.wayup.signalSpent).toBe(cfg.searchCost + cfg.openCost)
+    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.searchCost + cfg.openCost)
     expect(observations(api)).toHaveLength(1)
     expect(observations(api)[0]).toMatchObject({
       snapshotId: SNAPSHOT.id,
@@ -254,7 +260,7 @@ describe('the budget', () => {
     await user.click(await screen.findByRole('button', { name: /settlements, filings/i }))
     await screen.findByRole('button', { name: cfg.backLabel })
 
-    expect(api.getState().timeline.wayup.signalSpent).toBe(cfg.searchCost + cfg.openCost)
+    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.searchCost + cfg.openCost)
     expect(observations(api)).toHaveLength(1)
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
@@ -283,7 +289,7 @@ describe('the budget', () => {
     // The reducer would refuse the spend anyway; the point is that the player is never sent to
     // find that out.
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(api.getState().timeline.wayup.signalSpent).toBe(cfg.signalBudget)
+    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.signalBudget)
   })
 
   it('closes the returns the moment the day’s signal runs out', async () => {
@@ -330,14 +336,14 @@ describe('the budget', () => {
     // Asking first: no index, and the console says so and takes nothing.
     await transmit(user, 'aion group')
     expect(await screen.findByText(cfg.offlineTitle)).toBeInTheDocument()
-    expect(api.getState().timeline.wayup.signalSpent).toBe(0)
+    expect(api.getState().investigation.wayup.signalSpent).toBe(0)
 
     // The same field, given an address whole.
     await transmit(user, 'example.test/filings/aion')
     await screen.findByRole('button', { name: cfg.backLabel })
-    expect(api.getState().timeline.wayup.observed).toEqual([SNAPSHOT.id])
+    expect(api.getState().investigation.wayup.observed).toEqual([SNAPSHOT.id])
     // It cost an opening, not a question.
-    expect(api.getState().timeline.wayup.signalSpent).toBe(cfg.openCost)
+    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.openCost)
 
     const calls = fetchMock.mock.calls.map((c) => String(c[0]))
     expect(calls).toContain('/api/wayup/fetch')
@@ -434,8 +440,8 @@ describe('keeping a line', () => {
     expect(doc).toHaveAttribute('aria-activedescendant', options[1]!.id)
 
     await user.keyboard('{Enter}')
-    await waitFor(() => expect(api.getState().timeline.wayup.futureEvidence).toHaveLength(1))
-    expect(api.getState().timeline.wayup.futureEvidence[0]!.excerpt).toBe(
+    await waitFor(() => expect(api.getState().investigation.wayup.kept).toHaveLength(1))
+    expect(api.getState().investigation.wayup.kept[0]!.excerpt).toBe(
       options[1]!.textContent?.trim(),
     )
   })
@@ -448,7 +454,7 @@ describe('keeping a line', () => {
     await user.click(screen.getByRole('button', { name: cfg.pinLabel }))
     // The hint is in the console's own status line as well as beside the control.
     expect((await screen.findAllByText(cfg.pinHint)).length).toBeGreaterThan(0)
-    expect(api.getState().timeline.wayup.futureEvidence).toHaveLength(0)
+    expect(api.getState().investigation.wayup.kept).toHaveLength(0)
   })
 
   it('keeps the selected line, hashed the way the other side hashes', async () => {
@@ -459,8 +465,8 @@ describe('keeping a line', () => {
     selectContentsOf(screen.getByText(line))
     await user.click(screen.getByRole('button', { name: cfg.pinLabel }))
 
-    await waitFor(() => expect(api.getState().timeline.wayup.futureEvidence).toHaveLength(1))
-    const kept = api.getState().timeline.wayup.futureEvidence[0]!
+    await waitFor(() => expect(api.getState().investigation.wayup.kept).toHaveLength(1))
+    const kept = api.getState().investigation.wayup.kept[0]!
     expect(kept.snapshotId).toBe(SNAPSHOT.id)
     expect(kept.excerpt).toBe(line)
     // Hex SHA-256, the shape `lib/wayup/cache.ts` produces on the server side.
@@ -485,7 +491,7 @@ describe('keeping a line', () => {
     await user.click(screen.getByRole('button', { name: cfg.pinLabel }))
 
     expect(screen.getByRole('status')).toHaveTextContent(cfg.pinHint)
-    expect(api.getState().timeline.wayup.futureEvidence).toHaveLength(0)
+    expect(api.getState().investigation.wayup.kept).toHaveLength(0)
   })
 })
 
@@ -508,7 +514,7 @@ describe('the console as a mode', () => {
 
     await user.keyboard('{Escape}')
 
-    expect(api.getState().timeline.ui.wayupOpen).toBe(false)
+    expect(api.getState().investigation.ui.wayupOpen).toBe(false)
     await waitFor(() => expect(opener).toHaveFocus())
     opener.remove()
   })
@@ -518,7 +524,7 @@ describe('the console as a mode', () => {
     const { api } = mount()
 
     await user.click(screen.getByRole('button', { name: cfg.closeLabel }))
-    expect(api.getState().timeline.ui.wayupOpen).toBe(false)
+    expect(api.getState().investigation.ui.wayupOpen).toBe(false)
   })
 
   it('is not on the machine until the process has been found', () => {

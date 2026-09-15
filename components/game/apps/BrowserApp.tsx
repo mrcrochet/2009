@@ -1,12 +1,11 @@
 'use client'
 
-import type { Block } from '@/engine/content-schema'
-import { formatMoney } from '@/engine/money'
+import type { Block } from '@/engine/case-schema'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import type { AppId } from '@/engine/types'
 import { normalizeUrl } from '@/engine/url'
 import { artifactUrl, displayDate, siblingPages, type WorldArtifact } from '@/engine/world'
-import { useContent, useDispatch, useTimeline } from '../GameContext'
+import { useContent, useDispatch, useInvestigation } from '../GameContext'
 import { useWorldOptional } from '../WorldContext'
 import { PinButton } from '../PinButton'
 
@@ -14,9 +13,9 @@ export function BrowserApp() {
   const content = useContent()
   const dispatch = useDispatch()
   const world = useWorldOptional()
-  const browser = useTimeline((s) => s.browser)
-  const results = useTimeline((s) => selectSearchResults(s, content))
-  const page = useTimeline((s) => selectPage(s, content))
+  const browser = useInvestigation((s) => s.browser)
+  const results = useInvestigation((s) => selectSearchResults(s, content))
+  const page = useInvestigation((s) => selectPage(s, content))
 
   /**
    * The rest of the internet.
@@ -397,71 +396,14 @@ function BlockView({ block }: { block: Block }) {
   }
 }
 
+/**
+ * A classified, as a document rather than as a transaction.
+ *
+ * It used to be a shop front: the block carried an `itemId`, the page knew about an economy, and
+ * the button moved money. Buying things is not what this product is. What is left is what a
+ * classified is actually for here — an address, a price and a person who can be found.
+ */
 function Listing({ block }: { block: Extract<Block, { kind: 'listing' }> }) {
-  const content = useContent()
-  const dispatch = useDispatch()
-  const domains = useTimeline((s) => s.domains)
-  const inventory = useTimeline((s) => s.inventory)
-  const cashCents = useTimeline((s) => s.cashCents)
-
-  const opportunity = block.itemId
-    ? content.economy.opportunities.find((o) => o.id === block.itemId)
-    : undefined
-  const held = block.itemId ? inventory.find((i) => i.id === block.itemId) : undefined
-  const owned = block.action === 'domain' && block.itemId ? domains.includes(block.itemId) : false
-
-  let label = 'CONTACT SELLER'
-  let live = false
-  let onClick: (() => void) | null = null
-
-  if (block.action === 'domain' && block.itemId) {
-    const affordable = cashCents >= content.economy.domainPriceCents
-    label = owned
-      ? 'REGISTERED TO YOU'
-      : affordable
-        ? 'REGISTER — 1 YEAR'
-        : 'NOT ENOUGH IN THE ACCOUNT'
-    live = !owned && affordable
-    onClick =
-      owned || !affordable
-        ? null
-        : () =>
-            dispatch({
-              type: 'DOMAIN_REGISTERED',
-              domain: block.itemId as string,
-              amountCents: content.economy.domainPriceCents,
-            })
-  } else if (block.action === 'buy' && opportunity) {
-    live = true
-    if (!held) {
-      // The reducer refuses a purchase there is no money for, and used to refuse it in silence:
-      // the button stayed lit and did nothing, which reads as a broken page rather than as an
-      // empty account. Say which it is.
-      if (cashCents < opportunity.buyCents) {
-        label = 'NOT ENOUGH IN THE ACCOUNT'
-        live = false
-      } else {
-        label = 'BUY — MEET SELLER'
-        onClick = () =>
-          dispatch({
-            type: 'ITEM_PURCHASED',
-            itemId: opportunity.id,
-            amountCents: opportunity.buyCents,
-            label: opportunity.label,
-          })
-      }
-    } else if (held.state === 'held') {
-      label = 'POST FOR RESALE'
-      onClick = () => dispatch({ type: 'ITEM_LISTED', itemId: opportunity.id })
-    } else if (held.state === 'listed') {
-      label = 'LISTED — WAITING'
-      live = false
-    } else {
-      label = `SOLD FOR ${formatMoney(held.soldFor ?? opportunity.sellCents)}`
-      live = false
-    }
-  }
-
   return (
     <div className="hal-web__listing">
       <div className="hal-web__listingtop">
@@ -470,17 +412,6 @@ function Listing({ block }: { block: Extract<Block, { kind: 'listing' }> }) {
       </div>
       <div className="hal-web__listingloc">{block.location}</div>
       <div className="hal-web__listingtext">{block.text}</div>
-      <div>
-        <button
-          type="button"
-          className={`hal-web__act${live ? ' hal-web__act--live' : ''}`}
-          data-listing={block.itemId ?? block.title}
-          disabled={!onClick}
-          onClick={() => onClick?.()}
-        >
-          {label}
-        </button>
-      </div>
     </div>
   )
 }

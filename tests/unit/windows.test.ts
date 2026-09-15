@@ -32,23 +32,23 @@ describe('window manager', () => {
   it('focuses, stacks and closes', () => {
     let state = run(fresh(), [
       { type: 'APP_OPENED', app: 'mail' },
-      { type: 'APP_OPENED', app: 'bank' },
+      { type: 'APP_OPENED', app: 'devices' },
     ])
-    expect(selectFrontApp(state)).toBe('bank')
-    expect(selectFrontTitle(state, content)).toBe('Meridian Savings')
+    expect(selectFrontApp(state)).toBe('devices')
+    expect(selectFrontTitle(state, content)).toBe('Devices')
 
     state = dispatch(state, { type: 'APP_FOCUSED', app: 'mail' })
     expect(selectFrontApp(state)).toBe('mail')
 
     state = dispatch(state, { type: 'APP_CLOSED', app: 'mail' })
-    expect(state.windows.map((w) => w.app)).toEqual(['bank'])
-    expect(selectFrontTitle(state, content)).toBe('Meridian Savings')
+    expect(state.windows.map((w) => w.app)).toEqual(['devices'])
+    expect(selectFrontTitle(state, content)).toBe('Devices')
   })
 
   it('re-opening an app focuses it instead of duplicating it', () => {
     const state = run(fresh(), [
       { type: 'APP_OPENED', app: 'mail' },
-      { type: 'APP_OPENED', app: 'bank' },
+      { type: 'APP_OPENED', app: 'devices' },
       { type: 'APP_OPENED', app: 'mail' },
     ])
     expect(state.windows).toHaveLength(2)
@@ -58,12 +58,12 @@ describe('window manager', () => {
   it('minimising hides a window from the front-most calculation', () => {
     let state = run(fresh(), [
       { type: 'APP_OPENED', app: 'mail' },
-      { type: 'APP_OPENED', app: 'bank' },
+      { type: 'APP_OPENED', app: 'devices' },
     ])
-    state = dispatch(state, { type: 'APP_MINIMIZED', app: 'bank' })
+    state = dispatch(state, { type: 'APP_MINIMIZED', app: 'devices' })
     expect(selectFrontApp(state)).toBe('mail')
-    state = dispatch(state, { type: 'APP_FOCUSED', app: 'bank' })
-    expect(state.windows.find((w) => w.app === 'bank')?.minimized).toBe(false)
+    state = dispatch(state, { type: 'APP_FOCUSED', app: 'devices' })
+    expect(state.windows.find((w) => w.app === 'devices')?.minimized).toBe(false)
   })
 
   it('persists a moved window', () => {

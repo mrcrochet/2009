@@ -1,36 +1,27 @@
-import type { Cents } from './money'
+/**
+ * The state model of an investigation.
+ *
+ * The unit is a **case**, not a day. A case is opened, worked, and closed by filing a report;
+ * nothing here counts days, carries a balance, or knows what year it is beyond the date the
+ * case itself declares. Everything the player becomes during a case lives in one block, and
+ * everything that is merely the surface of the machine lives in another.
+ */
 
-export const SCHEMA_VERSION = 12
+export const SCHEMA_VERSION = 13
 
 // ---------------------------------------------------------------------------
 // Apps & windows
 // ---------------------------------------------------------------------------
 
-export type AppId =
-  | 'mail'
-  | 'msg'
-  | 'web'
-  | 'files'
-  | 'bank'
-  | 'mkt'
-  | 'notes'
-  | 'term'
-  | 'recall'
-  /** People and companies. Not in the design handoff — a deliberate product addition. */
-  | 'directory'
-
-export const APP_IDS: readonly AppId[] = [
-  'mail',
-  'msg',
-  'web',
-  'files',
-  'bank',
-  'mkt',
-  'notes',
-  'term',
-  'recall',
-  'directory',
-] as const
+/**
+ * Open, and registered by content.
+ *
+ * It was a closed union of ten, which meant a case could not ship an application — the one thing
+ * a case-shaped product has to be able to do. A case that opens with a forensic image viewer and
+ * no mail client is now a content decision, and the reducer refuses an app the case never
+ * declared rather than one the type did not list.
+ */
+export type AppId = string
 
 export type DockId = AppId | 'phone'
 
@@ -54,8 +45,26 @@ export interface WindowState {
 }
 
 // ---------------------------------------------------------------------------
-// Phone
+// Devices
 // ---------------------------------------------------------------------------
+
+/**
+ * A case supplies devices, and some cases supply none.
+ *
+ * This is the structural difference between this product and a game about one phone: the
+ * workstation is the machine the player sits at, and a phone or a disk image is a *source*
+ * attached to it. A case with a laptop and no phone, or a name and nothing else, is the same
+ * engine with a different manifest.
+ */
+export type DeviceKind = 'phone' | 'laptop' | 'drive'
+
+export interface DeviceState {
+  readonly id: string
+  /** Attached to the workstation. A case may hand over a device the player has not yet opened. */
+  readonly connected: boolean
+  /** Past the lock screen. What unlocks it is authored by the case. */
+  readonly unlocked: boolean
+}
 
 export type PhoneTab = 'sms' | 'photos' | 'contacts'
 
@@ -72,13 +81,19 @@ export interface PhoneState {
 // ---------------------------------------------------------------------------
 
 export type EvidenceSourceKind =
-  'mail' | 'bank' | 'files' | 'browser' | 'phone' | 'terminal' | 'messenger'
+  | 'mail'
+  | 'files'
+  | 'browser'
+  | 'phone'
+  | 'terminal'
+  | 'messenger'
+  | 'device'
 
 export type Reliability = 'documentary' | 'testimonial' | 'circumstantial'
 
 export interface Evidence {
   readonly id: string
-  /** Human label shown on the card, e.g. "CORVID MAIL — HEADER". */
+  /** Human label shown on the card, e.g. "MAIL — HEADER". */
   readonly source: string
   readonly sourceKind: EvidenceSourceKind
   readonly text: string
@@ -89,32 +104,15 @@ export interface Evidence {
 /**
  * An evidence item once the player has actually pinned it.
  *
- * `id` is **qualified** — `"1:e3"` — because evidence ids were one flat namespace across thirty
- * days. Reusing a page from an earlier day brought its evidence with it, and a player could pin
- * something they never encountered. Content still authors short ids; the reducer qualifies them
- * with the day they were found on.
+ * Ids are flat within a case. They were qualified by day because thirty days shared one
+ * namespace; a case is its own namespace, and the qualification was carrying a distinction that
+ * no longer exists.
  */
 export interface PinnedEvidence {
   readonly id: string
-  readonly day: number
   readonly discoveredBy: EvidenceSourceKind
-  /** minuteOfDay at which it was pinned. */
+  /** Minutes into the session at which it was pinned. */
   readonly discoveredAt: number
-}
-
-/** `e3` on day 1 becomes `1:e3`. An id that already carries a day is left alone. */
-export function qualifyEvidenceId(day: number, id: string): string {
-  return id.includes(':') ? id : `${day}:${id}`
-}
-
-export function evidenceDayOf(qualifiedId: string): number {
-  const [day] = qualifiedId.split(':')
-  return Number(day) || 0
-}
-
-export function unqualifyEvidenceId(qualifiedId: string): string {
-  const parts = qualifiedId.split(':')
-  return parts.length > 1 ? parts.slice(1).join(':') : qualifiedId
 }
 
 export type ClaimVerdictKind = 'accepted' | 'insufficient' | 'refused'
@@ -137,30 +135,8 @@ export interface ClaimAttempt {
   readonly verdict: ClaimVerdictKind
   readonly message: string
   readonly at: number
-  /** True when the attempt was filed on the record under the player's name. */
+  /** True when the attempt was filed on the record under the investigator's name. */
   readonly onRecord: boolean
-}
-
-// ---------------------------------------------------------------------------
-// Recall
-// ---------------------------------------------------------------------------
-
-export type Confidence = 'HIGH' | 'MEDIUM' | 'LOW' | 'FRACTURED' | 'NONE'
-
-export interface Memory {
-  readonly id: string
-  readonly keys: readonly string[]
-  readonly text: string
-  readonly confidence: Exclude<Confidence, 'FRACTURED'>
-}
-
-export interface RecallResult {
-  readonly query: string
-  readonly text: string
-  readonly confidence: Confidence
-  readonly memoryId: string | null
-  readonly cost: number
-  readonly at: number
 }
 
 // ---------------------------------------------------------------------------
@@ -189,14 +165,10 @@ export interface BrowserState extends BrowserEntry {
 }
 
 // ---------------------------------------------------------------------------
-// Messenger / terminal / notes
+// Messenger / terminal
 // ---------------------------------------------------------------------------
 
-/**
- * Whatever the day's content calls its correspondents. This was `unknown | marc | lea`, which
- * meant a later day could not introduce a person — and `initial-state.ts` hard-coded the same
- * trio in three places.
- */
+/** Whatever the case's content calls its correspondents. */
 export type ThreadId = string
 
 export interface ChatLine {
@@ -212,58 +184,30 @@ export interface TerminalLine {
 }
 
 // ---------------------------------------------------------------------------
-// Economy
+// Beats, stage, viewport
 // ---------------------------------------------------------------------------
 
-export interface InventoryItem {
-  readonly id: string
-  /** The day it was bought, so a card printed on the twentieth is about the twentieth. */
-  readonly day: number
-  readonly label: string
-  readonly acquiredFor: Cents
-  readonly state: 'held' | 'listed' | 'sold'
-  readonly soldFor: Cents | null
-}
-
-export interface LedgerEntry {
-  readonly id: string
-  readonly date: string
-  readonly label: string
-  readonly amount: Cents
-}
-
-// ---------------------------------------------------------------------------
-// Day 01 beats
-// ---------------------------------------------------------------------------
-
-/**
- * A beat is whatever a day says it is. It was a closed union of Day 01's five, which meant a
- * second day had to name its gate after Day 01's characters — and, worse, that the beats were
- * one shared namespace: a finished Day 01 opened Day 02's gate before it started.
- */
+/** A beat is whatever a case says it is. */
 export type BeatId = string
 
 /**
- * An excerpt pinned from a page that has not been written yet.
+ * An excerpt kept from a page on the open web.
  *
- * Provenance is the whole point: it can be argued alongside 2009 evidence, but the player — and
- * anyone reading the claim afterwards — must be able to see it came from another time source,
- * and that the document it came from may since have changed.
+ * Provenance is the whole point. The document it came from is outside the case and may have
+ * changed since, so what is kept is the snapshot the player actually read, its address, and its
+ * title as it stood at capture.
  */
-export interface FutureEvidence {
+export interface KeptExcerpt {
   readonly id: string
   readonly snapshotId: string
   readonly excerpt: string
   readonly excerptHash: string
-  /** The address and title of the document it was taken from, as it read at capture. */
   readonly sourceUrl: string
   readonly sourceTitle: string
-  /** In-world, when the player captured it. */
-  readonly capturedDay: number
   readonly capturedAt: number
 }
 
-export type Stage = 'landing' | 'boot' | 'playing' | 'day-end'
+export type Stage = 'intake' | 'boot' | 'playing' | 'report'
 
 export interface Viewport {
   readonly width: number
@@ -274,40 +218,36 @@ export interface Viewport {
 export const DEFAULT_VIEWPORT: Viewport = { width: 1280, height: 800 }
 
 // ---------------------------------------------------------------------------
-// Timeline
+// Investigation state
 // ---------------------------------------------------------------------------
 
 /**
- * A timeline, organised around a single question: **does this survive the night?**
+ * One investigator's run at one case.
  *
- * The lifetime block is who the player has become, and it follows them to the 16th. The per-day
- * block is the surface of one day and is cleared by `DAY_ADVANCED`. Without that line drawn
- * explicitly a second day was a separate new game that happened to be dated later — and the
- * beats, being shared, opened its gate before it had started.
+ * The first block is the case and what the player has made of it — it is what a filed report is
+ * written from. The second is the surface of the machine, which is where the windows happen to
+ * be sitting and nothing a report would ever cite.
  */
-export interface TimelineState {
+export interface InvestigationState {
   readonly id: string
   readonly ownerId: string | null
   readonly schemaVersion: number
   readonly seed: number
 
   readonly stage: Stage
-  readonly day: number
+  readonly caseId: string
+  /** The date the investigation is happening, declared by the case. */
   readonly dateISO: string
+  /** Minutes elapsed in this session. The menu-bar clock is this plus the case's start hour. */
+  readonly minute: number
 
-  // --- lifetime: carried across days ---------------------------------------
+  // --- what the player has made of the case --------------------------------
 
-  readonly cashCents: Cents
-  readonly memoryIntegrity: number
-  /** How loud the player has been. Read by the day-end mail, and by later days. */
-  readonly heat: number
   /**
-   * Reserved. Accumulates alongside `temporalShift` but nothing reads it yet — the world's
-   * content keys off `temporalShift` only. Kept so later days can distinguish "how far the
-   * timeline has moved" from "how many thresholds it has crossed".
+   * How visible the investigator has made themselves. Contacting a subject, filing a claim on
+   * the record and forcing a lock all raise it, and the case's own content reads it.
    */
-  readonly divergence: number
-  readonly temporalShift: number
+  readonly exposure: number
 
   /**
    * World artifacts the player has actually encountered.
@@ -318,45 +258,48 @@ export interface TimelineState {
    */
   readonly discovered: readonly string[]
 
-  /** Qualified by the day they were found on, so a later day cannot expose an earlier one's. */
   readonly evidence: readonly PinnedEvidence[]
   readonly claimLog: readonly ClaimAttempt[]
-  readonly inventory: readonly InventoryItem[]
-  readonly ledger: readonly LedgerEntry[]
-  readonly domains: readonly string[]
-  /**
-   * Symbols the player has written down. No money moves — they cannot open a brokerage account
-   * on $717.82. It is the act of recording what they know, on a machine someone else is reading.
-   */
-  readonly watchlist: readonly string[]
-  /** A lifetime record of what coherence was spent on, not a per-day log. */
-  readonly recalls: readonly RecallResult[]
-  /** The player's own notebook. It is theirs, and it follows them. */
+  /** The investigator's own notebook. */
   readonly notes: string
-  /**
-   * Consequences of decisions. All flags persist: a game about what your choices did cannot
-   * forget them overnight. A day wanting a transient marker should prefix it with its own day.
-   */
+  /** Consequences of decisions. A case about what your choices did cannot forget them. */
   readonly flags: Readonly<Record<string, boolean>>
 
+  /** Devices the case has supplied, by id. */
+  readonly devices: Readonly<Record<string, DeviceState>>
+
   /**
-   * The relay. Snapshots the player has observed are lifetime — a page read on the 15th is still
-   * a page they read — while the signal budget is a day's supply and refills overnight.
+   * Forensic services this investigation has been granted, by id.
+   *
+   * Mirrored here from the server so the engine can stay pure and a replay can reproduce what
+   * the player could see. It is a **projection of an entitlement, never the check itself** — the
+   * authority is `lib/billing/entitlement.ts`, and a save that claims a service it was never
+   * granted buys nothing, because the content behind it is served, not unlocked client-side.
+   */
+  readonly services: readonly string[]
+
+  /**
+   * The relay to the open web. Snapshots the player has observed are immutable and kept by id;
+   * the excerpts they chose to keep carry their own provenance.
    */
   readonly wayup: {
+    /**
+     * Whether this machine will open the line at all.
+     *
+     * A case decides. Some hand the investigator the relay with the workstation; some make it a
+     * process they have to find running. The mechanic is the same either way, which is what
+     * makes it a case's decision rather than a build's.
+     */
     readonly unlocked: boolean
-    /** Immutable snapshot ids, in the order they were first observed. */
     readonly observed: readonly string[]
-    /** Excerpts pinned from 2026, alongside the 2009 evidence they will be argued against. */
-    readonly futureEvidence: readonly FutureEvidence[]
-    /** Mysteries this timeline has opened. */
+    readonly kept: readonly KeptExcerpt[]
+    /** Community puzzles this investigation has opened. */
     readonly mysteries: readonly string[]
     readonly signalSpent: number
   }
 
-  // --- per day: cleared by DAY_ADVANCED ------------------------------------
+  // --- the surface of the machine ------------------------------------------
 
-  readonly minuteOfDay: number
   readonly bootLine: number
 
   readonly windows: readonly WindowState[]
@@ -379,8 +322,7 @@ export interface TimelineState {
     readonly step: Readonly<Record<ThreadId, number>>
     /**
      * Per thread, because two people can be mid-reply at once. Held globally, the first
-     * CHAT_ADVANCED consumed the other thread's answer and put it in the wrong person's mouth —
-     * and "typing…" appeared under whichever contact the player happened to be looking at.
+     * CHAT_ADVANCED consumed the other thread's answer and put it in the wrong person's mouth.
      */
     readonly waiting: Readonly<Record<ThreadId, boolean>>
     readonly pendingReply: Readonly<Record<ThreadId, string | null>>
@@ -389,30 +331,21 @@ export interface TimelineState {
   readonly browser: BrowserState
   readonly files: {
     readonly openId: string
-    /**
-     * Which files have been opened, by id.
-     *
-     * Per file, not one flag. What was decrypted stays decrypted across the night — but a single
-     * boolean meant Thursday's key silently opened Friday's different file, and three wrong
-     * guesses on Thursday locked a player out of a document they had not seen yet. Two players
-     * got materially different days for a reason that was a bug rather than a decision.
-     */
     readonly decrypted: Readonly<Record<string, boolean>>
     readonly decryptAttempts: Readonly<Record<string, number>>
   }
   readonly terminal: { readonly lines: readonly TerminalLine[]; readonly input: string }
-  readonly recallQuery: string
 
   readonly ui: {
     readonly trayOpen: boolean
     readonly boardOpen: boolean
     readonly watched: boolean
-    readonly dayCard: boolean
+    readonly reportCard: boolean
     /** The relay console, which takes the screen the way the board does. */
     readonly wayupOpen: boolean
   }
 
-  /** Cleared when a day advances; a day's gate is about that day. */
+  /** The gate on filing a report. */
   readonly beats: Readonly<Record<string, boolean>>
 
   readonly eventLog: readonly GameEvent[]
@@ -424,13 +357,13 @@ export interface TimelineState {
 // Events
 // ---------------------------------------------------------------------------
 
-/** Every event carries `at` — the minuteOfDay it happened at. */
+/** Every event carries `at` — the minute of the session it happened at. */
 interface Base {
   readonly at: number
 }
 
 export type GameEvent =
-  | (Base & { type: 'WOKE_UP' })
+  | (Base & { type: 'CASE_OPENED' })
   | (Base & { type: 'BOOT_ADVANCED' })
   | (Base & { type: 'BOOT_COMPLETED' })
   | (Base & { type: 'DESKTOP_ICON_APPEARED'; iconId: string })
@@ -440,6 +373,8 @@ export type GameEvent =
   | (Base & { type: 'APP_MINIMIZED'; app: AppId })
   | (Base & { type: 'APP_ZOOM_TOGGLED'; app: AppId })
   | (Base & { type: 'WINDOW_MOVED'; app: AppId; x: number; y: number })
+  | (Base & { type: 'DEVICE_CONNECTED'; deviceId: string })
+  | (Base & { type: 'DEVICE_UNLOCK_ATTEMPTED'; deviceId: string; key: string })
   | (Base & { type: 'PHONE_TOGGLED' })
   | (Base & { type: 'PHONE_TAB_CHANGED'; tab: PhoneTab })
   | (Base & { type: 'PHONE_MOVED'; x: number; y: number })
@@ -478,38 +413,26 @@ export type GameEvent =
   | (Base & { type: 'TERMINAL_INPUT_CHANGED'; value: string })
   | (Base & { type: 'TERMINAL_COMMAND_RUN'; command: string })
   | (Base & { type: 'NOTES_CHANGED'; value: string })
-  | (Base & { type: 'RECALL_QUERY_CHANGED'; value: string })
-  | (Base & { type: 'RECALL_USED'; query: string })
   | (Base & { type: 'EVIDENCE_PINNED'; evidenceId: string; via: EvidenceSourceKind })
   | (Base & { type: 'EVIDENCE_SELECTION_TOGGLED'; evidenceId: string })
   | (Base & { type: 'CLAIM_SELECTED'; claimId: string })
   | (Base & { type: 'CLAIM_ASSERTED'; claimId: string; evidenceIds: readonly string[] })
   | (Base & { type: 'TRAY_TOGGLED'; open?: boolean })
   | (Base & { type: 'BOARD_TOGGLED'; open?: boolean })
-  | (Base & { type: 'ITEM_PURCHASED'; itemId: string; amountCents: Cents; label: string })
-  | (Base & { type: 'ITEM_LISTED'; itemId: string })
-  | (Base & { type: 'ITEM_SOLD'; itemId: string; amountCents: Cents })
-  | (Base & { type: 'DOMAIN_REGISTERED'; domain: string; amountCents: Cents })
-  | (Base & { type: 'WATCHLIST_TOGGLED'; symbol: string })
-  | (Base & { type: 'DAY_ENDED' })
-  | (Base & { type: 'DAY_CARD_SHOWN' })
-  | (Base & {
-      type: 'DAY_ADVANCED'
-      day: number
-      dateISO: string
-      /** Carried on the event so a replay does not need the next day's content to hand. */
-      wakeMinute: number
-      threadIds: readonly ThreadId[]
-      firstMailId: string
-      firstFileId: string
-      browserHome: string
-      terminalBanner: TerminalLine
-    })
-  | (Base & { type: 'TIMELINE_CLAIMED'; ownerId: string })
+  /**
+   * A forensic service was granted to this investigation.
+   *
+   * The grant happened on the server. This records that the player could see what it opened, so
+   * a replay shows the investigation they actually ran — it does not *perform* the unlock.
+   */
+  | (Base & { type: 'SERVICE_GRANTED'; serviceId: string })
+  | (Base & { type: 'REPORT_FILED' })
+  | (Base & { type: 'REPORT_CARD_SHOWN' })
+  | (Base & { type: 'INVESTIGATION_CLAIMED'; ownerId: string })
   | (Base & { type: 'WAYUP_UNLOCKED'; via: string })
   | (Base & { type: 'WAYUP_TOGGLED'; open?: boolean })
   /**
-   * Asking costs signal even when nothing useful comes back — which is what makes the player
+   * Asking costs signal even when nothing useful comes back, which is what makes the player
    * think before they ask. The query itself is never carried: freeform player text does not
    * enter the event log any more than it enters analytics.
    */
@@ -521,18 +444,15 @@ export type GameEvent =
    */
   | (Base & { type: 'WAYUP_SNAPSHOT_OBSERVED'; snapshotId: string; signalCost: number })
   | (Base & {
-      type: 'WAYUP_EVIDENCE_PINNED'
+      type: 'WAYUP_EXCERPT_KEPT'
       id: string
       snapshotId: string
       excerpt: string
       excerptHash: string
       /**
-       * Where the line came from, carried on the event rather than looked up.
-       *
-       * The timeline holds snapshot *ids*; the snapshots themselves live in a cache the engine
-       * cannot see and a replay may not have. A kept line has to be able to say where it came
-       * from on a machine that has been offline since, or the tray shows an excerpt from
-       * nowhere.
+       * Where the line came from, carried on the event rather than looked up. The state holds
+       * snapshot *ids*; the snapshots themselves live in a cache the engine cannot see and a
+       * replay may not have.
        */
       sourceUrl: string
       sourceTitle: string

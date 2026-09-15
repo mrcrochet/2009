@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  selectDaySummary,
+  selectReportSummary,
   selectEvidenceCards,
   selectFiles,
-  selectLedger,
+  selectDevices,
   selectMail,
   selectOutstandingBeats,
   selectPage,
@@ -21,22 +21,22 @@ describe('selector stability', () => {
     ['selectMail', selectMail],
     ['selectPage', selectPage],
     ['selectFiles', selectFiles],
-    ['selectLedger', selectLedger],
+    ['selectDevices', selectDevices],
     ['selectEvidenceCards', selectEvidenceCards],
     ['selectSearchResults', selectSearchResults],
     ['selectOutstandingBeats', selectOutstandingBeats],
-    ['selectDaySummary', selectDaySummary],
+    ['selectReportSummary', selectReportSummary],
   ] as const
 
   it('an unrelated event does not invalidate anything', () => {
     const before = run(fresh(), [
       { type: 'APP_OPENED', app: 'web' },
-      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'files' },
+      { type: 'BROWSER_NAVIGATED', url: 'fremontparking.com' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'mail' },
     ])
     const first = ALL.map(([, fn]) => fn(before, content))
 
-    const after = dispatch(before, { type: 'NOTES_CHANGED', value: 'a note about the 6th' })
+    const after = dispatch(before, { type: 'TRAY_TOGGLED', open: false })
     expect(after).not.toBe(before)
 
     ALL.forEach(([name, fn], i) => {
@@ -44,10 +44,29 @@ describe('selector stability', () => {
     })
   })
 
+  /**
+   * Typing into Notes is the case this whole memo exists for — but the report counts the
+   * characters, so it is a real dependency of exactly one selector and of no other.
+   */
+  it('typing a note reaches the report and nothing else', () => {
+    const before = run(fresh(), [{ type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'mail' }])
+    const first = ALL.map(([, fn]) => fn(before, content))
+
+    const after = dispatch(before, { type: 'NOTES_CHANGED', value: 'a note about the ninth' })
+
+    ALL.forEach(([name, fn], i) => {
+      if (name === 'selectReportSummary') {
+        expect(fn(after, content), 'the report does not count what was written').not.toBe(first[i])
+        return
+      }
+      expect(fn(after, content), `${name} was invalidated by a note`).toBe(first[i])
+    })
+  })
+
   it('moving a window does not invalidate anything either', () => {
     const before = run(fresh(), [
       { type: 'APP_OPENED', app: 'mail' },
-      { type: 'APP_OPENED', app: 'bank' },
+      { type: 'APP_OPENED', app: 'devices' },
     ])
     const first = ALL.map(([, fn]) => fn(before, content))
     const after = dispatch(before, { type: 'WINDOW_MOVED', app: 'mail', x: 300, y: 200 })
@@ -58,34 +77,36 @@ describe('selector stability', () => {
   })
 
   it('but a related event does invalidate the selector that reads it', () => {
-    const before = run(fresh(), [{ type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'files' }])
+    const before = run(fresh(), [{ type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'mail' }])
     const cards = selectEvidenceCards(before, content)
-    const ledger = selectLedger(before, content)
+    const devices = selectDevices(before, content)
 
-    const after = dispatch(before, { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' })
+    const after = dispatch(before, { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'files' })
     expect(selectEvidenceCards(after, content)).not.toBe(cards)
     // …and only that one.
-    expect(selectLedger(after, content)).toBe(ledger)
+    expect(selectDevices(after, content)).toBe(devices)
   })
 
-  it('the browser page follows both its URL and the timeline it is being read in', () => {
+  it('the browser page follows both its URL and what the investigator has done', () => {
     const base = dispatch(fresh(), {
       type: 'BROWSER_NAVIGATED',
-      url: 'columbia-register.com/business',
+      url: 'ridgelinepartners.com/team',
     })
     const page = selectPage(base, content)
     expect(selectPage(base, content)).toBe(page)
 
-    const shifted = run(base, [
-      { type: 'RECALL_USED', query: 'bitcoin' },
-      { type: 'RECALL_USED', query: 'amazon' },
-    ])
-    expect(selectPage(shifted, content)).not.toBe(page)
+    const changed = dispatch(base, {
+      type: 'CHAT_REPLY_SENT',
+      thread: 'claire',
+      text: 'I am going to call Vale.',
+      setsFlag: 'valeNotified',
+    })
+    expect(selectPage(changed, content)).not.toBe(page)
   })
 
   it('reading the same state from two places does not thrash the cache', () => {
     const state = run(fresh(), [
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'files' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'mail' },
       { type: 'BOARD_TOGGLED', open: true },
     ])
     // The tray and the board both read this on the same render.

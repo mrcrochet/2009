@@ -8,30 +8,30 @@ const last = (state: ReturnType<typeof fresh>) => state.terminal.lines.at(-1)
 describe('terminal', () => {
   it('answers help, ls and whoami from authored content', () => {
     let state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'help' })
-    expect(last(state)?.text).toContain('decrypt <file> --key <key>')
+    expect(last(state)?.text).toContain('decrypt <file> --key <word>')
 
     state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'ls' })
-    expect(last(state)?.text).toContain('cibles.enc')
+    expect(last(state)?.text).toContain('marlow-2013.enc')
 
     state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'whoami' })
-    expect(last(state)?.text).toContain('Rask, Owen T.')
+    expect(state.terminal.lines.map((l) => l.text).join('\n')).toContain('read-only on all')
   })
 
-  it('rejects an unknown command in period style', () => {
+  it('rejects an unknown command in the machine’s own style', () => {
     const state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'sudo rm -rf /' })
-    expect(last(state)?.text).toBe('sudo: command not found')
+    expect(last(state)?.text).toBe('nova: sudo: command not found')
     expect(last(state)?.tone).toBe('err')
   })
 
-  it('decrypts with the key the SMS leaked, and pins what it finds', () => {
+  it('decrypts with the key the case leaked, and pins what it finds', () => {
     const state = dispatch(fresh(), {
       type: 'TERMINAL_COMMAND_RUN',
-      command: 'decrypt cibles.enc --key 0412',
+      command: 'decrypt marlow-2013.enc --key reyes',
     })
-    expect(state.files.decrypted).toEqual({ enc: true })
-    expect(state.files.openId).toBe('enc')
-    expect(state.evidence.map((e) => e.id)).toContain('1:e7')
-    expect(state.heat).toBe(5)
+    expect(state.files.decrypted).toEqual({ f5: true })
+    expect(state.files.openId).toBe('f5')
+    expect(state.evidence.map((e) => e.id)).toContain('e7')
+    expect(state.exposure).toBe(5)
   })
 
   it('counts down wrong keys and eventually reports the player', () => {
@@ -39,26 +39,26 @@ describe('terminal', () => {
     for (let i = 0; i < 2; i += 1) {
       state = dispatch(state, {
         type: 'TERMINAL_COMMAND_RUN',
-        command: 'decrypt cibles.enc --key 1111',
+        command: 'decrypt marlow-2013.enc --key 1111',
       })
     }
-    expect(last(state)?.text).toContain('1 attempts remain')
+    expect(last(state)?.text).toContain('1 attempts')
 
     state = dispatch(state, {
       type: 'TERMINAL_COMMAND_RUN',
-      command: 'decrypt cibles.enc --key 2222',
+      command: 'decrypt marlow-2013.enc --key 2222',
     })
     expect(last(state)?.text).toBe(content.terminal.decrypt.lockout)
     expect(state.flags.decryptReported).toBe(true)
-    expect(state.heat).toBe(30)
+    expect(state.exposure).toBe(30)
   })
 
   it('cats a text file but not the binary', () => {
-    let state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'cat READ_ME.txt' })
-    expect(last(state)?.text).toContain('Amount due: $10,000.00')
+    let state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'cat passcodes.txt' })
+    expect(last(state)?.text).toContain('phone           — 190455')
 
-    state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'cat cibles.enc' })
-    expect(last(state)?.text).toBe('cat: cannot display binary file')
+    state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'cat marlow-2013.enc' })
+    expect(last(state)?.text).toBe(content.terminal.catBinary)
   })
 
   it('clear resets to the banner', () => {
@@ -67,7 +67,7 @@ describe('terminal', () => {
       { type: 'TERMINAL_COMMAND_RUN', command: 'clear' },
     ])
     expect(state.terminal.lines).toHaveLength(1)
-    expect(state.terminal.lines[0]?.text).toContain('Halcyon Terminal')
+    expect(state.terminal.lines[0]?.text).toContain('NOVA console')
   })
 })
 
@@ -77,65 +77,54 @@ describe('the lockout locks', () => {
     for (const key of ['1111', '2222', '3333']) {
       state = dispatch(state, {
         type: 'TERMINAL_COMMAND_RUN',
-        command: `decrypt cibles.enc --key ${key}`,
+        command: `decrypt marlow-2013.enc --key ${key}`,
       })
     }
     expect(state.flags.decryptReported).toBe(true)
 
-    const before = state.heat
+    const before = state.exposure
     state = dispatch(state, {
       type: 'TERMINAL_COMMAND_RUN',
-      command: 'decrypt cibles.enc --key 0412',
+      command: 'decrypt marlow-2013.enc --key reyes',
     })
-    expect(state.files.decrypted.enc).toBeUndefined()
+    expect(state.files.decrypted.f5).toBeUndefined()
     expect(last(state)?.text).toBe(content.terminal.decrypt.lockout)
-    // And heat stops accruing, so the loudest ending cannot be farmed.
-    expect(state.heat).toBe(before)
+    // And exposure stops accruing, so the loudest ending cannot be farmed.
+    expect(state.exposure).toBe(before)
   })
 
-  /**
-   * A single boolean meant Thursday's key opened Friday's different file, and three wrong
-   * guesses on Thursday locked a player out of a document they had not seen. Two players got
-   * materially different days for a reason that was a bug rather than a decision.
-   */
   it('opens the file it was given the key to, and no other', () => {
     const state = dispatch(fresh(), {
       type: 'TERMINAL_COMMAND_RUN',
-      command: 'decrypt cibles.enc --key 0412',
+      command: 'decrypt marlow-2013.enc --key reyes',
     })
-    expect(state.files.decrypted.enc).toBe(true)
-    expect(state.files.decrypted.route).toBeUndefined()
-    expect(state.files.decrypted.readme).toBeUndefined()
+    expect(state.files.decrypted.f5).toBe(true)
+    expect(state.files.decrypted.f2).toBeUndefined()
+    expect(state.files.decrypted.f1).toBeUndefined()
   })
 
   it('counts wrong keys against the file they were tried on', () => {
     const state = run(fresh(), [
-      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 1111' },
-      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 2222' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt marlow-2013.enc --key 1111' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt marlow-2013.enc --key 2222' },
     ])
-    expect(state.files.decryptAttempts).toEqual({ enc: 2 })
+    expect(state.files.decryptAttempts).toEqual({ f5: 2 })
   })
 
-  it('still hands over the evidence when the file was opened last night', () => {
-    // The night carries `decrypted`; without this the terminal says it worked and gives nothing.
+  it('still hands over the evidence when the file was already open', () => {
     const opened = dispatch(fresh(), {
       type: 'TERMINAL_COMMAND_RUN',
-      command: 'decrypt cibles.enc --key 0412',
+      command: 'decrypt marlow-2013.enc --key reyes',
     })
     const forgot = { ...opened, evidence: [] }
     const again = dispatch(forgot, {
       type: 'TERMINAL_COMMAND_RUN',
-      command: 'decrypt cibles.enc --key 0412',
+      command: 'decrypt marlow-2013.enc --key reyes',
     })
-    expect(again.evidence.map((e) => e.id)).toContain('1:e7')
+    expect(again.evidence.map((e) => e.id)).toContain('e7')
   })
 
-  /**
-   * Authored unqualified, held qualified. Comparing them raw made this unreachable the day
-   * evidence ids were namespaced, and nothing failed — the machine simply stopped saying the one
-   * thing it knows about the man whose name is on it.
-   */
-  it('says whose machine this is, once the player can prove it is not theirs', () => {
+  it('says whose machine this is, once the player can prove whose it is not', () => {
     const before = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'whoami' })
     const quiet = before.terminal.lines.map((l) => l.text).join('\n')
 
@@ -143,7 +132,7 @@ describe('the lockout locks', () => {
       {
         type: 'EVIDENCE_PINNED',
         evidenceId: content.terminal.whoamiAfterEvidence.evidenceId,
-        via: 'files',
+        via: 'phone',
       },
       { type: 'TERMINAL_COMMAND_RUN', command: 'whoami' },
     ])
@@ -156,28 +145,27 @@ describe('the lockout locks', () => {
   })
 
   /**
-   * Three pages that never mention each other: a ring directory saying nine members and no
-   * owner, a process list holding nine of something, and a links page from 2004 naming the host
-   * the graphic has always come from. Nothing points along the chain and nothing ever will.
+   * Nothing points along the chain and nothing ever will. A line in the process table, a command
+   * that refuses, and a phrase the player has to supply.
    */
-  it('refuses the relay until the player supplies the host, then stops refusing', () => {
+  it('refuses the relay until the player supplies the phrase, then stops refusing', () => {
     const relay = content.terminal.relay!
 
     const cold = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: relay.command })
     expect(cold.wayup.unlocked).toBe(false)
     expect(cold.ui.wayupOpen).toBe(false)
-    expect(cold.terminal.lines.map((l) => l.text).join('\n')).toContain('listener not attached')
+    expect(cold.terminal.lines.map((l) => l.text).join('\n')).toContain('no outbound route')
 
     // A near miss is still a miss.
     const wrong = dispatch(fresh(), {
       type: 'TERMINAL_COMMAND_RUN',
-      command: `${relay.command} --attach geohost.com`,
+      command: `${relay.command} --attach the line`,
     })
     expect(wrong.wayup.unlocked).toBe(false)
 
     const open = dispatch(fresh(), {
       type: 'TERMINAL_COMMAND_RUN',
-      command: `${relay.command} --attach ${relay.unlockPhrase.toUpperCase()}`,
+      command: `${relay.command} ${relay.unlockPhrase.toUpperCase()}`,
     })
     expect(open.wayup.unlocked).toBe(true)
     expect(open.ui.wayupOpen).toBe(true)
@@ -190,12 +178,12 @@ describe('the lockout locks', () => {
     expect(again.ui.wayupOpen).toBe(true)
   })
 
-  it('the relay is a day’s decision, not a build-time one', () => {
-    // A day with no `relay` block has no such command, and the machine says so in its own words.
+  it('the relay is a case’s decision, not a build-time one', () => {
+    // A case with no `relay` block has no such command, and the machine says so in its own words.
     const without = { ...content, terminal: { ...content.terminal, relay: null } }
     const state = reduce(
       fresh(),
-      stamp(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'qlmux' }),
+      stamp(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'relay' }),
       without,
     )
     expect(state.wayup.unlocked).toBe(false)
@@ -204,11 +192,11 @@ describe('the lockout locks', () => {
 
   it('a flag on a known command is still that command', () => {
     const state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'ls -l' })
-    expect(last(state)?.text).toContain('cibles.enc')
+    expect(last(state)?.text).toContain('marlow-2013.enc')
   })
 
-  it('ps leaves the surveillance in the process table', () => {
+  it('ps leaves the one process nothing in the case explains', () => {
     const state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'ps' })
-    expect(state.terminal.lines.map((l) => l.text).join('\n')).toContain('hd_sync --remote --quiet')
+    expect(state.terminal.lines.map((l) => l.text).join('\n')).toContain('smirror --peer')
   })
 })

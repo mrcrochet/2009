@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react'
 import { selectEvidenceCards } from '@/engine/selectors'
 import { KeptLines } from './KeptLines'
-import { useContent, useDispatch, useTimeline } from './GameContext'
+import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { useFocusTrap } from './useFocusTrap'
 
 const VERDICT_LABEL = {
@@ -19,13 +19,12 @@ const VERDICT_LABEL = {
 export function InvestigationBoard() {
   const content = useContent()
   const dispatch = useDispatch()
-  const open = useTimeline((s) => s.ui.boardOpen)
-  const cards = useTimeline((s) => selectEvidenceCards(s, content))
-  const selectedClaimId = useTimeline((s) => s.selectedClaimId)
-  const selectedEvidence = useTimeline((s) => s.selectedEvidenceIds)
-  const verdict = useTimeline((s) => s.lastVerdict)
-  const log = useTimeline((s) => s.claimLog)
-  const day = useTimeline((s) => s.day)
+  const open = useInvestigation((s) => s.ui.boardOpen)
+  const cards = useInvestigation((s) => selectEvidenceCards(s, content))
+  const selectedClaimId = useInvestigation((s) => s.selectedClaimId)
+  const selectedEvidence = useInvestigation((s) => s.selectedEvidenceIds)
+  const verdict = useInvestigation((s) => s.lastVerdict)
+  const log = useInvestigation((s) => s.claimLog)
   const panelRef = useRef<HTMLDivElement>(null)
   useFocusTrap(panelRef, open)
 
@@ -74,17 +73,7 @@ export function InvestigationBoard() {
                   data-evidence={e.id}
                   onClick={() => dispatch({ type: 'EVIDENCE_SELECTION_TOGGLED', evidenceId: e.id })}
                 >
-                  <span className="hal-evcard__src">
-                    {e.source}
-                    {/* A caseboard on the 16th still shows the 15th's evidence, and the
-                        difference matters when you are deciding what a claim rests on. */}
-                    {e.day !== day ? (
-                      <span className="hal-evcard__day">
-                        {' '}
-                        · DAY {String(e.day).padStart(2, '0')}
-                      </span>
-                    ) : null}
-                  </span>
+                  <span className="hal-evcard__src">{e.source}</span>
                   <span className="hal-evcard__text">{e.text}</span>
                   <span className="hal-evcard__check">{e.selected ? '✓ RELYING ON THIS' : ''}</span>
                 </button>

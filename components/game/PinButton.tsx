@@ -2,7 +2,7 @@
 
 import type { EvidenceSourceKind } from '@/engine/types'
 import { isPinned } from '@/engine/selectors'
-import { useDispatch, useTimeline } from './GameContext'
+import { useDispatch, useInvestigation } from './GameContext'
 
 /**
  * Pinning is the single verb that moves something from the world into the investigation.
@@ -21,7 +21,7 @@ export function PinButton({
   size?: 'md' | 'sm' | 'row'
 }) {
   const dispatch = useDispatch()
-  const pinned = useTimeline((s) => isPinned(s, evidenceId))
+  const pinned = useInvestigation((s) => isPinned(s, evidenceId))
   const cls =
     size === 'sm' ? 'hal-pin hal-pin--sm' : size === 'row' ? 'hal-pin hal-pin--row' : 'hal-pin'
 

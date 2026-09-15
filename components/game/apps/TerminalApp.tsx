@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useContent, useDispatch, useTimeline } from '../GameContext'
+import { useContent, useDispatch, useInvestigation } from '../GameContext'
 
 export function TerminalApp() {
   const content = useContent()
   const dispatch = useDispatch()
-  const lines = useTimeline((s) => s.terminal.lines)
-  const input = useTimeline((s) => s.terminal.input)
+  const lines = useInvestigation((s) => s.terminal.lines)
+  const input = useInvestigation((s) => s.terminal.input)
   const logRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

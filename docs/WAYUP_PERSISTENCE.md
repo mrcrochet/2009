@@ -1,5 +1,9 @@
 # Way Up — persistence
 
+> **Reading this after the pivot.** The relay's storage is unchanged. Where this says the signal
+> budget refills overnight, it does not any more: a case is one sitting and the budget is the
+> case's whole allowance.
+
 The Way Up Machine lets the player, inside the game's fictional 2009, read the real web of today.
 `supabase/migrations/20090115000004_wayup.sql` is where that stops being a fetch and becomes
 something a save can replay.

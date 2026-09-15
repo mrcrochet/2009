@@ -1,15 +1,7 @@
-import type { DayContent } from './content-schema'
-import { DEFAULT_END_MINUTE } from './clock'
-import { qualifyEvidenceId } from './types'
-import {
-  cascadePosition,
-  clampPhone,
-  clampWindow,
-  evaluateClaim,
-  resolveRecall,
-  searchIndex,
-} from './rules'
-import { findPage } from './temporal'
+import type { CaseContent } from './case-schema'
+import { clockString } from './clock'
+import { cascadePosition, clampPhone, clampWindow, evaluateClaim, searchIndex } from './rules'
+import { findPage } from './pages'
 import { normalizeUrl } from './url'
 import { projectedId } from './world/project'
 import {
@@ -19,39 +11,36 @@ import {
   type BrowserEntry,
   type Claim,
   type GameEvent,
-  type InventoryItem,
-  type LedgerEntry,
+  type InvestigationState,
   type TerminalLine,
   type ThreadId,
-  type TimelineState,
   type Viewport,
 } from './types'
 
 /**
- * The single pure transition of the game. No timers, no I/O, no framework. All scheduling lives
- * in the React shell, which dispatches ordinary events when a timer fires — so replaying the
- * event log through `reduce` reproduces a snapshot exactly.
+ * The single pure transition of an investigation. No timers, no I/O, no framework. All
+ * scheduling lives in the React shell, which dispatches ordinary events when a timer fires — so
+ * replaying the event log through `reduce` reproduces a snapshot exactly.
  */
 
 /**
  * Ceilings the reducer enforces, matching `engine/timeline-schema.ts` exactly.
  *
  * Without these the game happily builds a timeline the runtime schema rejects — and because the
- * local IndexedDB path does not validate, the player finds out at the paywall, after Day 01 has
+ * local IndexedDB path does not validate, the player finds out at the paywall, after the case has
  * done its job, when they try to keep the thing they just made. A limit is only real if the code
  * that grows the array is the code that knows about it.
  */
 export const LIMITS = {
-  recalls: 128,
   terminalLines: 512,
   claimLog: 128,
   notes: 20_000,
   discovered: 4096,
   wayupObserved: 512,
-  futureEvidence: 256,
+  kept: 256,
 } as const
 
-// How much in-world time each action costs.
+// How much of the session each action costs.
 const TICK: Partial<Record<GameEvent['type'], number>> = {
   EVIDENCE_PINNED: 1,
   CLAIM_ASSERTED: 6,
@@ -59,16 +48,9 @@ const TICK: Partial<Record<GameEvent['type'], number>> = {
   BROWSER_SEARCHED: 2,
   BROWSER_NAVIGATED: 1,
   TERMINAL_COMMAND_RUN: 1,
-  RECALL_USED: 4,
+  DEVICE_UNLOCK_ATTEMPTED: 3,
   SMS_ADVANCED: 2,
   APP_OPENED: 0,
-}
-
-// How far each action moves the world away from its authored baseline.
-const DIVERGENCE: Partial<Record<GameEvent['type'], number>> = {
-  RECALL_USED: 2,
-  DOMAIN_REGISTERED: 5,
-  ITEM_SOLD: 4,
 }
 
 /**
@@ -80,22 +62,14 @@ const DIVERGENCE: Partial<Record<GameEvent['type'], number>> = {
  * happens because a React tree rendered is not in the event log, so a replay would produce a
  * different world from the one that was played.
  */
-function revealed(next: TimelineState, event: GameEvent, content: DayContent): readonly string[] {
-  const day = next.day
+function revealed(next: InvestigationState, event: GameEvent, content: CaseContent): readonly string[] {
+  const kase = content.id
   switch (event.type) {
     case 'MAIL_OPENED':
-      return [projectedId.mail(day, event.mailId)]
-
-    // The night reopens a message and a file on the new day's desktop, the same way waking up
-    // for the first time does.
-    case 'DAY_ADVANCED':
-      return [
-        ...(event.firstMailId ? [projectedId.mail(event.day, event.firstMailId)] : []),
-        ...(event.firstFileId ? [projectedId.file(event.day, event.firstFileId)] : []),
-      ]
+      return [projectedId.mail(kase, event.mailId)]
 
     case 'FILE_OPENED':
-      return [projectedId.file(day, event.fileId)]
+      return [projectedId.file(kase, event.fileId)]
 
     case 'BROWSER_NAVIGATED':
     case 'BROWSER_WENT_BACK':
@@ -104,31 +78,25 @@ function revealed(next: TimelineState, event: GameEvent, content: DayContent): r
       // discovered set with addresses the graph has never heard of.
       const url = next.browser.url
       if (next.browser.view !== 'page') return []
-      if (content.browser.pages.some((p) => p.url === url)) return [projectedId.web(day, url)]
-      // Not a page this day authored — the corpus keeps an internet of its own, and the shell
+      if (content.browser.pages.some((p) => p.url === url)) return [projectedId.web(kase, url)]
+      // Not a page this case authored — the corpus keeps an internet of its own, and the shell
       // tells us which document was at the address.
       return event.type === 'BROWSER_NAVIGATED' && event.worldArtifactId
         ? [event.worldArtifactId]
         : []
     }
 
-    // A bank statement is one page. Opening it is reading all of it.
-    case 'APP_OPENED':
-      return event.app === 'bank'
-        ? content.economy.openingLedger.map((entry) => projectedId.txn(day, entry.id))
-        : []
-
     case 'PHONE_TOGGLED':
     case 'PHONE_TAB_CHANGED':
     case 'SMS_ADVANCED': {
-      if (!next.phone.open) return []
+      // A case may supply no phone at all, and then there is nothing to have looked at.
+      const phone = content.phone
+      if (!phone || !next.phone.open) return []
       if (next.phone.tab === 'photos')
-        return content.phone.photos.map((photo) => projectedId.photo(day, photo.id))
+        return phone.photos.map((photo) => projectedId.photo(kase, photo.id))
       if (next.phone.tab === 'sms')
         // Only as far down the thread as the player has actually scrolled.
-        return content.phone.sms
-          .slice(0, next.phone.smsStep + 1)
-          .map((sms) => projectedId.sms(day, sms.time))
+        return phone.sms.slice(0, next.phone.smsStep + 1).map((sms) => projectedId.sms(kase, sms.time))
       return []
     }
 
@@ -137,15 +105,12 @@ function revealed(next: TimelineState, event: GameEvent, content: DayContent): r
   }
 }
 
-export function reduce(state: TimelineState, event: GameEvent, content: DayContent): TimelineState {
+export function reduce(state: InvestigationState, event: GameEvent, content: CaseContent): InvestigationState {
   const next = apply(state, event, content)
   if (next === state) return state
 
   const tick = TICK[event.type] ?? 0
-  const divergence = DIVERGENCE[event.type] ?? 0
-
-  const minuteOfDay =
-    next.minuteOfDay === state.minuteOfDay ? state.minuteOfDay + tick : next.minuteOfDay
+  const minute = next.minute === state.minute ? state.minute + tick : next.minute
 
   const fresh = revealed(next, event, content).filter((id) => !next.discovered.includes(id))
 
@@ -155,47 +120,38 @@ export function reduce(state: TimelineState, event: GameEvent, content: DayConte
       fresh.length === 0
         ? next.discovered
         : [...next.discovered, ...fresh].slice(-LIMITS.discovered),
-    // A day cannot run past its own end. Without this the clock wraps to 00:12 while the menu
-    // bar still says Thursday the 15th, and `DAY_ENDED` then moves the clock backwards.
-    minuteOfDay: Math.min(minuteOfDay, content.endMinute ?? DEFAULT_END_MINUTE),
-    divergence:
-      next.divergence === state.divergence ? state.divergence + divergence : next.divergence,
+    // A session cannot run past its own end. Without this the clock walks past the hour the
+    // report is dated, and `REPORT_FILED` then moves it backwards.
+    minute: Math.min(minute, content.sessionMinutes),
   }
 }
 
 /**
- * Replay. A multi-day log has to be reduced against the content of the day each event belongs
- * to, so this accepts a resolver as well as a single day — passing one day's content for a log
- * that crosses midnight would quietly interpret Day 02's events against Day 01's world.
+ * Replay. One case, one content module, so the log reduces against a single world — a resolver
+ * was only ever there because thirty days each had their own.
  */
 export function applyEvents(
-  state: TimelineState,
+  state: InvestigationState,
   events: readonly GameEvent[],
-  content: DayContent | ((day: number) => DayContent),
-): TimelineState {
-  const resolve = typeof content === 'function' ? content : () => content
-  return events.reduce((acc, e) => {
-    // `DAY_ADVANCED` is reduced against the day being *left*; everything after it belongs to the
-    // day being entered.
-    const dayContent = resolve(acc.day)
-    return reduce(acc, e, dayContent)
-  }, state)
+  content: CaseContent,
+): InvestigationState {
+  return events.reduce((acc, e) => reduce(acc, e, content), state)
 }
 
 // ---------------------------------------------------------------------------
 
-function withBeat(state: TimelineState, beat: BeatId | null | undefined): TimelineState {
+function withBeat(state: InvestigationState, beat: BeatId | null | undefined): InvestigationState {
   if (!beat || state.beats[beat]) return state
   return { ...state, beats: { ...state.beats, [beat]: true } }
 }
 
-function appDef(content: DayContent, app: AppId) {
+function appDef(content: CaseContent, app: AppId) {
   const def = content.apps.find((a) => a.id === app)
   if (!def) throw new Error(`reducer: unknown app "${app}"`)
   return def
 }
 
-function focusWindows(state: TimelineState, app: AppId): TimelineState {
+function focusWindows(state: InvestigationState, app: AppId): InvestigationState {
   const z = state.nextZ + 1
   return {
     ...state,
@@ -204,7 +160,7 @@ function focusWindows(state: TimelineState, app: AppId): TimelineState {
   }
 }
 
-function currentEntry(state: TimelineState): BrowserEntry {
+function currentEntry(state: InvestigationState): BrowserEntry {
   return {
     view: state.browser.view,
     url: state.browser.url,
@@ -213,7 +169,7 @@ function currentEntry(state: TimelineState): BrowserEntry {
   }
 }
 
-function pushHistory(state: TimelineState): readonly BrowserEntry[] {
+function pushHistory(state: InvestigationState): readonly BrowserEntry[] {
   const current = currentEntry(state)
   const last = state.browser.history[state.browser.history.length - 1]
   if (last && last.view === current.view && last.url === current.url) return state.browser.history
@@ -221,52 +177,38 @@ function pushHistory(state: TimelineState): readonly BrowserEntry[] {
 }
 
 function pinEvidence(
-  state: TimelineState,
+  state: InvestigationState,
   evidenceId: string,
-  via: TimelineState['evidence'][number]['discoveredBy'],
+  via: InvestigationState['evidence'][number]['discoveredBy'],
   at: number,
-): TimelineState {
-  // Qualified by the day it was found on. Ids were one flat namespace, so a later day reusing an
-  // earlier day's page could hand the player evidence they never encountered.
-  const id = qualifyEvidenceId(state.day, evidenceId)
-  if (state.evidence.some((e) => e.id === id)) return state
+  content: CaseContent,
+): InvestigationState {
+  /*
+   * Evidence a forensic service would recover does not exist until it has been granted.
+   *
+   * Enforced here and not only in the surfaces, because "the button was not rendered" is not a
+   * rule — it is a rendering. The grant itself is the server's; this is the engine agreeing with
+   * it, so a save cannot be edited into holding something nobody recovered.
+   */
+  const gate = content.services.find((svc) => svc.grantsEvidenceIds.includes(evidenceId))
+  if (gate && !state.services.includes(gate.id)) return state
+
+  // Flat within a case. Ids were qualified by day because thirty days shared one namespace.
+  if (state.evidence.some((e) => e.id === evidenceId)) return state
   return {
     ...state,
-    evidence: [...state.evidence, { id, day: state.day, discoveredBy: via, discoveredAt: at }],
+    evidence: [...state.evidence, { id: evidenceId, discoveredBy: via, discoveredAt: at }],
     ui: { ...state.ui, trayOpen: true },
   }
 }
 
-function ledgerEntry(id: string, date: string, label: string, amount: number): LedgerEntry {
-  return { id, date, label, amount }
-}
-
-function dayDateLabel(content: DayContent): string {
-  const d = new Date(`${content.dateISO}T00:00:00Z`)
-  const month = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ][d.getUTCMonth()]
-  return `${d.getUTCDate()} ${month}`
-}
-
 // ---------------------------------------------------------------------------
 
-function apply(state: TimelineState, event: GameEvent, content: DayContent): TimelineState {
+function apply(state: InvestigationState, event: GameEvent, content: CaseContent): InvestigationState {
   switch (event.type) {
     // --- stage -------------------------------------------------------------
-    case 'WOKE_UP':
-      if (state.stage !== 'landing') return state
+    case 'CASE_OPENED':
+      if (state.stage !== 'intake') return state
       return { ...state, stage: 'boot', bootLine: 0 }
 
     case 'BOOT_ADVANCED': {
@@ -354,7 +296,8 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     }
 
     case 'SMS_ADVANCED': {
-      const last = content.phone.sms.length - 1
+      // A case may supply no phone.
+      const last = (content.phone?.sms.length ?? 0) - 1
       if (state.phone.smsStep >= last) return state
       return {
         ...state,
@@ -380,7 +323,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
 
     case 'MAIL_UNKNOWN_ARRIVED':
       if (state.mail.unknownArrived) return state
-      return { ...state, mail: { ...state.mail, unknownArrived: true }, heat: state.heat + 5 }
+      return { ...state, mail: { ...state.mail, unknownArrived: true }, exposure: state.exposure + 5 }
 
     // --- messenger ---------------------------------------------------------
     case 'THREAD_SELECTED':
@@ -400,7 +343,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
           log: {
             ...state.chat.log,
             [event.thread]: [
-              { who: node.who, text: node.text, mine: false, time: minuteLabel(state.minuteOfDay) },
+              { who: node.who, text: node.text, mine: false, time: clockAt(content, state.minute) },
             ],
           },
         },
@@ -410,7 +353,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'CHAT_REPLY_SENT': {
       const thread = content.threads.find((t) => t.id === event.thread)
       if (!thread) return state
-      const withLine: TimelineState = {
+      const withLine: InvestigationState = {
         ...state,
         // A choice can reach out of the conversation and change the world.
         flags: event.setsFlag ? { ...state.flags, [event.setsFlag]: true } : state.flags,
@@ -426,7 +369,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
             ...state.chat.log,
             [event.thread]: [
               ...(state.chat.log[event.thread] ?? []),
-              { who: 'you', text: event.text, mine: true, time: minuteLabel(state.minuteOfDay) },
+              { who: 'you', text: event.text, mine: true, time: clockAt(content, state.minute) },
             ],
           },
         },
@@ -438,7 +381,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       const thread = content.threads.find((t) => t.id === event.thread)
       if (!thread) return state
       const current = state.chat.step[event.thread] ?? 0
-      const time = minuteLabel(state.minuteOfDay)
+      const time = clockAt(content, state.minute)
       const speaker = thread.script[current]?.who ?? thread.label
 
       const log = [...(state.chat.log[event.thread] ?? [])]
@@ -549,7 +492,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'FILE_OPENED': {
       const doc = content.files.find((f) => f.id === event.fileId)
       if (!doc) return state
-      const opened: TimelineState = { ...state, files: { ...state.files, openId: event.fileId } }
+      const opened: InvestigationState = { ...state, files: { ...state.files, openId: event.fileId } }
       return withBeat(opened, doc.beat as BeatId | null)
     }
 
@@ -560,46 +503,19 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'TERMINAL_COMMAND_RUN':
       return runTerminal(state, event.command, event.at, content)
 
-    // --- notes / recall ----------------------------------------------------
+    // --- notes -------------------------------------------------------------
     case 'NOTES_CHANGED': {
       const notes = event.value.slice(0, LIMITS.notes)
       if (state.notes === notes) return state
       return { ...state, notes }
     }
 
-    case 'RECALL_QUERY_CHANGED':
-      return { ...state, recallQuery: event.value }
-
-    case 'RECALL_USED': {
-      const query = event.query.trim()
-      if (!query) return state
-      const outcome = resolveRecall(content, query, state.memoryIntegrity)
-      const withRecall: TimelineState = {
-        ...state,
-        memoryIntegrity: outcome.integrity,
-        temporalShift: state.temporalShift + content.recall.shiftPerUse,
-        recallQuery: '',
-        recalls: [
-          {
-            query: query.toUpperCase(),
-            text: outcome.text,
-            confidence: outcome.confidence,
-            memoryId: outcome.memoryId,
-            cost: outcome.cost,
-            at: event.at,
-          },
-          ...state.recalls,
-        ].slice(0, LIMITS.recalls),
-      }
-      return withBeat(withRecall, 'recall')
-    }
-
     // --- investigation -----------------------------------------------------
     case 'EVIDENCE_PINNED':
-      return pinEvidence(state, event.evidenceId, event.via, event.at)
+      return pinEvidence(state, event.evidenceId, event.via, event.at, content)
 
     case 'EVIDENCE_SELECTION_TOGGLED': {
-      const id = qualifyEvidenceId(state.day, event.evidenceId)
+      const id = event.evidenceId
       const selected = state.selectedEvidenceIds.includes(id)
       return {
         ...state,
@@ -615,18 +531,12 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
     case 'CLAIM_ASSERTED': {
       const claim = content.claims.find((c) => c.id === event.claimId) as Claim | undefined
       if (!claim) return state
-      // A claim may rest on an earlier day's evidence by naming it outright ("1:e3"); anything
-      // unqualified means today's.
-      const need = claim.need.map((id) => qualifyEvidenceId(content.day, id))
       // Only what the player actually holds counts. The tray offers nothing else, so in play
-      // this changes nothing — but it is what makes "this claim needs what you found yesterday"
-      // a fact about the engine rather than a fact about the user interface, and it is the
-      // difference between a save that can be edited into an accepted claim and one that cannot.
+      // this changes nothing — but it is the difference between a save that can be edited into
+      // an accepted claim and one that cannot.
       const held = new Set(state.evidence.map((e) => e.id))
-      const selected = event.evidenceIds
-        .map((id) => qualifyEvidenceId(state.day, id))
-        .filter((id) => held.has(id))
-      const outcome = evaluateClaim({ ...claim, need }, selected)
+      const selected = event.evidenceIds.filter((id) => held.has(id))
+      const outcome = evaluateClaim(claim, selected)
       const attempt = {
         claimId: claim.id,
         claimText: claim.text,
@@ -636,14 +546,13 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
         at: event.at,
         onRecord: outcome.onRecord,
       }
-      const withClaim: TimelineState = {
+      const withClaim: InvestigationState = {
         ...state,
         lastVerdict: attempt,
         claimLog: outcome.onRecord
           ? [...state.claimLog, attempt].slice(-LIMITS.claimLog)
           : state.claimLog,
-        heat: outcome.onRecord ? state.heat + 10 : state.heat,
-        divergence: state.divergence + (outcome.onRecord ? 6 : 1),
+        exposure: outcome.onRecord ? state.exposure + 10 : state.exposure,
       }
       return withBeat(withClaim, 'claim')
     }
@@ -660,183 +569,81 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       return { ...state, ui: { ...state.ui, boardOpen: open } }
     }
 
-    // --- economy -----------------------------------------------------------
-    case 'ITEM_PURCHASED': {
-      const opp = content.economy.opportunities.find((o) => o.id === event.itemId)
-      if (!opp) return state
-      if (state.inventory.some((i) => i.id === event.itemId)) return state
-      // Cash cannot go negative. Today no reachable sequence of purchases would, but the
-      // invariant was absent rather than satisfied, and one more authored domain would break it.
-      if (state.cashCents < opp.buyCents) return state
-      const item: InventoryItem = {
-        id: opp.id,
-        day: state.day,
-        label: opp.label,
-        acquiredFor: opp.buyCents,
-        state: 'held',
-        soldFor: null,
-      }
+    // --- devices -----------------------------------------------------------
+    /**
+     * A device the client hands over mid-case. Connecting is not opening it: a locked phone on
+     * the desk is a fact about the case, and a reason to go and find what opens it.
+     */
+    case 'DEVICE_CONNECTED': {
+      const device = content.devices.find((d) => d.id === event.deviceId)
+      if (!device) return state
+      const held = state.devices[event.deviceId]
+      if (held?.connected) return state
       return {
         ...state,
-        cashCents: state.cashCents - opp.buyCents,
-        minuteOfDay: state.minuteOfDay + opp.buyMinutes,
-        inventory: [...state.inventory, item],
-        ledger: [
-          ledgerEntry(`l-buy-${opp.id}`, dayDateLabel(content), opp.buyLedgerLabel, -opp.buyCents),
-          ...state.ledger,
-        ],
+        devices: {
+          ...state.devices,
+          [event.deviceId]: {
+            id: event.deviceId,
+            connected: true,
+            unlocked: held?.unlocked ?? device.unlocked,
+          },
+        },
       }
     }
 
-    case 'ITEM_LISTED': {
-      const opp = content.economy.opportunities.find((o) => o.id === event.itemId)
-      const held = state.inventory.find((i) => i.id === event.itemId)
-      if (!opp || !held || held.state !== 'held') return state
-      return {
+    case 'DEVICE_UNLOCK_ATTEMPTED': {
+      const device = content.devices.find((d) => d.id === event.deviceId)
+      if (!device) return state
+      const held = state.devices[event.deviceId]
+      // Nothing is unlocked that is not on the desk.
+      if (!held?.connected) return state
+      if (held.unlocked) return state
+      // A wrong key costs the attempt and nothing else. The device stays shut.
+      const expected = device.unlockKey.trim().toLowerCase()
+      if (expected && event.key.trim().toLowerCase() !== expected) return state
+      const opened: InvestigationState = {
         ...state,
-        minuteOfDay: state.minuteOfDay + opp.listMinutes,
-        inventory: state.inventory.map((i) =>
-          i.id === event.itemId ? { ...i, state: 'listed' } : i,
-        ),
+        devices: { ...state.devices, [event.deviceId]: { ...held, unlocked: true } },
+        // Getting into somebody's device is the loudest ordinary thing an investigator does.
+        exposure: state.exposure + 5,
+        flags: device.setsFlag ? { ...state.flags, [device.setsFlag]: true } : state.flags,
       }
+      return withBeat(opened, device.beat as BeatId | null)
     }
 
-    case 'ITEM_SOLD': {
-      const opp = content.economy.opportunities.find((o) => o.id === event.itemId)
-      const listed = state.inventory.find((i) => i.id === event.itemId)
-      if (!opp || !listed || listed.state !== 'listed') return state
-      const sold: TimelineState = {
-        ...state,
-        cashCents: state.cashCents + opp.sellCents,
-        temporalShift: state.temporalShift + opp.shiftOnSell,
-        inventory: state.inventory.map((i) =>
-          i.id === event.itemId ? { ...i, state: 'sold', soldFor: opp.sellCents } : i,
-        ),
-        ledger: [
-          ledgerEntry(
-            `l-sell-${opp.id}`,
-            dayDateLabel(content),
-            opp.sellLedgerLabel,
-            opp.sellCents,
-          ),
-          ...state.ledger,
-        ],
-      }
-      return withBeat(sold, opp.beat as BeatId | null)
+    // --- forensic services -------------------------------------------------
+    /**
+     * Recorded, never performed.
+     *
+     * The entitlement was granted on the server and the content behind it is served, not
+     * unlocked here. What this writes down is that the player could see it, so a replay shows
+     * the investigation they actually ran.
+     */
+    case 'SERVICE_GRANTED': {
+      if (!content.services.some((svc) => svc.id === event.serviceId)) return state
+      if (state.services.includes(event.serviceId)) return state
+      return { ...state, services: [...state.services, event.serviceId] }
     }
 
-    case 'DOMAIN_REGISTERED': {
-      if (state.domains.includes(event.domain)) return state
-      if (state.cashCents < content.economy.domainPriceCents) return state
-      return {
-        ...state,
-        domains: [...state.domains, event.domain],
-        cashCents: state.cashCents - content.economy.domainPriceCents,
-        temporalShift: state.temporalShift + content.economy.domainShift,
-        minuteOfDay: state.minuteOfDay + 12,
-      }
-    }
-
-    case 'WATCHLIST_TOGGLED': {
-      const held = state.watchlist.includes(event.symbol)
-      return {
-        ...state,
-        watchlist: held
-          ? state.watchlist.filter((s) => s !== event.symbol)
-          : [...state.watchlist, event.symbol],
-        // Writing down what you know about the future is not free, even when nothing is bought.
-        heat: held ? state.heat : state.heat + 2,
-      }
-    }
-
+    // --- the report --------------------------------------------------------
     // --- day end -----------------------------------------------------------
-    case 'DAY_ENDED': {
-      if (state.stage === 'day-end') return state
+    case 'REPORT_FILED': {
+      if (state.stage === 'report') return state
       return {
         ...state,
-        stage: 'day-end',
-        minuteOfDay: content.endMinute ?? DEFAULT_END_MINUTE,
+        stage: 'report',
+        minute: content.sessionMinutes,
         windows: [],
         phone: { ...state.phone, open: false },
-        ui: { trayOpen: false, boardOpen: false, watched: true, dayCard: false, wayupOpen: false },
+        ui: { trayOpen: false, boardOpen: false, watched: true, reportCard: false, wayupOpen: false },
         mail: { ...state.mail, unknownArrived: true, openId: content.unknownMail.id },
       }
     }
 
-    case 'DAY_CARD_SHOWN':
-      if (state.ui.dayCard) return state
-      return { ...state, ui: { ...state.ui, dayCard: true } }
-
-    /**
-     * The night. Everything the player *became* survives; everything that was the surface of one
-     * day is cleared. Without this the engine stopped at the summary card and a second day was a
-     * separate new game that happened to be dated later.
-     */
-    case 'DAY_ADVANCED': {
-      if (event.day <= state.day) return state
-      const emptyByThread = <T>(value: T) =>
-        Object.fromEntries(event.threadIds.map((id) => [id, value]))
-
-      return {
-        ...state,
-
-        // Carried: cash, coherence, heat, divergence, shift, evidence, claims on record,
-        // inventory, the ledger, domains, the watchlist, every recall, the notebook, and every
-        // flag a decision set. A game about consequence cannot forget them overnight.
-
-        day: event.day,
-        dateISO: event.dateISO,
-        /*
-         * The second morning starts the machine, exactly as the first one did.
-         *
-         * Going straight to `playing` skipped every scripted opening — the boot console, the
-         * messenger that opens itself, the icon that appears on the desktop all fire on
-         * boot → playing — so day two arrived on a bare desktop in silence. It also threw away
-         * the one line the day most needed the player to read: the login banner, which on the
-         * sixteenth says somebody used this machine at 04:03 from another address.
-         */
-        stage: 'boot',
-
-        // Reset: the surface of a day.
-        minuteOfDay: event.wakeMinute,
-        bootLine: 0,
-        windows: [],
-        nextZ: 20,
-        desktopIcons: [],
-        // Where the player put the phone down is a preference, not a day.
-        phone: { ...state.phone, open: false, tab: 'sms', smsStep: 0 },
-        selectedEvidenceIds: [],
-        selectedClaimId: null,
-        lastVerdict: null,
-        mail: { openId: event.firstMailId, readIds: [event.firstMailId], unknownArrived: false },
-        chat: {
-          thread: event.threadIds[0] ?? state.chat.thread,
-          log: emptyByThread([]),
-          step: emptyByThread(0),
-          waiting: emptyByThread(false),
-          pendingReply: emptyByThread(null),
-          pendingAdvance: emptyByThread(true),
-        },
-        browser: {
-          view: 'home',
-          url: event.browserHome,
-          query: '',
-          resultIds: [],
-          draftUrl: null,
-          history: [],
-          forward: [],
-        },
-        // What was decrypted stays decrypted, and the attempts still count against the player.
-        files: { ...state.files, openId: event.firstFileId },
-        terminal: { lines: [event.terminalBanner], input: '' },
-        recallQuery: '',
-        // The relay stays open and every page read stays read; only the day's supply refills.
-        wayup: { ...state.wayup, signalSpent: 0 },
-        ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false, wayupOpen: false },
-        // The gate is about *this* day. Sharing them opened a later day's gate before it began.
-        beats: {},
-      }
-    }
+    case 'REPORT_CARD_SHOWN':
+      if (state.ui.reportCard) return state
+      return { ...state, ui: { ...state.ui, reportCard: true } }
 
     // --- the relay ---------------------------------------------------------
     case 'WAYUP_UNLOCKED': {
@@ -862,7 +669,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       const seen = state.wayup.observed.includes(event.snapshotId)
       // The budget is the mechanic. Without this the cost is a number the console prints and
       // the player can ignore, and a metered look at the future is not metered at all.
-      const budget = content.wayup?.signalBudget ?? 0
+      const budget = content.relay?.signalBudget ?? 0
       if (!seen && state.wayup.signalSpent + event.signalCost > budget) return state
       return {
         ...state,
@@ -879,7 +686,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
 
     case 'WAYUP_SEARCHED': {
       if (!state.wayup.unlocked) return state
-      const budget = content.wayup?.signalBudget ?? 0
+      const budget = content.relay?.signalBudget ?? 0
       if (state.wayup.signalSpent + event.signalCost > budget) return state
       if (event.signalCost === 0) return state
       return {
@@ -888,25 +695,22 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       }
     }
 
-    case 'WAYUP_EVIDENCE_PINNED': {
+    case 'WAYUP_EXCERPT_KEPT': {
       if (!state.wayup.observed.includes(event.snapshotId)) return state
-      if (state.wayup.futureEvidence.some((e) => e.excerptHash === event.excerptHash)) return state
+      if (state.wayup.kept.some((e) => e.excerptHash === event.excerptHash)) return state
       /*
        * Keeping a line is not free, and it is not free in the currency signal is.
        *
-       * Signal buys the looking. This is the carrying: a sentence that has not happened yet,
-       * written down on a machine in 2009, and the world moves a little because it is now
-       * somewhere it was not. Both numbers are the day's decision.
+       * Signal buys the looking. This is the carrying: reaching outside the case file and
+       * bringing something back is a thing somebody can notice. The number is the case's.
        */
-      const cost = content.wayup
       return {
         ...state,
-        temporalShift: state.temporalShift + (cost?.keepShift ?? 0),
-        heat: state.heat + (cost?.keepHeat ?? 0),
+        exposure: state.exposure + (content.relay?.keepExposure ?? 0),
         wayup: {
           ...state.wayup,
-          futureEvidence: [
-            ...state.wayup.futureEvidence,
+          kept: [
+            ...state.wayup.kept,
             {
               id: event.id,
               snapshotId: event.snapshotId,
@@ -914,10 +718,9 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
               excerptHash: event.excerptHash,
               sourceUrl: event.sourceUrl,
               sourceTitle: event.sourceTitle,
-              capturedDay: state.day,
               capturedAt: event.at,
             },
-          ].slice(-LIMITS.futureEvidence),
+          ].slice(-LIMITS.kept),
         },
         ui: { ...state.ui, trayOpen: true },
       }
@@ -941,7 +744,7 @@ function apply(state: TimelineState, event: GameEvent, content: DayContent): Tim
       }
     }
 
-    case 'TIMELINE_CLAIMED':
+    case 'INVESTIGATION_CLAIMED':
       if (state.ownerId === event.ownerId) return state
       return { ...state, ownerId: event.ownerId }
 
@@ -961,23 +764,23 @@ function assertNever(_event: never): void {
   /* the type checker does the work; this exists so the runtime does not */
 }
 
-function minuteLabel(minuteOfDay: number): string {
-  const m = ((minuteOfDay % 1440) + 1440) % 1440
-  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+/** Wall time, from minutes into the session plus the hour the case started at. */
+function clockAt(content: CaseContent, minute: number): string {
+  return clockString(content.startMinute + minute)
 }
 
 function runTerminal(
-  state: TimelineState,
+  state: InvestigationState,
   rawCommand: string,
   at: number,
-  content: DayContent,
-): TimelineState {
+  content: CaseContent,
+): InvestigationState {
   const cfg = content.terminal
   const command = rawCommand.trim()
   const lower = command.toLowerCase()
   const out: TerminalLine[] = [{ text: `${cfg.prompt} ${command}`, tone: 'prompt' }]
 
-  let nextState: TimelineState = { ...state, terminal: { ...state.terminal, input: '' } }
+  let nextState: InvestigationState = { ...state, terminal: { ...state.terminal, input: '' } }
 
   if (!command) {
     return { ...nextState, terminal: { lines: [...state.terminal.lines, ...out], input: '' } }
@@ -995,18 +798,14 @@ function runTerminal(
   if (verb === 'whoami') {
     out.push(...cfg.whoami)
     const contradiction = cfg.whoamiAfterEvidence
-    // Authored unqualified, held qualified. Comparing them raw made this branch unreachable the
-    // day evidence ids were namespaced, and nothing failed — the machine simply stopped saying
-    // the one thing it knows about the man whose name is on it.
-    const held = qualifyEvidenceId(content.day, contradiction.evidenceId)
-    if (state.evidence.some((e) => e.id === held)) {
+    if (state.evidence.some((e) => e.id === contradiction.evidenceId)) {
       out.push(...contradiction.lines)
     }
   } else if (staticOut) {
     out.push(...staticOut)
   } else if (verb === 'date') {
     out.push({
-      text: cfg.dateTemplate.replace('{{clock}}', minuteLabel(state.minuteOfDay)),
+      text: cfg.dateTemplate.replace('{{clock}}', clockAt(content, state.minute)),
       tone: 'out',
     })
   } else if (verb === 'cat') {
@@ -1038,7 +837,7 @@ function runTerminal(
       out.push({ text: d.success, tone: 'ok' })
       // Running it again on a file already open still hands over the evidence. Otherwise a
       // player who decrypted last night is told it worked and given nothing to pin.
-      nextState = pinEvidence(nextState, d.evidenceId, 'terminal', at)
+      nextState = pinEvidence(nextState, d.evidenceId, 'terminal', at, content)
     } else if (attemptsSoFar >= d.maxAttempts) {
       // The lockout said "the file has reported". It has to mean it — otherwise the fourth
       // attempt with the right key simply works, and heat accrues without limit.
@@ -1052,9 +851,9 @@ function runTerminal(
           decrypted: { ...nextState.files.decrypted, [d.fileId]: true },
           openId: d.fileId,
         },
-        heat: nextState.heat + 5,
+        exposure: nextState.exposure + 5,
       }
-      nextState = pinEvidence(nextState, d.evidenceId, 'terminal', at)
+      nextState = pinEvidence(nextState, d.evidenceId, 'terminal', at, content)
     } else if (lower.includes('--key')) {
       const attempts = attemptsSoFar + 1
       const counted = { ...nextState.files.decryptAttempts, [d.fileId]: attempts }
@@ -1064,7 +863,7 @@ function runTerminal(
         nextState = {
           ...nextState,
           files: { ...nextState.files, decryptAttempts: counted },
-          heat: nextState.heat + 20,
+          exposure: nextState.exposure + 20,
           flags: { ...nextState.flags, decryptReported: true },
         }
       } else {
@@ -1072,7 +871,7 @@ function runTerminal(
         nextState = {
           ...nextState,
           files: { ...nextState.files, decryptAttempts: counted },
-          heat: nextState.heat + 5,
+          exposure: nextState.exposure + 5,
         }
       }
     } else {

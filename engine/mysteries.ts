@@ -1,7 +1,6 @@
-import type { DayContent } from './content-schema'
+import type { CaseContent } from './case-schema'
 import type { Mystery, UnlockCondition } from './mystery-schema'
-import type { TimelineState } from './types'
-import { qualifyEvidenceId } from './types'
+import type { InvestigationState } from './types'
 
 /**
  * Whether a mystery has opened, and what looking at it costs.
@@ -12,7 +11,7 @@ import { qualifyEvidenceId } from './types'
  */
 
 export interface UnlockContext {
-  readonly state: TimelineState
+  readonly state: InvestigationState
   /** Mysteries the community has finished, for `globalUnlock`. Empty when playing offline. */
   readonly globallyUnlocked: ReadonlySet<string>
 }
@@ -23,21 +22,19 @@ function meets(condition: UnlockCondition, ctx: UnlockContext): boolean {
     case 'flag':
       return s.flags[condition.flag] === true
     case 'evidence':
-      return s.evidence.some((e) => e.id === qualifyEvidenceId(s.day, condition.evidenceId))
+      return s.evidence.some((e) => e.id === condition.evidenceId)
     case 'beat':
       return s.beats[condition.beat] === true
     case 'visitedUrl':
       return (
         s.browser.url === condition.url || s.browser.history.some((h) => h.url === condition.url)
       )
-    case 'memoryIntegrityAtMost':
-      return s.memoryIntegrity <= condition.value
-    case 'temporalShiftAtLeast':
-      return s.temporalShift >= condition.value
-    case 'heatAtLeast':
-      return s.heat >= condition.value
-    case 'dayAtLeast':
-      return s.day >= condition.value
+    case 'exposureAtLeast':
+      return s.exposure >= condition.value
+    case 'serviceGranted':
+      return s.services.includes(condition.serviceId)
+    case 'deviceUnlocked':
+      return s.devices[condition.deviceId]?.unlocked === true
     case 'globalUnlock':
       return ctx.globallyUnlocked.has(condition.mysteryId)
     default: {
@@ -71,26 +68,30 @@ export function unlockedMysteries(
 }
 
 /**
- * Signal is a narrative budget, not a network quota. It is spent on looking into 2026 and it
- * does not come back within a day — which is what makes a player choose what they most need to
+ * Signal is a narrative budget, not a network quota. It is spent reaching outside the case file
+ * and it does not come back — which is what makes an investigator choose what they most need to
  * know rather than looking up everything.
  *
- * How much of it a day has is the day's decision, like its waking hours and the cost of a
- * memory. A day with no `wayup` block has none, and the console is not on that machine.
+ * How much of it a case has is the case's decision. A case with no `relay` block has none, and
+ * the console is not on that workstation.
  */
-export function signalBudget(content: DayContent): number {
-  return content.wayup?.signalBudget ?? 0
+export function signalBudget(content: CaseContent): number {
+  return content.relay?.signalBudget ?? 0
 }
 
-export function signalSpent(state: TimelineState): number {
+export function signalSpent(state: InvestigationState): number {
   return state.wayup.signalSpent
 }
 
-export function signalRemaining(state: TimelineState, content: DayContent): number {
+export function signalRemaining(state: InvestigationState, content: CaseContent): number {
   return Math.max(0, signalBudget(content) - state.wayup.signalSpent)
 }
 
-export function canAfford(state: TimelineState, content: DayContent, cost: number): boolean {
+export function canAfford(
+  state: InvestigationState,
+  content: CaseContent,
+  cost: number,
+): boolean {
   return signalRemaining(state, content) >= cost
 }
 

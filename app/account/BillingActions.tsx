@@ -16,12 +16,12 @@ export function BillingActions({
   plans,
   entitled,
   configured,
-  timelineId,
+  investigationId,
 }: {
   plans: PlanView[]
   entitled: boolean
   configured: boolean
-  timelineId: string | null
+  investigationId: string | null
 }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -34,7 +34,7 @@ export function BillingActions({
       const response = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ plan: planId, timelineId }),
+        body: JSON.stringify({ plan: planId, investigationId }),
       })
       const data = (await response.json()) as { url?: string; error?: string }
       if (data.url) {

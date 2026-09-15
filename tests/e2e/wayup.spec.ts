@@ -27,43 +27,43 @@ async function run(page: Page, command: string) {
 }
 
 test.describe('the relay', () => {
-  test('qlmux refuses, then attaches, and the console has no carrier', async ({ page }) => {
+  test('the relay refuses, then attaches, and the console has no route', async ({ page }) => {
     await boot(page)
     await page
       .getByRole('navigation', { name: 'Dock' })
-      .getByRole('button', { name: 'Terminal' })
+      .getByRole('button', { name: 'Console' })
       .click()
 
     const log = page.getByRole('log')
     await expect(log).toBeVisible()
 
     // Run bare, the process admits nothing except that it is a process.
-    await run(page, 'qlmux')
-    await expect(log).toContainText('qlmux: listener not attached.')
-    await expect(log).toContainText('nine registered. none reachable from this side.')
+    await run(page, 'relay')
+    await expect(log).toContainText('relay: no outbound route on this session.')
+    await expect(log).toContainText('does not reach the open web by default')
     await expect(page.getByTestId('wayup')).toHaveCount(0)
 
     // The argument is the whole puzzle. Nothing announces that it worked; the machine simply
     // stops refusing, and the screen is taken.
-    await run(page, 'qlmux --attach blackbird-hosting.net')
-    await expect(log).toContainText('carrier present.')
+    await run(page, 'relay open the line')
+    await expect(log).toContainText('route opened. metered.')
 
-    const console_ = page.getByRole('dialog', { name: 'qlmux — attached' })
+    const console_ = page.getByRole('dialog', { name: 'relay — attached' })
     await expect(console_).toBeVisible()
     // Focus moves into the console, on the one field it has.
-    await expect(page.getByLabel('send:')).toBeFocused()
-    await expect(console_).toContainText('signal 24 of 24')
+    await expect(page.getByLabel('ask:')).toBeFocused()
+    await expect(console_).toContainText('lookups 24 of 24')
 
-    await page.getByLabel('send:').fill('aion group settlements')
-    await console_.getByRole('button', { name: 'TRANSMIT' }).click()
+    await page.getByLabel('ask:').fill('marlow foundation 2013 filing')
+    await console_.getByRole('button', { name: 'SEND' }).click()
 
     // No index on this side of the line, and the console says so in its own words rather than
     // showing the route's message or a failed request.
-    await expect(console_.getByText('no carrier')).toBeVisible()
-    await expect(console_).toContainText('There is no index on this side of the line')
+    await expect(console_.getByText('no route')).toBeVisible()
+    await expect(console_).toContainText('There is no index on this side of the route')
     await expect(console_).not.toContainText('the relay has no index on this side')
-    // Nothing on the screen could have spent the day's signal.
-    await expect(console_).toContainText('signal 24 of 24')
+    // Nothing on the screen could have spent the case's signal.
+    await expect(console_).toContainText('lookups 24 of 24')
 
     // Escape leaves the mode and hands the command line back — which is the only place in this
     // application a player can type.

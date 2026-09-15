@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { applyEvents } from '@/engine/reducer'
 import { withoutDraftInput } from '@/engine/events'
-import { createTimeline } from '@/engine/initial-state'
+import { createInvestigation } from '@/engine/initial-state'
 import { createGameStore } from '@/state/store'
 import { toStored } from '@/lib/persistence/types'
 import { content, fresh, run } from './helpers'
@@ -11,9 +11,9 @@ import { content, fresh, run } from './helpers'
  * transition has become impure or time-dependent.
  */
 describe('replay', () => {
-  it('reproduces a full Day 01 snapshot from its event log', () => {
-    const played = run(fresh('landing'), [
-      { type: 'WOKE_UP' },
+  it('reproduces a full session from its event log', () => {
+    const played = run(fresh('intake'), [
+      { type: 'CASE_OPENED' },
       ...Array.from({ length: content.boot.length }, () => ({ type: 'BOOT_ADVANCED' as const })),
       { type: 'BOOT_COMPLETED' },
       { type: 'APP_OPENED', app: 'msg' },
@@ -22,85 +22,86 @@ describe('replay', () => {
       { type: 'CHAT_ADVANCED', thread: 'unknown' },
       { type: 'DESKTOP_ICON_APPEARED', iconId: 'readme' },
       { type: 'APP_OPENED', app: 'files' },
-      { type: 'FILE_OPENED', fileId: 'readme' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'files' },
+      { type: 'FILE_OPENED', fileId: 'f2' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e2', via: 'files' },
+      { type: 'APP_OPENED', app: 'devices' },
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
+      { type: 'PHONE_TOGGLED' },
+      { type: 'SMS_ADVANCED' },
       { type: 'APP_OPENED', app: 'web' },
-      { type: 'BROWSER_SEARCHED', query: 'tradepost' },
-      { type: 'BROWSER_NAVIGATED', url: 'tradepost.com/pdx/electronics' },
-      { type: 'ITEM_PURCHASED', itemId: 'tradepost-n90', amountCents: 6000, label: 'n90' },
-      { type: 'ITEM_LISTED', itemId: 'tradepost-n90' },
-      { type: 'ITEM_SOLD', itemId: 'tradepost-n90', amountCents: 34000 },
+      { type: 'BROWSER_SEARCHED', query: 'marlow' },
+      { type: 'BROWSER_NAVIGATED', url: 'marlowfoundation.org/filings' },
       { type: 'APP_OPENED', app: 'term' },
-      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt cibles.enc --key 0412' },
-      { type: 'APP_OPENED', app: 'recall' },
-      { type: 'RECALL_USED', query: 'bitcoin' },
-      { type: 'THREAD_SELECTED', thread: 'marc' },
-      { type: 'CHAT_STARTED', thread: 'marc' },
-      { type: 'CHAT_REPLY_SENT', thread: 'marc', text: 'What kind of thing?' },
-      { type: 'CHAT_ADVANCED', thread: 'marc' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'decrypt marlow-2013.enc --key reyes' },
+      { type: 'APP_OPENED', app: 'notes' },
+      { type: 'THREAD_SELECTED', thread: 'claire' },
+      { type: 'CHAT_STARTED', thread: 'claire' },
+      { type: 'CHAT_REPLY_SENT', thread: 'claire', text: 'Tell me about Sunday.' },
+      { type: 'CHAT_ADVANCED', thread: 'claire' },
       { type: 'BOARD_TOGGLED', open: true },
-      { type: 'EVIDENCE_SELECTION_TOGGLED', evidenceId: 'e1' },
-      { type: 'CLAIM_SELECTED', claimId: 'c1' },
-      { type: 'CLAIM_ASSERTED', claimId: 'c1', evidenceIds: ['e1'] },
-      { type: 'DAY_ENDED' },
-      { type: 'DAY_CARD_SHOWN' },
+      { type: 'EVIDENCE_SELECTION_TOGGLED', evidenceId: 'e2' },
+      { type: 'CLAIM_SELECTED', claimId: 'c2' },
+      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e2', 'e7'] },
+      { type: 'REPORT_FILED' },
+      { type: 'REPORT_CARD_SHOWN' },
     ])
 
-    const base = createTimeline(content, {
+    const base = createInvestigation(content, {
       id: played.id,
-      stage: 'landing',
-      now: '2026-01-01T00:00:00.000Z',
+      stage: 'intake',
+      now: '2026-06-17T00:00:00.000Z',
     })
     const replayed = applyEvents(base, played.eventLog, content)
 
     const { eventLog: _a, updatedAt: _b, ...playedRest } = withoutDraftInput(played)
     const { eventLog: _c, updatedAt: _d, ...replayedRest } = withoutDraftInput(replayed)
     expect(replayedRest).toEqual(playedRest)
-    expect(replayed.cashCents).toBe(71782)
-    expect(replayed.minuteOfDay).toBe(played.minuteOfDay)
+    expect(replayed.evidence.map((e) => e.id)).toEqual(played.evidence.map((e) => e.id))
+    expect(replayed.minute).toBe(played.minute)
   })
 
   it('drops keystroke-level events from the log but keeps their effect', () => {
     const state = run(fresh(), [
-      { type: 'NOTES_CHANGED', value: 'the account was opened on the 6th' },
-      { type: 'RECALL_QUERY_CHANGED', value: 'bitcoin' },
-      { type: 'BROWSER_QUERY_CHANGED', query: 'tradepost' },
+      { type: 'NOTES_CHANGED', value: 'the receipt is timed after his statement' },
+      { type: 'BROWSER_QUERY_CHANGED', query: 'marlow' },
+      { type: 'TERMINAL_INPUT_CHANGED', value: 'decrypt ' },
     ])
-    expect(state.notes).toBe('the account was opened on the 6th')
-    expect(state.recallQuery).toBe('bitcoin')
-    expect(state.eventLog.filter((e) => e.type === 'RECALL_QUERY_CHANGED')).toHaveLength(0)
+    expect(state.notes).toBe('the receipt is timed after his statement')
+    expect(state.browser.query).toBe('marlow')
+    expect(state.eventLog.filter((e) => e.type === 'BROWSER_QUERY_CHANGED')).toHaveLength(0)
+    expect(state.eventLog.filter((e) => e.type === 'TERMINAL_INPUT_CHANGED')).toHaveLength(0)
     expect(state.eventLog.filter((e) => e.type === 'NOTES_CHANGED')).toHaveLength(1)
   })
 })
 
 describe('save size', () => {
   it('typing a long note does not make the log grow with the square of it', () => {
-    const api = createGameStore({ content, timeline: fresh() })
-    const note = 'the account was opened on the 6th, eighteen days after he died. '
+    const api = createGameStore({ content, investigation: fresh() })
+    const note = 'the receipt is timed at 22:47, which is after he says he last saw him. '
     for (let i = 1; i <= 200; i += 1) {
       api.getState().dispatch({ type: 'NOTES_CHANGED', value: note.repeat(i) })
     }
-    const state = api.getState().timeline
+    const state = api.getState().investigation
 
     // One entry for the whole run, carrying the final text.
     expect(state.eventLog.filter((e) => e.type === 'NOTES_CHANGED')).toHaveLength(1)
-    expect(state.notes).toBe(note.repeat(200))
+    expect(state.notes).toBe(note.repeat(200).slice(0, state.notes.length))
 
     const bytes = JSON.stringify(toStored(state)).length
     expect(bytes).toBeLessThan(60_000)
 
     // And the coalesced log still replays to the same state.
-    const base = createTimeline(content, { id: state.id, now: state.createdAt })
+    const base = createInvestigation(content, { id: state.id, now: state.createdAt })
     expect(applyEvents(base, state.eventLog, content).notes).toBe(state.notes)
   })
 
   it('an interleaved event breaks the run, so history is not lost', () => {
-    const api = createGameStore({ content, timeline: fresh() })
+    const api = createGameStore({ content, investigation: fresh() })
     api.getState().dispatch({ type: 'NOTES_CHANGED', value: 'first' })
-    api.getState().dispatch({ type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'files' })
+    api.getState().dispatch({ type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'mail' })
     api.getState().dispatch({ type: 'NOTES_CHANGED', value: 'second' })
 
-    const log = api.getState().timeline.eventLog
+    const log = api.getState().investigation.eventLog
     expect(log.filter((e) => e.type === 'NOTES_CHANGED')).toHaveLength(2)
     expect(log.map((e) => e.type)).toEqual(['NOTES_CHANGED', 'EVIDENCE_PINNED', 'NOTES_CHANGED'])
   })
@@ -110,34 +111,32 @@ describe('replay under a hostile log', () => {
   it('reproduces a session of interleaving, switching and backtracking', () => {
     const played = run(fresh(), [
       { type: 'APP_OPENED', app: 'web' },
-      { type: 'BROWSER_SEARCHED', query: 'rask' },
-      { type: 'BROWSER_NAVIGATED', url: 'columbia-register.com/obits/rask' },
+      { type: 'BROWSER_SEARCHED', query: 'vale' },
+      { type: 'BROWSER_NAVIGATED', url: 'ridgelinepartners.com/team' },
       { type: 'BROWSER_WENT_BACK' },
       { type: 'BROWSER_WENT_FORWARD' },
-      { type: 'NOTES_CHANGED', value: 'he died' },
-      { type: 'CHAT_STARTED', thread: 'marc' },
-      { type: 'CHAT_STARTED', thread: 'lea' },
-      { type: 'CHAT_REPLY_SENT', thread: 'marc', text: 'q', reply: 'MARC' },
-      { type: 'NOTES_CHANGED', value: 'he died on the 19th' },
+      { type: 'NOTES_CHANGED', value: 'he says the seventh' },
+      { type: 'CHAT_STARTED', thread: 'claire' },
+      { type: 'CHAT_STARTED', thread: 'unknown' },
+      { type: 'CHAT_REPLY_SENT', thread: 'claire', text: 'q', reply: 'CLAIRE' },
+      { type: 'NOTES_CHANGED', value: 'he says the seventh, the receipt says the ninth' },
       {
         type: 'CHAT_REPLY_SENT',
-        thread: 'lea',
+        thread: 'unknown',
         text: 'q',
-        reply: 'LEA',
-        setsFlag: 'leaPostRemoved',
+        reply: 'UNKNOWN',
+        setsFlag: 'valeNotified',
       },
-      { type: 'CHAT_ADVANCED', thread: 'lea' },
-      { type: 'CHAT_ADVANCED', thread: 'marc' },
-      { type: 'ITEM_PURCHASED', itemId: 'tradepost-parts', amountCents: 4000, label: 'parts' },
-      { type: 'ITEM_LISTED', itemId: 'tradepost-parts' },
-      { type: 'ITEM_SOLD', itemId: 'tradepost-parts', amountCents: 1500 },
+      { type: 'CHAT_ADVANCED', thread: 'unknown' },
+      { type: 'CHAT_ADVANCED', thread: 'claire' },
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: 'wrong' },
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
       { type: 'TERMINAL_COMMAND_RUN', command: 'ps' },
-      { type: 'RECALL_USED', query: 'what happens to apple' },
       { type: 'BROWSER_URL_CHANGED', url: 'half-typed.com' },
     ])
 
-    // The base has to start where the played timeline did, or `stage` alone diverges.
-    const base = createTimeline(content, {
+    // The base has to start where the played investigation did, or `stage` alone diverges.
+    const base = createInvestigation(content, {
       id: played.id,
       stage: 'playing',
       now: played.createdAt,

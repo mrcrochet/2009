@@ -2,15 +2,15 @@
 
 import { selectFileBody, selectFileEvidenceId, selectFiles } from '@/engine/selectors'
 import { FileIcon } from '../FileIcon'
-import { useContent, useDispatch, useTimeline } from '../GameContext'
+import { useContent, useDispatch, useInvestigation } from '../GameContext'
 import { PinButton } from '../PinButton'
 
 export function FilesApp() {
   const content = useContent()
   const dispatch = useDispatch()
-  const files = useTimeline((s) => selectFiles(s, content))
-  const body = useTimeline((s) => selectFileBody(s, content))
-  const evidenceId = useTimeline((s) => selectFileEvidenceId(s, content))
+  const files = useInvestigation((s) => selectFiles(s, content))
+  const body = useInvestigation((s) => selectFileBody(s, content))
+  const evidenceId = useInvestigation((s) => selectFileEvidenceId(s, content))
 
   return (
     <>

@@ -3,8 +3,8 @@
 import { createContext, useContext } from 'react'
 import { useStore } from 'zustand'
 import type { EventInput } from '@/engine/events'
-import type { DayContent } from '@/engine/content-schema'
-import type { TimelineState } from '@/engine/types'
+import type { CaseContent } from '@/engine/case-schema'
+import type { InvestigationState } from '@/engine/types'
 import type { GameStore, GameStoreApi } from '@/state/store'
 
 const GameContext = createContext<GameStoreApi | null>(null)
@@ -21,11 +21,11 @@ export function useGame<T>(selector: (store: GameStore) => T): T {
   return useStore(useGameApi(), selector)
 }
 
-export function useTimeline<T>(selector: (state: TimelineState) => T): T {
-  return useGame((s) => selector(s.timeline))
+export function useInvestigation<T>(selector: (state: InvestigationState) => T): T {
+  return useGame((s) => selector(s.investigation))
 }
 
-export function useContent(): DayContent {
+export function useContent(): CaseContent {
   return useGame((s) => s.content)
 }
 

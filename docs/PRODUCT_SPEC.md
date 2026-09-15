@@ -1,5 +1,10 @@
 # 2009 — Product Spec (v1, Day 01)
 
+> **Superseded in part.** This was written for **2009**. The apps, the investigation, the
+> fictional browser and the relay are current; Recall, the economy and the temporal engine are
+> not, and neither is the canonical-world table. `CLAUDE.md` is the contract; this is the detail
+> underneath the half of it that survived.
+
 ## Canonical world
 
 | Field           | Value                                      |

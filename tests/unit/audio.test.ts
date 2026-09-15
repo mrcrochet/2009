@@ -82,20 +82,20 @@ describe('sound', () => {
 
   it('a refused claim does not sound like an accepted one', () => {
     let state = run(fresh(), [
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e4', via: 'bank' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e2', via: 'files' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e7', via: 'terminal' },
     ])
     const accepted = {
       type: 'CLAIM_ASSERTED' as const,
       claimId: 'c2',
-      evidenceIds: ['e3', 'e4'],
+      evidenceIds: ['e2', 'e7'],
       at: 0,
     }
     state = dispatch(state, accepted)
     expect(state.lastVerdict?.verdict).toBe('accepted')
     expect(cueForEvent(accepted, state)).not.toBeNull()
 
-    const refused = { type: 'CLAIM_ASSERTED' as const, claimId: 'c4', evidenceIds: ['e3'], at: 0 }
+    const refused = { type: 'CLAIM_ASSERTED' as const, claimId: 'c3', evidenceIds: ['e2'], at: 0 }
     const after = dispatch(state, refused)
     expect(after.lastVerdict?.verdict).toBe('refused')
     // Different verdicts must not resolve to the same cue.

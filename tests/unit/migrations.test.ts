@@ -10,37 +10,23 @@ describe('save migration', () => {
     const stored = toStored(state)
     const back = fromStored(migrateStored(stored))
     expect(back.id).toBe(state.id)
-    expect(back.cashCents).toBe(state.cashCents)
+    expect(back.caseId).toBe(state.caseId)
     expect(back.schemaVersion).toBe(SCHEMA_VERSION)
   })
 
-  it('migrates a v1 save forward without losing anything', () => {
-    const state = fresh()
-    const stored = toStored(state)
-    const legacy = JSON.parse(JSON.stringify(stored)) as Record<string, unknown>
-    legacy.schemaVersion = 1
-    const snapshot = legacy.snapshot as Record<string, unknown>
-    delete snapshot.heat
-    delete snapshot.divergence
-    delete (snapshot.browser as Record<string, unknown>).history
-    delete (snapshot.browser as Record<string, unknown>).forward
-    snapshot.windows = [{ app: 'mail', x: 10, y: 20, z: 21 }]
-
-    const migrated = migrateStored(legacy)
-    expect(migrated.schemaVersion).toBe(SCHEMA_VERSION)
-    const back = fromStored(migrated)
-    expect(back.heat).toBe(0)
-    expect(back.divergence).toBe(0)
-    expect(back.browser.history).toEqual([])
-    expect(back.browser.forward).toEqual([])
-    expect(back.windows[0]).toMatchObject({
-      app: 'mail',
-      x: 10,
-      y: 20,
-      minimized: false,
-      zoomed: false,
-    })
-    expect(back.cashCents).toBe(state.cashCents)
+  /**
+   * A save of the old game is not an old save of this one.
+   *
+   * There is no function from "day 4 of thirty, $717.82, 91% coherence" to an investigation on a
+   * case. Reshaping one would hand a player a file they never built, so it is refused and the
+   * loader quarantines it.
+   */
+  it('refuses a save from the game this product used to be', () => {
+    for (const version of [1, 7, 12]) {
+      expect(() =>
+        migrateStored({ id: 'x', schemaVersion: version, snapshot: { day: 4 }, events: [] }),
+      ).toThrow(MigrationError)
+    }
   })
 
   it('refuses a save from a newer build rather than corrupting it', () => {

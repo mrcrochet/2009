@@ -33,7 +33,7 @@ const focused = (page: Page) =>
 
 // ---------------------------------------------------------------- mobile ---
 
-test.describe('HALCYON on a narrow screen', () => {
+test.describe('The workstation on a narrow screen', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
   test('foregrounds one app at a time and keeps the dock as the task switcher', async ({
@@ -41,27 +41,27 @@ test.describe('HALCYON on a narrow screen', () => {
   }) => {
     await boot(page)
 
-    await openApp(page, 'Corvid Mail')
+    await openApp(page, 'Relay Mail')
     await expect(win(page, 'mail')).toBeVisible()
     // The messenger opened itself first; the desktop is never two windows deep here.
     await expect(win(page, 'msg')).toBeHidden()
 
-    await openApp(page, 'Meridian Savings')
-    await expect(win(page, 'bank')).toBeVisible()
+    await openApp(page, 'Devices')
+    await expect(win(page, 'devices')).toBeVisible()
     await expect(win(page, 'mail')).toBeHidden()
 
     // The dock switches back, which is the whole point of keeping it.
-    await openApp(page, 'Corvid Mail')
+    await openApp(page, 'Relay Mail')
     await expect(win(page, 'mail')).toBeVisible()
-    await expect(win(page, 'bank')).toBeHidden()
+    await expect(win(page, 'devices')).toBeHidden()
   })
 
   test('never miniaturises the desktop sideways', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Halcyon Browser') // the widest window at 720px
+    await openApp(page, 'Orbit') // the widest window at 720px
     await expect(win(page, 'web')).toBeVisible()
-    await openApp(page, 'Meridian Savings')
-    await openApp(page, 'Halcyon Browser')
+    await openApp(page, 'Devices')
+    await openApp(page, 'Orbit')
 
     const overflow = await page.evaluate(() => ({
       doc: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -80,7 +80,7 @@ test.describe('HALCYON on a narrow screen', () => {
 
   test('the phone becomes a full-height overlay, not a floating object', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'NOKORA N90')
+    await openApp(page, 'NOVA M12')
 
     const phone = page.getByTestId('phone-overlay')
     await expect(phone).toBeVisible()
@@ -99,8 +99,10 @@ test.describe('HALCYON on a narrow screen', () => {
 
   test('the tray is a bottom sheet', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Meridian Savings')
-    await win(page, 'bank').locator('[data-evidence="e4"]').click()
+    await openApp(page, 'Orbit')
+    await win(page, 'web').locator('[data-bookmark="kgw-portland.com"]').click()
+    await win(page, 'web').locator('[data-href="kgw-portland.com/missing-daniel-mercer"]').click()
+    await win(page, 'web').locator('[data-evidence="e4"]').click()
 
     await expect(tray(page)).toBeVisible()
     const sheet = await tray(page).boundingBox()
@@ -115,8 +117,10 @@ test.describe('HALCYON on a narrow screen', () => {
 
   test('the board is a full-screen workspace', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Meridian Savings')
-    await win(page, 'bank').locator('[data-evidence="e4"]').click()
+    await openApp(page, 'Orbit')
+    await win(page, 'web').locator('[data-bookmark="kgw-portland.com"]').click()
+    await win(page, 'web').locator('[data-href="kgw-portland.com/missing-daniel-mercer"]').click()
+    await win(page, 'web').locator('[data-evidence="e4"]').click()
     await tray(page).getByRole('button', { name: 'OPEN BOARD' }).press('Enter')
 
     await expect(board(page)).toBeVisible()
@@ -137,20 +141,31 @@ test.describe('HALCYON on a narrow screen', () => {
     // One piece from Files…
     await openApp(page, 'Files')
     await win(page, 'files')
-      .getByRole('option', { name: /READ_ME/ })
+      .getByRole('option', { name: /draft-statement-v3/ })
       .click()
     await win(page, 'files').getByRole('button', { name: 'PIN AS EVIDENCE' }).click()
 
-    // …and one from the bank, in a different app, without losing the first.
-    await openApp(page, 'Meridian Savings')
-    await win(page, 'bank').locator('[data-evidence="e4"]').click()
+    // Pinning opened the tray as a bottom sheet, and on this screen the sheet is over the lower
+    // half of whatever is behind it. Put it away, the way a player would.
+    await page.getByRole('button', { name: 'Close evidence tray' }).click()
+
+    // …and one from the client's mail, in a different app, without losing the first.
+    await openApp(page, 'Relay Mail')
+    await win(page, 'mail')
+      .getByRole('option', { name: /everything I have/ })
+      .click()
+    // On a 390px screen the reading pane is below the inbox, so the control has to be brought
+    // into view before it can be pressed — which is the thing being checked.
+    const pin = win(page, 'mail').getByRole('button', { name: 'PIN AS EVIDENCE' })
+    await pin.scrollIntoViewIfNeeded()
+    await pin.click()
 
     await expect(page.getByTestId('evidence-tab')).toContainText('EVIDENCE · 2')
     await expect(tray(page)).toBeVisible()
     await tray(page).getByRole('button', { name: 'OPEN BOARD' }).press('Enter')
 
-    await expect(board(page).locator('[data-evidence="1:e1"]')).toBeVisible()
-    await expect(board(page).locator('[data-evidence="1:e4"]')).toBeVisible()
+    await expect(board(page).locator('[data-evidence="e2"]')).toBeVisible()
+    await expect(board(page).locator('[data-evidence="e1"]')).toBeVisible()
   })
 
   /**
@@ -166,7 +181,7 @@ test.describe('HALCYON on a narrow screen', () => {
     // The home button and OPEN BOARD are the only ways out of these two surfaces. Both sit at
     // the bottom edge, under a dock at z-index 8800, so `click()`'s hit-target check is the
     // assertion here — not a formality.
-    await openApp(page, 'NOKORA N90')
+    await openApp(page, 'NOVA M12')
     await page
       .getByTestId('phone-overlay')
       .getByLabel('Put the phone down')
@@ -174,6 +189,10 @@ test.describe('HALCYON on a narrow screen', () => {
     await expect(page.getByTestId('phone-overlay')).toHaveCount(0)
 
     await openApp(page, 'Files')
+    await page
+      .locator('[data-app="files"]')
+      .getByRole('option', { name: /draft-statement-v3/ })
+      .click()
     await page
       .locator('[data-app="files"]')
       .getByRole('button', { name: 'PIN AS EVIDENCE' })
@@ -185,12 +204,12 @@ test.describe('HALCYON on a narrow screen', () => {
     await expect(page.getByRole('dialog', { name: 'Investigation board' })).toBeVisible()
   })
 
-  test('the menu bar keeps the day and the clock, and drops the scenery', async ({ page }) => {
+  test('the menu bar keeps the case and the clock, and drops the scenery', async ({ page }) => {
     await boot(page)
     const bar = page.getByRole('group', { name: /menu bar/ })
-    await expect(bar).toContainText('HALCYON')
-    await expect(bar).toContainText(/Thu 15 Jan \d{2}:\d{2}/)
-    await expect(bar.getByRole('button', { name: /Day 01 — \d things left/ })).toBeVisible()
+    await expect(bar).toContainText('NOVA')
+    await expect(bar).toContainText(/Wed 17 Jun \d{2}:\d{2}/)
+    await expect(bar.getByRole('button', { name: /Case 001 — \d things left/ })).toBeVisible()
     // File / Edit / View are period scenery and are not worth the width here.
     await expect(page.locator('.hal-menubar__menu').first()).toBeHidden()
   })
@@ -198,9 +217,9 @@ test.describe('HALCYON on a narrow screen', () => {
   test('the search stacks its filters instead of shrinking them out of reach', async ({ page }) => {
     await boot(page)
     await page.keyboard.press('Control+k')
-    const search = page.getByRole('dialog', { name: 'Search HALCYON' })
+    const search = page.getByRole('dialog', { name: 'Search NOVA' })
     await expect(search).toBeVisible()
-    await page.keyboard.type('marc')
+    await page.keyboard.type('fremont')
 
     const panel = page.locator('.hal-search__panel')
     const box = (await panel.boundingBox())!
@@ -230,7 +249,7 @@ test.describe('HALCYON on a narrow screen', () => {
 
 // -------------------------------------------------------------- keyboard ---
 
-test.describe('keyboard routes through HALCYON', () => {
+test.describe('keyboard routes through the workstation', () => {
   test('Ctrl+D reaches the dock and Ctrl+E opens the tray', async ({ page }) => {
     await boot(page)
 
@@ -244,19 +263,19 @@ test.describe('keyboard routes through HALCYON', () => {
 
   test('Ctrl+` cycles the front window', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Corvid Mail')
-    await openApp(page, 'Meridian Savings')
-    await expect(win(page, 'bank')).toHaveAttribute('data-front', 'true')
+    await openApp(page, 'Relay Mail')
+    await openApp(page, 'Devices')
+    await expect(win(page, 'devices')).toHaveAttribute('data-front', 'true')
 
     await page.keyboard.press('Control+`')
     await expect(win(page, 'mail')).toHaveAttribute('data-front', 'true')
-    await expect(win(page, 'bank')).toHaveAttribute('data-front', 'false')
+    await expect(win(page, 'devices')).toHaveAttribute('data-front', 'false')
   })
 
   test('tabbing into a buried window raises it', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Corvid Mail')
-    await openApp(page, 'Meridian Savings')
+    await openApp(page, 'Relay Mail')
+    await openApp(page, 'Devices')
     await expect(win(page, 'mail')).toHaveAttribute('data-front', 'false')
 
     // A control inside the buried window, reached the way a keyboard player reaches it.
@@ -266,8 +285,10 @@ test.describe('keyboard routes through HALCYON', () => {
 
   test('the board traps focus and hands it back on close', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Meridian Savings')
-    await win(page, 'bank').locator('[data-evidence="e4"]').click()
+    await openApp(page, 'Orbit')
+    await win(page, 'web').locator('[data-bookmark="kgw-portland.com"]').click()
+    await win(page, 'web').locator('[data-href="kgw-portland.com/missing-daniel-mercer"]').click()
+    await win(page, 'web').locator('[data-evidence="e4"]').click()
 
     const opener = tray(page).getByRole('button', { name: 'OPEN BOARD' })
     await opener.click()
@@ -286,8 +307,10 @@ test.describe('keyboard routes through HALCYON', () => {
 
   test('pinning keeps focus on the control that did it', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Meridian Savings')
-    const pin = win(page, 'bank').locator('[data-evidence="e4"]')
+    await openApp(page, 'Orbit')
+    await win(page, 'web').locator('[data-bookmark="kgw-portland.com"]').click()
+    await win(page, 'web').locator('[data-href="kgw-portland.com/missing-daniel-mercer"]').click()
+    const pin = win(page, 'web').locator('[data-evidence="e4"]')
     await pin.click()
     await expect(pin).toHaveText('PINNED')
     await expect(pin).toBeFocused()

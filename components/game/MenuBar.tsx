@@ -1,9 +1,9 @@
 'use client'
 
-import { useContent, useDispatch, useTimeline } from './GameContext'
+import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { SoundControl } from './SoundControl'
 import {
-  selectCanEndDay,
+  selectCanFileReport,
   selectFrontTitle,
   selectMenuBarClock,
   selectOutstandingBeats,
@@ -22,21 +22,21 @@ const BEAT_HINT: Record<string, string> = {
  * claiming the role would promise arrow-key navigation into menus that do not exist. It is a
  * labelled group of real buttons.
  */
-export function MenuBar({ onEndDay }: { onEndDay: () => void }) {
+export function MenuBar({ onFileReport }: { onFileReport: () => void }) {
   const content = useContent()
   const dispatch = useDispatch()
-  const frontTitle = useTimeline((s) => selectFrontTitle(s, content))
-  const clock = useTimeline((s) => selectMenuBarClock(s))
-  const canEnd = useTimeline((s) => selectCanEndDay(s, content))
-  const outstanding = useTimeline((s) => selectOutstandingBeats(s, content))
-  const trayOpen = useTimeline((s) => s.ui.trayOpen)
-  const day = String(content.day).padStart(2, '0')
+  const frontTitle = useInvestigation((s) => selectFrontTitle(s, content))
+  const clock = useInvestigation((s) => selectMenuBarClock(s, content))
+  const canFile = useInvestigation((s) => selectCanFileReport(s, content))
+  const outstanding = useInvestigation((s) => selectOutstandingBeats(s, content))
+  const trayOpen = useInvestigation((s) => s.ui.trayOpen)
+  const caseNumber = String(content.number).padStart(3, '0')
 
   return (
     <div className="hal-menubar" role="group" aria-label={`${content.osName} menu bar`}>
       <span className="hal-menubar__brand">
         <span className="hal-menubar__mark" aria-hidden="true" />
-        HALCYON
+        {content.osName.split(' ')[0]}
       </span>
       <span className="hal-menubar__front">{frontTitle}</span>
       <span className="hal-menubar__menu" aria-hidden="true">
@@ -50,20 +50,20 @@ export function MenuBar({ onEndDay }: { onEndDay: () => void }) {
       </span>
       <span className="hal-menubar__spacer" />
       <SoundControl />
-      {canEnd ? (
-        <button type="button" className="hal-menubar__action" onClick={onEndDay}>
-          End day {day}
+      {canFile ? (
+        <button type="button" className="hal-menubar__action" onClick={onFileReport}>
+          File the report
         </button>
       ) : (
         <button
           type="button"
           className="hal-menubar__action hal-menubar__action--pending"
-          aria-label={`Day ${day} — ${outstanding.length} things left: ${outstanding
+          aria-label={`Case ${caseNumber} — ${outstanding.length} things left: ${outstanding
             .map((b) => BEAT_HINT[b] ?? b)
             .join(', ')}. Show the evidence tray.`}
           onClick={() => dispatch({ type: 'TRAY_TOGGLED', open: !trayOpen })}
         >
-          Day {day} · {outstanding.length} left
+          Case {caseNumber} · {outstanding.length} left
         </button>
       )}
       <span className="hal-menubar__clock">{clock}</span>

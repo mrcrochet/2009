@@ -1,8 +1,8 @@
-import type { GameEvent, TimelineState } from './types'
+import type { GameEvent, InvestigationState } from './types'
 
 /**
- * Events are stamped with the in-world minute at which they were dispatched. The reducer then
- * advances time itself, so a replay of the log recomputes identical timestamps.
+ * Events are stamped with the minute of the session at which they were dispatched. The reducer
+ * then advances time itself, so a replay of the log recomputes identical timestamps.
  */
 export type EventInput =
   Omit<GameEvent, 'at'> extends never ? never : DistributiveOmit<GameEvent, 'at'>
@@ -15,7 +15,7 @@ type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K>
  * events on replay.
  */
 export const GAME_EVENT_TYPES = [
-  'WOKE_UP',
+  'CASE_OPENED',
   'BOOT_ADVANCED',
   'BOOT_COMPLETED',
   'DESKTOP_ICON_APPEARED',
@@ -25,6 +25,8 @@ export const GAME_EVENT_TYPES = [
   'APP_MINIMIZED',
   'APP_ZOOM_TOGGLED',
   'WINDOW_MOVED',
+  'DEVICE_CONNECTED',
+  'DEVICE_UNLOCK_ATTEMPTED',
   'PHONE_TOGGLED',
   'PHONE_TAB_CHANGED',
   'PHONE_MOVED',
@@ -45,28 +47,21 @@ export const GAME_EVENT_TYPES = [
   'TERMINAL_INPUT_CHANGED',
   'TERMINAL_COMMAND_RUN',
   'NOTES_CHANGED',
-  'RECALL_QUERY_CHANGED',
-  'RECALL_USED',
   'EVIDENCE_PINNED',
   'EVIDENCE_SELECTION_TOGGLED',
   'CLAIM_SELECTED',
   'CLAIM_ASSERTED',
   'TRAY_TOGGLED',
   'BOARD_TOGGLED',
-  'ITEM_PURCHASED',
-  'ITEM_LISTED',
-  'ITEM_SOLD',
-  'DOMAIN_REGISTERED',
-  'WATCHLIST_TOGGLED',
-  'DAY_ENDED',
-  'DAY_CARD_SHOWN',
-  'DAY_ADVANCED',
-  'TIMELINE_CLAIMED',
+  'SERVICE_GRANTED',
+  'REPORT_FILED',
+  'REPORT_CARD_SHOWN',
+  'INVESTIGATION_CLAIMED',
   'WAYUP_UNLOCKED',
   'WAYUP_TOGGLED',
   'WAYUP_SEARCHED',
   'WAYUP_SNAPSHOT_OBSERVED',
-  'WAYUP_EVIDENCE_PINNED',
+  'WAYUP_EXCERPT_KEPT',
   'MYSTERY_OPENED',
   'WORLD_ARTIFACTS_SEEN',
 ] as const satisfies readonly GameEvent['type'][]
@@ -77,8 +72,8 @@ export function isKnownEventType(type: string): type is GameEvent['type'] {
   return KNOWN.has(type)
 }
 
-export function stamp(state: TimelineState, input: EventInput): GameEvent {
-  return { ...input, at: state.minuteOfDay } as GameEvent
+export function stamp(state: InvestigationState, input: EventInput): GameEvent {
+  return { ...input, at: state.minute } as GameEvent
 }
 
 /**
@@ -96,7 +91,6 @@ export function isMeaningful(event: GameEvent): boolean {
   // Keystroke-level events are state, not history worth persisting on their own.
   switch (event.type) {
     case 'TERMINAL_INPUT_CHANGED':
-    case 'RECALL_QUERY_CHANGED':
     case 'BROWSER_QUERY_CHANGED':
     case 'BROWSER_URL_CHANGED':
       return false
@@ -108,13 +102,12 @@ export function isMeaningful(event: GameEvent): boolean {
 /**
  * Text the player is part-way through typing. These buffers are deliberately kept out of the
  * event log — a save should not carry one row per keystroke — so they are also not part of what
- * a replay reproduces. Every *submitted* input (a search, a Recall, a command) is a real event
- * and does replay.
+ * a replay reproduces. Every *submitted* input (a search, a command) is a real event and does
+ * replay.
  */
-export function withoutDraftInput(state: TimelineState): TimelineState {
+export function withoutDraftInput(state: InvestigationState): InvestigationState {
   return {
     ...state,
-    recallQuery: '',
     // An address typed but never submitted is a draft like any other. Only `view: 'page'` or
     // `'results'` means the player actually went somewhere, and those events are in the log.
     browser: { ...state.browser, query: '', draftUrl: null },

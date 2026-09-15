@@ -79,7 +79,7 @@ export const WorldArtifactSchema = z.object({
   /** Where it lives, so a player can be told how to reach it. */
   source: z.string().min(1).max(200),
   /** Which surface of the OS shows it. */
-  surface: z.enum(['mail', 'msg', 'web', 'files', 'bank', 'phone', 'term', 'archive']),
+  surface: z.enum(['mail', 'msg', 'web', 'files', 'device', 'phone', 'term', 'archive']),
   /**
    * Where the player types to reach it, for the artifacts that have an address.
    *

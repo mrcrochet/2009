@@ -1,9 +1,9 @@
-import type { DayContent } from './content-schema'
-import type { BeatId, Claim, ClaimVerdictKind, Confidence, Memory, Viewport } from './types'
+import type { CaseContent } from './case-schema'
+import type { BeatId, Claim, ClaimVerdictKind, Viewport } from './types'
 
 /**
- * Deterministic game rules. Everything here is a pure function of authored content plus the
- * numbers already in the timeline.
+ * Deterministic rules. Everything here is a pure function of authored content plus the numbers
+ * already in the investigation.
  */
 
 // --- Windows ---------------------------------------------------------------
@@ -63,70 +63,12 @@ export function defaultPhonePosition(viewport: Viewport): { x: number; y: number
   return { x: Math.max(EDGE, viewport.width - 330), y: 70 }
 }
 
-// --- Recall ----------------------------------------------------------------
-
-export interface RecallOutcome {
-  readonly text: string
-  readonly confidence: Confidence
-  readonly memoryId: string | null
-  readonly cost: number
-  readonly integrity: number
-}
-
-function matchMemory(memories: readonly Memory[], query: string): Memory | null {
-  const q = query.toLowerCase().trim()
-  if (!q) return null
-  // Longest key first, so "lea voss" beats "lea".
-  const ranked = memories
-    .flatMap((m) => m.keys.map((k) => ({ m, k: k.toLowerCase() })))
-    .sort((a, b) => b.k.length - a.k.length)
-  for (const { m, k } of ranked) {
-    if (q === k || q.includes(k) || (k.includes(q) && q.length > 3)) return m
-  }
-  return null
-}
-
-const DEGRADE: Readonly<Record<string, Confidence>> = {
-  HIGH: 'MEDIUM',
-  MEDIUM: 'LOW',
-  LOW: 'LOW',
-}
-
-export function resolveRecall(
-  content: DayContent,
-  query: string,
-  currentIntegrity: number,
-): RecallOutcome {
-  const cfg = content.recall
-  const integrity = Math.max(cfg.integrityFloor, currentIntegrity - cfg.costPerUse)
-  const cost = currentIntegrity - integrity
-  const hit = matchMemory(content.memories as readonly Memory[], query)
-
-  if (!hit) {
-    return { text: cfg.noMatchText, confidence: 'NONE', memoryId: null, cost, integrity }
-  }
-
-  let text = hit.text
-  let confidence: Confidence = hit.confidence
-
-  if (confidence !== 'NONE' && integrity < cfg.degradeBelow) {
-    text += cfg.driftSuffix
-    confidence = DEGRADE[confidence] ?? confidence
-  }
-  if (confidence !== 'NONE' && integrity < cfg.fractureBelow) {
-    text += cfg.fractureSuffix
-    confidence = 'FRACTURED'
-  }
-
-  return { text, confidence, memoryId: hit.id, cost, integrity }
-}
-
 // --- Claims ----------------------------------------------------------------
 
 export interface ClaimOutcome {
   readonly verdict: ClaimVerdictKind
   readonly message: string
-  /** Filed under the player's name — a permanent consequence. */
+  /** Filed under the investigator's name — a permanent consequence. */
   readonly onRecord: boolean
 }
 
@@ -151,9 +93,9 @@ export function evaluateClaim(claim: Claim, selectedEvidenceIds: readonly string
   return { verdict: 'accepted', message: claim.accepted, onRecord: false }
 }
 
-// --- Day gate --------------------------------------------------------------
+// --- The report gate -------------------------------------------------------
 
-export function canEndDay(
+export function canFileReport(
   beats: Readonly<Record<string, boolean>>,
   required: readonly BeatId[],
 ): boolean {
@@ -169,7 +111,7 @@ export function outstandingBeats(
 
 // --- Search ----------------------------------------------------------------
 
-export function searchIndex(content: DayContent, rawQuery: string): readonly string[] {
+export function searchIndex(content: CaseContent, rawQuery: string): readonly string[] {
   const q = rawQuery.toLowerCase().trim()
   if (!q) return []
   return content.browser.index

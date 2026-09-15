@@ -36,7 +36,7 @@ test.describe('security headers', () => {
     expect(policy).toContain("base-uri 'self'")
 
     // Whatever mode it is in, the game has to survive it.
-    await page.getByRole('link', { name: 'WAKE UP' }).click()
+    await page.getByRole('link', { name: 'OPEN THE CASE' }).click()
     await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 15_000 })
     await expect(page.locator('[data-app="msg"]')).toBeVisible({ timeout: 10_000 })
 

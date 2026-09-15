@@ -1,9 +1,9 @@
-# 2009 — Architecture
+# UNLISTED — Architecture
 
 ## Layering
 
 ```
-  content/  (authored, Zod-validated data — no logic, no React)
+  content/  (authored cases + the world corpus — Zod-validated data, no logic, no React)
       ↑
   engine/   (pure TypeScript: types, events, reducer, rules, selectors, temporal)
       ↑
@@ -22,37 +22,44 @@ Dependencies point **up only**. `engine/` and `content/` import nothing from `ap
 
 ```
 app/
-  (marketing)/page.tsx           landing — light route, no game bundle
-  play/page.tsx                  guest launch
-  play/[timelineId]/page.tsx     resume
-  account/page.tsx               save / subscription
+  (marketing)/page.tsx               landing — light route, no game bundle
+  play/page.tsx                      guest launch
+  play/[investigationId]/page.tsx    resume (?case= selects the case)
+  account/page.tsx                   save / subscription / forensic services
   auth/sign-in, auth/callback
   billing/success
   api/billing/{checkout,portal,webhook}
-  api/timelines/[id]
+  api/investigations/[id]
+  api/wayup/{search,fetch}
 components/
   game/
     GameRoot.tsx                 stage machine + autosave + boot orchestration
     HalcyonDesktop.tsx  MenuBar.tsx  Dock.tsx  DesktopIcons.tsx
-    WindowManager.tsx  WindowFrame.tsx  useWindowDrag.ts
+    WindowManager.tsx  WindowFrame.tsx  useDragMove.ts
     PhoneOverlay.tsx  EvidenceTray.tsx  InvestigationBoard.tsx
+    SearchPalette.tsx  WayUpOverlay.tsx  KeptLines.tsx
     FileIcon.tsx  PhotoFrame.tsx      drawn SVG art — no icon library, no emoji
-    DayEndCard.tsx  SurveillanceOverlay.tsx  BootSequence.tsx
+    ReportCard.tsx  SurveillanceOverlay.tsx  BootSequence.tsx
     GameErrorBoundary.tsx  DebugPanel.tsx
-    apps/  MailApp MessengerApp BrowserApp FilesApp BankApp
-           QuotelineApp NotesApp TerminalApp RecallApp  (all lazy)
+    apps/  MailApp MessengerApp BrowserApp FilesApp DevicesApp
+           NotesApp TerminalApp DirectoryApp  (all lazy)
   marketing/  Landing.tsx
 content/
-  day01/  emails chats browser files evidence claims recall economy phone terminal boot
-  apps.ts   window/dock registry
-  index.ts  assembled + validated Day01Content
+  cases/case001/  the authored case: apps, devices, services, mail, threads,
+                  browser, files, terminal, relay, phone, report
+  world/          the corpus: entities, artifacts, relations, facts
+  mysteries/      the community layer
+  index.ts        assembled + validated, and every case projected into the world
 engine/
   types.ts  events.ts  reducer.ts  rules.ts  selectors.ts
-  temporal.ts  content-schema.ts  initial-state.ts  money.ts  seed.ts  clock.ts
+  pages.ts  case-schema.ts  investigation-schema.ts  initial-state.ts
+  mysteries.ts  mystery-schema.ts  seed.ts  clock.ts  url.ts
+  world/  schema.ts  index.ts  project.ts
 lib/
   audio/        engine.ts (Web Audio synth)  cues.ts   — no audio files ship
   persistence/  db.ts (Dexie, loaded on demand)  migrations.ts  local-store.ts
-  supabase/     client.ts  server.ts  middleware.ts
+                last-investigation.ts
+  supabase/     client.ts  server.ts  middleware.ts  investigations.ts  wayup.ts
   billing/      plans.ts  stripe.ts  entitlement.ts
   analytics/    index.ts  events.ts
   errors/       index.ts

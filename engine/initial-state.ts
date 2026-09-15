@@ -1,37 +1,80 @@
-import type { DayContent } from './content-schema'
-import { DEFAULT_WAKE_MINUTE } from './clock'
+import type { CaseContent } from './case-schema'
 import { hashSeed } from './seed'
 import { projectedId } from './world/project'
-import { SCHEMA_VERSION, type ChatLine, type Stage, type TimelineState } from './types'
+import {
+  SCHEMA_VERSION,
+  type ChatLine,
+  type DeviceState,
+  type InvestigationState,
+  type Stage,
+} from './types'
 
-export interface CreateTimelineOptions {
+export interface CreateInvestigationOptions {
   readonly id: string
   readonly ownerId?: string | null
   readonly stage?: Stage
   readonly now?: string
+  /**
+   * Services already granted to this investigator, read from the server.
+   *
+   * Passed in rather than looked up, because the engine may not reach the network and a pure
+   * function may not ask a question it cannot replay. An empty list is the honest default: the
+   * case is completable from it.
+   */
+  readonly services?: readonly string[]
 }
 
-export function createTimeline(content: DayContent, opts: CreateTimelineOptions): TimelineState {
+export function createInvestigation(
+  content: CaseContent,
+  opts: CreateInvestigationOptions,
+): InvestigationState {
   const now = opts.now ?? new Date(0).toISOString()
   const threadIds = content.threads.map((t) => t.id)
   const byThread = <T>(value: T): Record<string, T> =>
     Object.fromEntries(threadIds.map((id) => [id, value]))
+
+  // What the case put on the desk before the investigator sat down.
+  const devices: Record<string, DeviceState> = Object.fromEntries(
+    content.devices.map((device) => [
+      device.id,
+      { id: device.id, connected: device.connected, unlocked: device.unlocked },
+    ]),
+  )
+
   return {
     id: opts.id,
     ownerId: opts.ownerId ?? null,
     schemaVersion: SCHEMA_VERSION,
     seed: hashSeed(opts.id),
 
-    stage: opts.stage ?? 'landing',
-    day: content.day,
+    stage: opts.stage ?? 'intake',
+    caseId: content.id,
     dateISO: content.dateISO,
-    minuteOfDay: content.wakeMinute ?? DEFAULT_WAKE_MINUTE,
+    minute: 0,
 
-    cashCents: content.economy.openingCashCents,
-    memoryIntegrity: 100,
-    heat: 0,
-    divergence: 0,
-    temporalShift: 0,
+    exposure: 0,
+
+    // The workstation opens with a message already on screen and a file already on the desktop.
+    // They have been read whether or not the player ever clicks anything, so the world has to
+    // know that.
+    discovered: [
+      ...(content.mail[0] ? [projectedId.mail(content.id, content.mail[0].id)] : []),
+      ...(content.files[0] ? [projectedId.file(content.id, content.files[0].id)] : []),
+    ],
+    evidence: [],
+    claimLog: [],
+    notes: '',
+    flags: {},
+    devices,
+    services: opts.services ?? [],
+
+    wayup: {
+      unlocked: content.relay?.availableAtStart ?? false,
+      observed: [],
+      kept: [],
+      mysteries: [],
+      signalSpent: 0,
+    },
 
     bootLine: 0,
 
@@ -40,17 +83,9 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
     desktopIcons: [],
     phone: { open: false, tab: 'sms', x: null, y: null, smsStep: 0 },
 
-    // The machine wakes with a message already open and a file already on screen. They have been
-    // read whether or not the player ever clicks anything, so the world has to know that.
-    discovered: [
-      ...(content.mail[0] ? [projectedId.mail(content.day, content.mail[0].id)] : []),
-      ...(content.files[0] ? [projectedId.file(content.day, content.files[0].id)] : []),
-    ],
-    evidence: [],
     selectedEvidenceIds: [],
     selectedClaimId: null,
     lastVerdict: null,
-    claimLog: [],
 
     mail: {
       openId: content.mail[0]?.id ?? '',
@@ -58,7 +93,7 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       unknownArrived: false,
     },
     chat: {
-      // Whatever the day calls its correspondents, not a hard-coded trio.
+      // Whatever the case calls its correspondents, not a hard-coded trio.
       thread: threadIds[0] ?? '',
       log: byThread<readonly ChatLine[]>([]),
       step: byThread(0),
@@ -75,36 +110,18 @@ export function createTimeline(content: DayContent, opts: CreateTimelineOptions)
       history: [],
       forward: [],
     },
-    files: { openId: content.files[0]?.id ?? 'readme', decrypted: {}, decryptAttempts: {} },
+    files: { openId: content.files[0]?.id ?? '', decrypted: {}, decryptAttempts: {} },
     terminal: { lines: [content.terminal.banner], input: '' },
-    notes: '',
-    recalls: [],
-    recallQuery: '',
 
-    inventory: [],
-    ledger: content.economy.openingLedger.map((l) => ({
-      id: l.id,
-      date: l.date,
-      label: l.label,
-      amount: l.amount,
-    })),
-    domains: [],
-    watchlist: [],
-
-    wayup: {
-      // Hidden. There is no icon in the dock and no announcement; the player finds a process
-      // that should not be running.
-      unlocked: false,
-      observed: [],
-      futureEvidence: [],
-      mysteries: [],
-      signalSpent: 0,
+    ui: {
+      trayOpen: false,
+      boardOpen: false,
+      watched: false,
+      reportCard: false,
+      wayupOpen: false,
     },
 
-    ui: { trayOpen: false, boardOpen: false, watched: false, dayCard: false, wayupOpen: false },
-
     beats: {},
-    flags: {},
 
     eventLog: [],
     createdAt: now,

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { track } from '@/lib/analytics'
-import { loadTimeline } from '@/lib/persistence/local-store'
+import { loadInvestigation } from '@/lib/persistence/local-store'
 import { toStored } from '@/lib/persistence/types'
 import styles from './account.module.css'
 
@@ -12,23 +12,23 @@ type Status = 'idle' | 'working' | 'done' | 'missing' | 'error'
  * Moves a guest timeline out of IndexedDB and onto the account, once. After this the server owns
  * it. Every state change happens in a promise callback, never synchronously inside the effect.
  */
-export function ClaimTimeline({ timelineId }: { timelineId: string | null }) {
+export function ClaimTimeline({ investigationId }: { investigationId: string | null }) {
   const [attempt, setAttempt] = useState(0)
-  const [status, setStatus] = useState<Status>(timelineId ? 'working' : 'idle')
+  const [status, setStatus] = useState<Status>(investigationId ? 'working' : 'idle')
   const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!timelineId) return
+    if (!investigationId) return
     let cancelled = false
 
-    loadTimeline(timelineId)
+    loadInvestigation(investigationId)
       .then((local) => {
         if (cancelled) return null
         if (!local) {
           setStatus('missing')
           return null
         }
-        return fetch(`/api/timelines/${encodeURIComponent(timelineId)}`, {
+        return fetch(`/api/investigations/${encodeURIComponent(investigationId)}`, {
           method: 'PUT',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ timeline: toStored(local) }),
@@ -42,7 +42,7 @@ export function ClaimTimeline({ timelineId }: { timelineId: string | null }) {
           setStatus('error')
           return
         }
-        track('signup_completed', { claimedTimeline: true })
+        track('signup_completed', { claimedInvestigation: true })
         setStatus('done')
       })
       .catch(() => {
@@ -54,9 +54,9 @@ export function ClaimTimeline({ timelineId }: { timelineId: string | null }) {
     return () => {
       cancelled = true
     }
-  }, [timelineId, attempt])
+  }, [investigationId, attempt])
 
-  if (!timelineId) return null
+  if (!investigationId) return null
 
   return (
     <section className={styles.card}>

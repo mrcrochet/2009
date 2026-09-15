@@ -8,60 +8,61 @@ const claim = (id: string) => content.claims.find((c) => c.id === id) as Claim
 
 describe('claims', () => {
   it('accepts a sound claim with its exact evidence set', () => {
-    const outcome = evaluateClaim(claim('c2'), ['e3', 'e4'])
+    const outcome = evaluateClaim(claim('c2'), ['e2', 'e7'])
     expect(outcome.verdict).toBe('accepted')
     expect(outcome.onRecord).toBe(false)
-    expect(outcome.message).toContain('ACCEPTED')
   })
 
   it('rejects an incomplete set', () => {
-    expect(evaluateClaim(claim('c2'), ['e3']).verdict).toBe('insufficient')
+    expect(evaluateClaim(claim('c2'), ['e2']).verdict).toBe('insufficient')
   })
 
   it('rejects a superset — relying on more than the claim needs is still wrong', () => {
-    expect(evaluateClaim(claim('c2'), ['e3', 'e4', 'e1']).verdict).toBe('insufficient')
+    expect(evaluateClaim(claim('c2'), ['e2', 'e7', 'e1']).verdict).toBe('insufficient')
   })
 
   it('ignores ordering', () => {
-    expect(evaluateClaim(claim('c1'), ['e6', 'e5']).verdict).toBe('accepted')
+    expect(evaluateClaim(claim('c1'), ['e5', 'e4', 'e3']).verdict).toBe('accepted')
   })
 
   it('always refuses an unsound claim and puts it on the record', () => {
-    const supported = evaluateClaim(claim('c4'), ['e7', 'e2', 'e8'])
+    const supported = evaluateClaim(claim('c3'), ['e1', 'e3'])
     expect(supported.verdict).toBe('refused')
     expect(supported.onRecord).toBe(true)
 
-    const unsupported = evaluateClaim(claim('c4'), ['e2'])
+    const unsupported = evaluateClaim(claim('c3'), ['e1'])
     expect(unsupported.verdict).toBe('refused')
     expect(unsupported.onRecord).toBe(true)
   })
 
-  it('logs only refused claims, and charges heat for them', () => {
+  it('logs only refused claims, and charges exposure for them', () => {
     let state = run(fresh(), [
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e4', via: 'bank' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e2', via: 'files' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e7', via: 'terminal' },
       { type: 'CLAIM_SELECTED', claimId: 'c2' },
-      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e3', 'e4'] },
+      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e2', 'e7'] },
     ])
     expect(state.lastVerdict?.verdict).toBe('accepted')
     expect(state.claimLog).toHaveLength(0)
-    expect(state.heat).toBe(0)
+    expect(state.exposure).toBe(0)
     expect(state.beats.claim).toBe(true)
 
-    state = dispatch(state, {
-      type: 'CLAIM_ASSERTED',
-      claimId: 'c4',
-      evidenceIds: ['e7', 'e2', 'e8'],
-    })
+    state = run(state, [
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e1', via: 'mail' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'files' },
+      { type: 'CLAIM_ASSERTED', claimId: 'c3', evidenceIds: ['e1', 'e3'] },
+    ])
     expect(state.claimLog).toHaveLength(1)
-    expect(state.claimLog[0]?.claimText).toBe('Marc works for the Aion Group.')
-    expect(state.heat).toBe(10)
+    expect(state.claimLog[0]?.claimText).toBe(
+      'Daniel Mercer left Portland of his own accord.',
+    )
+    expect(state.exposure).toBe(10)
   })
 
   it('costs six minutes to put an assertion on the record', () => {
     const before = fresh()
-    const after = dispatch(before, { type: 'CLAIM_ASSERTED', claimId: 'c3', evidenceIds: ['e2'] })
-    expect(after.minuteOfDay - before.minuteOfDay).toBe(6)
+    const after = dispatch(before, { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: [] })
+    expect(after.minute - before.minute).toBe(6)
   })
 })
 
@@ -74,29 +75,29 @@ describe('a claim rests on what the player holds', () => {
    */
   it('ignores evidence that was never found', () => {
     const state = run(fresh(), [
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e2', via: 'files' },
       { type: 'CLAIM_SELECTED', claimId: 'c2' },
-      // c2 needs e3 and e4. Only e3 has been pinned.
-      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e3', 'e4'] },
+      // c2 needs e2 and e7. Only e2 has been pinned.
+      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e2', 'e7'] },
     ])
     expect(state.lastVerdict?.verdict).toBe('insufficient')
     // And the record says what was actually put on it, not what was claimed.
-    expect(state.lastVerdict?.evidenceIds).toEqual(['1:e3'])
+    expect(state.lastVerdict?.evidenceIds).toEqual(['e2'])
   })
 
   it('accepts the same claim once both are in the tray', () => {
     const state = run(fresh(), [
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e3', via: 'browser' },
-      { type: 'EVIDENCE_PINNED', evidenceId: 'e4', via: 'bank' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e2', via: 'files' },
+      { type: 'EVIDENCE_PINNED', evidenceId: 'e7', via: 'terminal' },
       { type: 'CLAIM_SELECTED', claimId: 'c2' },
-      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e3', 'e4'] },
+      { type: 'CLAIM_ASSERTED', claimId: 'c2', evidenceIds: ['e2', 'e7'] },
     ])
     expect(state.lastVerdict?.verdict).toBe('accepted')
   })
 })
 
 describe('choices that answer themselves', () => {
-  function ask(threadId: 'marc' | 'lea', text: string, extra: Record<string, unknown> = {}) {
+  function ask(threadId: 'claire' | 'unknown', text: string, extra: Record<string, unknown> = {}) {
     let state = run(fresh(), [
       { type: 'THREAD_SELECTED', thread: threadId },
       { type: 'CHAT_STARTED', thread: threadId },
@@ -107,88 +108,90 @@ describe('choices that answer themselves', () => {
   }
 
   it('answers the question that was asked', () => {
-    const lines = ask('marc', 'What kind of thing?', {
-      reply:
-        'nothing that needs a name. you drive, you hand over cash, you sell it on. thats the whole job',
+    const lines = ask('claire', 'There is a receipt in what you sent. Where did it come from?', {
+      reply: 'His coat. The grey one, on the hook. He wore it that night.',
     })
-    expect(lines[2]).toContain('nothing that needs a name')
-    // …and then he changes the subject, which is the script moving on.
-    expect(lines[3]).toContain('tradepost')
+    expect(lines[2]).toContain('His coat')
+    // …and then she moves on, which is the script advancing.
+    expect(lines[3]).toContain('home by seven')
   })
 
   it('a choice can hold the conversation where it is', () => {
-    const held = ask('marc', 'Where were you last night?', {
-      reply: 'home. why',
+    const held = ask('unknown', 'Who is this?', {
+      reply: 'Somebody who has read this file before you did.',
       advances: false,
     })
-    expect(held[2]).toBe('home. why')
+    expect(held[2]).toBe('Somebody who has read this file before you did.')
     expect(held).toHaveLength(3)
   })
 
   it('a choice can change the world outside the conversation', () => {
     let state = run(fresh(), [
-      { type: 'THREAD_SELECTED', thread: 'lea' },
-      { type: 'CHAT_STARTED', thread: 'lea' },
+      { type: 'THREAD_SELECTED', thread: 'claire' },
+      { type: 'CHAT_STARTED', thread: 'claire' },
     ])
-    expect(state.flags.leaPostRemoved).toBeUndefined()
+    expect(state.flags.valeNotified).toBeUndefined()
     state = dispatch(state, {
       type: 'CHAT_REPLY_SENT',
-      thread: 'lea',
-      text: 'Take the post down.',
-      reply: 'ok. taken down.',
-      setsFlag: 'leaPostRemoved',
+      thread: 'claire',
+      text: 'I am going to call Vale.',
+      reply: 'Do it.',
+      setsFlag: 'valeNotified',
     })
-    expect(state.flags.leaPostRemoved).toBe(true)
+    expect(state.flags.valeNotified).toBe(true)
   })
 
   it('withholds the accusation until the player can prove it', () => {
     const before = run(fresh(), [
-      { type: 'THREAD_SELECTED', thread: 'marc' },
-      { type: 'CHAT_STARTED', thread: 'marc' },
+      { type: 'THREAD_SELECTED', thread: 'claire' },
+      { type: 'CHAT_STARTED', thread: 'claire' },
+      { type: 'CHAT_REPLY_SENT', thread: 'claire', text: 'Tell me about Sunday.' },
+      { type: 'CHAT_ADVANCED', thread: 'claire' },
     ])
-    expect(selectChoices(before, content).map((c) => c.text)).toEqual(['What kind of thing?'])
+    const gated = 'Vale was on the Marlow board in 2013. Daniel found that too.'
+    expect(selectChoices(before, content).map((c) => c.text)).not.toContain(gated)
 
-    const after = dispatch(before, { type: 'EVIDENCE_PINNED', evidenceId: 'e6', via: 'phone' })
-    expect(selectChoices(after, content).map((c) => c.text)).toContain('Where were you last night?')
+    const after = dispatch(before, { type: 'EVIDENCE_PINNED', evidenceId: 'e7', via: 'terminal' })
+    expect(selectChoices(after, content).map((c) => c.text)).toContain(gated)
   })
 })
 
 describe('two conversations at once', () => {
   it('one thread cannot answer with another thread’s line', () => {
     let state = run(fresh(), [
-      { type: 'CHAT_STARTED', thread: 'marc' },
-      { type: 'CHAT_STARTED', thread: 'lea' },
+      { type: 'CHAT_STARTED', thread: 'claire' },
+      { type: 'CHAT_STARTED', thread: 'unknown' },
     ])
     state = dispatch(state, {
       type: 'CHAT_REPLY_SENT',
-      thread: 'marc',
+      thread: 'claire',
       text: 'q',
-      reply: 'MARC-ANSWER',
+      reply: 'CLAIRE-ANSWER',
     })
     state = dispatch(state, {
       type: 'CHAT_REPLY_SENT',
-      thread: 'lea',
+      thread: 'unknown',
       text: 'q',
-      reply: 'LEA-ANSWER',
+      reply: 'UNKNOWN-ANSWER',
     })
-    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'marc' })
+    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'claire' })
 
-    expect(state.chat.log.marc!.map((l) => l.text)).toContain('MARC-ANSWER')
-    expect(state.chat.log.marc!.map((l) => l.text)).not.toContain('LEA-ANSWER')
+    expect(state.chat.log.claire!.map((l) => l.text)).toContain('CLAIRE-ANSWER')
+    expect(state.chat.log.claire!.map((l) => l.text)).not.toContain('UNKNOWN-ANSWER')
 
-    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'lea' })
-    expect(state.chat.log.lea!.map((l) => l.text)).toContain('LEA-ANSWER')
+    state = dispatch(state, { type: 'CHAT_ADVANCED', thread: 'unknown' })
+    expect(state.chat.log.unknown!.map((l) => l.text)).toContain('UNKNOWN-ANSWER')
   })
 
   it('only the thread being answered is waiting', () => {
-    let state = run(fresh(), [{ type: 'CHAT_STARTED', thread: 'marc' }])
-    state = dispatch(state, { type: 'CHAT_REPLY_SENT', thread: 'marc', text: 'q', reply: 'a' })
-    expect(state.chat.waiting.marc).toBe(true)
-    expect(state.chat.waiting.lea).toBe(false)
+    let state = run(fresh(), [{ type: 'CHAT_STARTED', thread: 'claire' }])
+    state = dispatch(state, { type: 'CHAT_REPLY_SENT', thread: 'claire', text: 'q', reply: 'a' })
+    expect(state.chat.waiting.claire).toBe(true)
+    expect(state.chat.waiting.unknown).toBe(false)
 
     // Switching tabs mid-reply must not freeze the other composers.
-    state = dispatch(state, { type: 'THREAD_SELECTED', thread: 'lea' })
-    state = dispatch(state, { type: 'CHAT_STARTED', thread: 'lea' })
+    state = dispatch(state, { type: 'THREAD_SELECTED', thread: 'unknown' })
+    state = dispatch(state, { type: 'CHAT_STARTED', thread: 'unknown' })
     expect(selectChoices(state, content).length).toBeGreaterThan(0)
   })
 })

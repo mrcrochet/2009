@@ -5,7 +5,7 @@
 import type { ReactElement } from 'react'
 import type { DockId } from '@/engine/types'
 
-const GLYPHS: Record<DockId, ReactElement> = {
+const GLYPHS: Record<string, ReactElement> = {
   mail: (
     <g>
       <rect x="2.5" y="5.5" width="15" height="9.5" rx="1.4" />
@@ -31,17 +31,12 @@ const GLYPHS: Record<DockId, ReactElement> = {
       <path d="M2.5 10.4h15" opacity=".55" />
     </g>
   ),
-  bank: (
+  devices: (
     <g>
-      <path d="M3 8.2l7-4.2 7 4.2" />
-      <path d="M5 8.6v6.6M8.3 8.6v6.6M11.7 8.6v6.6M15 8.6v6.6" />
-      <path d="M3 16.4h14" />
-    </g>
-  ),
-  mkt: (
-    <g>
-      <path d="M3 15.2l4.2-5 3.4 2.9L17 5.4" />
-      <path d="M12.6 5.4H17v4.3" />
+      <rect x="2.4" y="4.6" width="10.4" height="8.2" rx="1.2" />
+      <path d="M1.6 15.4h12" />
+      <rect x="14.2" y="7.4" width="4" height="8" rx="1" />
+      <path d="M15.6 9h1.2" opacity=".7" />
     </g>
   ),
   notes: (
@@ -54,13 +49,6 @@ const GLYPHS: Record<DockId, ReactElement> = {
     <g>
       <rect x="2.5" y="4.2" width="15" height="11.6" rx="1.4" />
       <path d="M5.6 8.4l2.1 1.9-2.1 1.9M10 12.6h4.6" />
-    </g>
-  ),
-  recall: (
-    <g>
-      <path d="M10 3.2a6.8 6.8 0 1 0 6.7 8" />
-      <path d="M10 6.4a3.6 3.6 0 1 1-3.5 4.3" />
-      <circle cx="10" cy="10" r=".9" fill="currentColor" stroke="none" />
     </g>
   ),
   directory: (
@@ -79,16 +67,14 @@ const GLYPHS: Record<DockId, ReactElement> = {
 }
 
 /** Icon face tints, straight from the handoff's TINT map. */
-export const DOCK_TINT: Record<DockId, readonly [string, string]> = {
+export const DOCK_TINT: Record<string, readonly [string, string]> = {
   mail: ['#6f9ec9', '#2f5d87'],
   msg: ['#7cb98a', '#2f6a44'],
   web: ['#69a8c9', '#2b5f80'],
   files: ['#d9b96a', '#8a6a28'],
-  bank: ['#a3adb8', '#5a6570'],
-  mkt: ['#c98f6a', '#7d4a2c'],
+  devices: ['#a3adb8', '#5a6570'],
   notes: ['#d6c77e', '#8a7a34'],
   term: ['#5c666f', '#23292e'],
-  recall: ['#9a8cc4', '#4c3f78'],
   directory: ['#8fa4b8', '#4d6076'],
   phone: ['#8a97a4', '#4a545e'],
 }
@@ -107,7 +93,7 @@ export function DockGlyph({ id }: { id: DockId }) {
       aria-hidden="true"
       focusable="false"
     >
-      {GLYPHS[id]}
+      {GLYPHS[id] ?? GLYPHS.files}
     </svg>
   )
 }

@@ -71,14 +71,11 @@ export const CUES = {
     ],
   },
 
-  /**
-   * A retrieval. Clean at full coherence; the caller detunes this as memory degrades, so the
-   * player hears the cost before they read it.
-   */
-  recall: {
+  /** A lock giving way. Two notes, the second lower, because it is not a triumph. */
+  unlocked: {
     tones: [
       { from: 660, to: 880, wave: 'sine', at: 0, duration: 0.28, gain: 0.14 },
-      { from: 990, wave: 'sine', at: 0.14, duration: 0.34, gain: 0.07, detune: 6 },
+      { from: 494, wave: 'sine', at: 0.14, duration: 0.34, gain: 0.07, detune: 6 },
     ],
   },
 

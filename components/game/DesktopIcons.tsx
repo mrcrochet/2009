@@ -1,13 +1,13 @@
 'use client'
 
 import { FileIcon } from './FileIcon'
-import { useContent, useDispatch, useTimeline } from './GameContext'
+import { useContent, useDispatch, useInvestigation } from './GameContext'
 
 /** The README appears on the desktop a beat after the machine settles. */
 export function DesktopIcons() {
   const content = useContent()
   const dispatch = useDispatch()
-  const icons = useTimeline((s) => s.desktopIcons)
+  const icons = useInvestigation((s) => s.desktopIcons)
 
   if (icons.length === 0) return null
 

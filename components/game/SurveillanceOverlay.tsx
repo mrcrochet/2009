@@ -1,6 +1,6 @@
 'use client'
 
-import { useContent, useTimeline } from './GameContext'
+import { useContent, useInvestigation } from './GameContext'
 
 /**
  * The cliffhanger: the machine stops being yours for a moment. It is the emotional peak of Day
@@ -9,12 +9,12 @@ import { useContent, useTimeline } from './GameContext'
  */
 export function SurveillanceOverlay() {
   const content = useContent()
-  const watched = useTimeline((s) => s.ui.watched)
+  const watched = useInvestigation((s) => s.ui.watched)
   if (!watched) return null
   return (
     <>
       <p className="hal-sr-only" role="status">
-        {content.dayEnd.watchedLine}
+        {content.report.watchedLine}
       </p>
       <div className="hal-watched" data-testid="surveillance" aria-hidden="true">
         <div className="hal-watched__glow" />

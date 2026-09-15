@@ -23,7 +23,7 @@ const SURFACE_LABEL: Readonly<Record<string, string>> = {
   msg: 'Messages',
   phone: 'Phone',
   files: 'Files',
-  bank: 'Bank',
+  device: 'Devices',
   web: 'Web',
   archive: 'Archive',
   term: 'System',

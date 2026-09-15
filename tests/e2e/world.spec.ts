@@ -12,8 +12,8 @@ import { expect, test, type Page } from '@playwright/test'
 async function boot(page: Page) {
   await page.goto('/play')
   await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 20_000 })
-  // Ember opens itself a second into the day and its chunk arrives late; until it does, its
-  // window is a "loading…" box sitting over whatever is underneath and swallowing clicks.
+  // Dispatch opens itself a moment into the session and its chunk arrives late; until it does,
+  // its window is a "loading…" box sitting over whatever is underneath and swallowing clicks.
   await expect(page.getByText('loading…')).toHaveCount(0, { timeout: 20_000 })
 }
 
@@ -26,28 +26,30 @@ test.describe('the world', () => {
     await boot(page)
 
     await page.keyboard.press('Control+k')
-    const search = page.getByRole('dialog', { name: 'Search HALCYON' })
+    const search = page.getByRole('dialog', { name: 'Search NOVA' })
     await expect(search).toBeVisible()
 
     // Ctrl+K is one gesture; typing has to be the next one, with nothing in between.
-    await page.keyboard.type('marc')
+    await page.keyboard.type('fremont')
 
     const filters = search.getByRole('group', { name: 'Filter by source' })
     // The counts are the point: before opening anything the player is told the world is larger
     // than the question they asked.
     await expect(filters.getByRole('button', { name: /^All/ })).not.toHaveText(/All\s*0$/)
-    for (const surface of ['Mail', 'Phone', 'Web']) {
+    for (const surface of ['Files', 'Web']) {
       await expect(filters.getByRole('button', { name: new RegExp(`^${surface}`) })).toBeEnabled()
     }
 
     const hits = search.getByRole('option')
     await expect(hits.first()).toBeVisible()
-    // A day is an event in the world, not a world of its own: the corpus and the 15th of
-    // January answer the same question together.
-    await expect(search.getByRole('listbox', { name: 'Results' })).toContainText('Nokora N90')
+    // A case is an event in the world, not a world of its own: the corpus and the case answer
+    // the same question together — the receipt the client sent, and a car park's own FAQ.
+    const results = search.getByRole('listbox', { name: 'Results' })
+    await expect(results).toContainText('receipt-fremont-0609.pdf')
+    await expect(results).toContainText('Frequently asked questions')
 
     // Dates are stored ISO so they sort, and never shown that way.
-    await expect(search.getByRole('listbox', { name: 'Results' })).not.toContainText(/\d{4}-\d{2}/)
+    await expect(results).not.toContainText(/\d{4}-\d{2}/)
 
     // Arrows move the selection; the field keeps the caret.
     await page.keyboard.press('ArrowDown')
@@ -70,45 +72,42 @@ test.describe('the world', () => {
     expect(names.length).toBeGreaterThan(0)
     expect(names.length).toBeLessThan(10)
 
-    const marc = list.getByRole('option', { name: 'Marc Deleon' })
-    await expect(marc).toBeVisible()
-    await marc.click()
+    // Exact, because the handset is listed under its owner's name too.
+    const subject = list.getByRole('option', { name: 'Daniel Mercer', exact: true })
+    await expect(subject).toBeVisible()
+    await subject.click()
 
     const page_ = page.locator('.hal-dir__page')
     // The gap is a number and never a list.
     await expect(page_).toContainText(/\d+ found · \d+ not yet found/)
-    await expect(page_).toContainText('First appears 15 Jan 2009')
-
-    // Nothing has been read that names Marc and anyone else together, so the machine says so
-    // rather than reciting the chain the player is meant to build.
-    await expect(page_.getByText('No connection recorded.')).toBeVisible()
+    await expect(page_).toContainText('First appears 17 Jun 2026')
   })
 
   /**
-   * The corpus is the rest of the internet. A day authors the pages its story needs; an address
+   * The corpus is the rest of the internet. A case authors the pages its story needs; an address
    * written in one of them has to lead somewhere, or the web is a set of props.
    */
-  test('an address the day never authored still goes somewhere', async ({ page }) => {
+  test('an address the case never authored still goes somewhere', async ({ page }) => {
     await boot(page)
-    await openApp(page, 'Halcyon Browser')
+    await openApp(page, 'Orbit')
 
     const bar = page.getByLabel('Address')
     await bar.click()
-    await bar.fill('geohost.com/SunsetStrip/8802')
+    await bar.fill('nextdoor-alberta.com/thread/8812')
     await bar.press('Enter')
 
     const document_ = page.getByTestId('web-corpus')
     await expect(document_).toBeVisible()
-    await expect(document_).toContainText('so the fenner line is over')
+    await expect(document_).toContainText('Eleven days!')
     // Nothing to do with the case. That is the point of it being there.
-    await expect(document_).not.toContainText(/Aion|Deleon/)
+    await expect(document_).not.toContainText(/Mercer|Vale/)
     // Prose is reflowed rather than kept at whatever column the corpus file wraps at.
     await expect(document_.locator('.hal-web__p').first()).toBeVisible()
 
     // And having read it counts as having found it.
     await page.keyboard.press('Control+k')
-    const search = page.getByRole('dialog', { name: 'Search HALCYON' })
-    await page.keyboard.type('fenner')
+    const search = page.getByRole('dialog', { name: 'Search NOVA' })
+    await page.keyboard.type('fremont')
     await search.getByLabel('Only what I have found').check()
     await expect(search.getByRole('option').first()).toBeVisible()
   })
@@ -122,8 +121,11 @@ test.describe('the world', () => {
       .getByRole('option')
       .count()
 
+    // Out of the way, or its window sits over the inbox and swallows the clicks.
+    await page.locator('[data-app="directory"]').getByLabel('Close Directory').click()
+
     // Read the whole inbox, then come back.
-    await openApp(page, 'Mail')
+    await openApp(page, 'Relay Mail')
     const inbox = page.getByRole('listbox', { name: 'Inbox' })
     // The app is code-split, so the window frame arrives before the list does.
     await expect(inbox).toBeVisible()
@@ -140,8 +142,8 @@ test.describe('the world', () => {
 
     // And the search now admits it holds them.
     await page.keyboard.press('Control+k')
-    await page.keyboard.type('aion')
-    const search = page.getByRole('dialog', { name: 'Search HALCYON' })
+    await page.keyboard.type('okafor')
+    const search = page.getByRole('dialog', { name: 'Search NOVA' })
     await search.getByLabel('Only what I have found').check()
     await expect(search.getByRole('option').first()).toBeVisible()
   })

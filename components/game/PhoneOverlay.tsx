@@ -4,7 +4,7 @@ import { useCallback, useRef } from 'react'
 import { clockString } from '@/engine/clock'
 import type { PhoneTab } from '@/engine/types'
 import { defaultPhonePosition } from '@/engine/rules'
-import { useContent, useDispatch, useGame, useTimeline } from './GameContext'
+import { useContent, useDispatch, useGame, useInvestigation } from './GameContext'
 import { PhotoFrame } from './PhotoFrame'
 import { PinButton } from './PinButton'
 import { useDragMove, useIsCompact } from './useDragMove'
@@ -21,8 +21,8 @@ export function PhoneOverlay() {
   const content = useContent()
   const dispatch = useDispatch()
   const viewport = useGame((s) => s.viewport)
-  const phone = useTimeline((s) => s.phone)
-  const clock = useTimeline((s) => clockString(s.minuteOfDay))
+  const phone = useInvestigation((s) => s.phone)
+  const clock = useInvestigation((s) => clockString(s.minute))
   const ref = useRef<HTMLDivElement>(null)
   const compact = useIsCompact()
 
@@ -44,15 +44,17 @@ export function PhoneOverlay() {
   )
   const drag = useDragMove(ref, { origin, onCommit, disabled: compact })
 
-  if (!phone.open) return null
+  // A case may supply no phone at all, and one it does supply may still be locked.
+  const device = content.phone
+  if (!device || !phone.open) return null
 
   return (
     <div ref={ref} className="hal-phone" style={{ left: x, top: y }} data-testid="phone-overlay">
       <div className="hal-phone__body" {...drag}>
-        <div className="hal-phone__device">{content.phone.device}</div>
+        <div className="hal-phone__device">{device.device}</div>
         <div className="hal-phone__screen">
           <div className="hal-phone__status">
-            <span>{content.phone.carrier}</span>
+            <span>{device.carrier}</span>
             <span>{clock}</span>
           </div>
           <div className="hal-phone__tabs" role="tablist" aria-label="Phone">
@@ -90,9 +92,10 @@ export function PhoneOverlay() {
 function Sms() {
   const content = useContent()
   const dispatch = useDispatch()
-  const step = useTimeline((s) => s.phone.smsStep)
-  const shown = content.phone.sms.slice(0, step + 1)
-  const node = content.phone.sms[step]
+  const step = useInvestigation((s) => s.phone.smsStep)
+  const sms = content.phone?.sms ?? []
+  const shown = sms.slice(0, step + 1)
+  const node = sms[step]
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -131,7 +134,7 @@ function Photos() {
   const content = useContent()
   return (
     <div className="hal-phone__photos">
-      {content.phone.photos.map((p) => (
+      {(content.phone?.photos ?? []).map((p) => (
         <div key={p.id} className="hal-phone__photo">
           <div className="hal-phone__thumb">
             <PhotoFrame subject={p.subject} label={p.label} />
@@ -153,7 +156,7 @@ function Contacts() {
   const content = useContent()
   return (
     <div className="hal-phone__contacts">
-      {content.phone.contacts.map((c) => (
+      {(content.phone?.contacts ?? []).map((c) => (
         <div key={c.name} className="hal-phone__contact">
           <span>{c.name}</span>
           <span>{c.number}</span>

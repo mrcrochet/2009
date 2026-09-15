@@ -44,7 +44,7 @@ export function useWorldOptional(): WorldValue | null {
  */
 export function WorldGate({ index, children }: { index: WorldIndex; children: ReactNode }) {
   const api = useGameApi()
-  const read = useCallback(() => api.getState().timeline.discovered, [api])
+  const read = useCallback(() => api.getState().investigation.discovered, [api])
   const discovered = useSyncExternalStore(api.subscribe, read, read)
   const value = useMemo<WorldValue>(
     () => ({ index, discovered: new Set(discovered) }),

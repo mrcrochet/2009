@@ -1,5 +1,9 @@
 # Authoring a mystery
 
+> **Reading this after the pivot.** The editorial framework is unchanged. The unlock conditions
+> keyed on 2009's meters (`memoryIntegrityAtMost`, `temporalShiftAtLeast`, `dayAtLeast`) are gone;
+> `exposureAtLeast`, `serviceGranted` and `deviceUnlocked` replaced them.
+
 The premise of this document is that real internet mysteries are the richest available source of
 **structure** for this game, and the most dangerous available source of **content**. The rule
 that follows from that is one line:

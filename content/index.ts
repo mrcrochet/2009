@@ -1,9 +1,8 @@
-import { DayContentSchema, type DayContent } from '@/engine/content-schema'
+import { CaseContentSchema, type CaseContent } from '@/engine/case-schema'
 import { buildWorldIndex, worldAsOf, type WorldIndex } from '@/engine/world'
 import type { World } from '@/engine/world/schema'
-import { projectDay } from '@/engine/world/project'
-import { day01 as day01Raw } from './day01'
-import { day02 as day02Raw } from './day02'
+import { projectCase } from '@/engine/world/project'
+import { case001 as case001Raw } from './cases/case001'
 import { WORLD } from './world'
 
 /**
@@ -27,74 +26,57 @@ const PROJECTION_NAMES: readonly string[] = Object.keys(ENTITY_BY_NAME)
  * Content is validated once, at module load. A malformed content module fails the build rather
  * than a player's session.
  */
-export const DAY_01: DayContent = DayContentSchema.parse(day01Raw)
-export const DAY_02: DayContent = DayContentSchema.parse(day02Raw)
+export const CASE_001: CaseContent = CaseContentSchema.parse(case001Raw)
 
-/** Every authored day. The invariant suite iterates this, so a new day is validated the moment
+/** Every authored case. The invariant suite iterates this, so a new case is validated the moment
  * it is registered rather than shipping on Zod alone. */
-export const BY_DAY: Readonly<Record<number, DayContent>> = { 1: DAY_01, 2: DAY_02 }
+export const BY_CASE: Readonly<Record<string, CaseContent>> = { [CASE_001.id]: CASE_001 }
 
-export function contentForDay(day: number): DayContent {
-  const found = BY_DAY[day]
-  if (!found) throw new Error(`content: no authored content for day ${day}`)
+export const DEFAULT_CASE_ID = CASE_001.id
+
+export function contentForCase(caseId: string): CaseContent {
+  const found = BY_CASE[caseId]
+  if (!found) throw new Error(`content: no authored case "${caseId}"`)
   return found
 }
 
-export function hasContentForDay(day: number): boolean {
-  return day in BY_DAY
+export function hasContentForCase(caseId: string): boolean {
+  return caseId in BY_CASE
 }
 
 /**
- * Everything `DAY_ADVANCED` needs about the day being entered, carried on the event so a replay
- * does not have to reach for another day's content mid-log.
- */
-export function advanceEventFor(day: number) {
-  const next = contentForDay(day)
-  return {
-    type: 'DAY_ADVANCED' as const,
-    day: next.day,
-    dateISO: next.dateISO,
-    wakeMinute: next.wakeMinute,
-    threadIds: next.threads.map((t) => t.id),
-    firstMailId: next.mail[0]?.id ?? '',
-    firstFileId: next.files[0]?.id ?? '',
-    browserHome: next.browser.home,
-    terminalBanner: next.terminal.banner,
-  }
-}
-
-export const MAX_AUTHORED_DAY = Math.max(...Object.keys(BY_DAY).map(Number))
-
-/**
- * The world the player can search: the authored corpus, plus every day projected into the same
- * graph.
+ * The world the investigator can search: the authored corpus, plus every case projected into the
+ * same graph.
  *
  * The projection is what stops there being two worlds — a graph nobody's story happens in, and a
- * story the graph has never heard of. A player who searches "Marc" reaches the mail they actually
- * read on the 15th, not a second Marc who exists only in a corpus file.
+ * story the graph has never heard of. Someone who searches a name reaches the mail they actually
+ * read, not a second person who exists only in a corpus file.
  */
 export const GAME_WORLD: World = {
   ...WORLD,
   artifacts: [
     ...WORLD.artifacts,
-    ...Object.values(BY_DAY).flatMap((day) =>
-      projectDay(day, { resolve: (name) => ENTITY_BY_NAME[name] ?? null, names: PROJECTION_NAMES }),
+    ...Object.values(BY_CASE).flatMap((kase) =>
+      projectCase(kase, {
+        resolve: (name) => ENTITY_BY_NAME[name] ?? null,
+        names: PROJECTION_NAMES,
+      }),
     ),
   ],
 }
 
 /**
- * The world index for a given day, built once per day and kept.
+ * The world index for a case, built once and kept.
  *
- * Cut to the day's own date, because every authored day is projected into one graph and a
- * machine on the fifteenth has no business answering questions about the twentieth.
+ * Cut to the case's own date, because a workstation working the seventeenth has no business
+ * answering questions about the twentieth.
  */
-const INDEX_BY_DAY = new Map<number, WorldIndex>()
+const INDEX_BY_CASE = new Map<string, WorldIndex>()
 
-export function worldIndexForDay(day: number): WorldIndex {
-  const cached = INDEX_BY_DAY.get(day)
+export function worldIndexForCase(caseId: string): WorldIndex {
+  const cached = INDEX_BY_CASE.get(caseId)
   if (cached) return cached
-  const built = buildWorldIndex(worldAsOf(GAME_WORLD, contentForDay(day).dateISO))
-  INDEX_BY_DAY.set(day, built)
+  const built = buildWorldIndex(worldAsOf(GAME_WORLD, contentForCase(caseId).dateISO))
+  INDEX_BY_CASE.set(caseId, built)
   return built
 }

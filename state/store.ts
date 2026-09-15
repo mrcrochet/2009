@@ -2,15 +2,15 @@
 
 import { create } from 'zustand'
 import { useShallow } from 'zustand/react/shallow'
-import type { DayContent } from '@/engine/content-schema'
+import type { CaseContent } from '@/engine/case-schema'
 import { isMeaningful, stamp, supersedesPrevious, type EventInput } from '@/engine/events'
-import { createTimeline } from '@/engine/initial-state'
+import { createInvestigation } from '@/engine/initial-state'
 import { applyEvents, reduce } from '@/engine/reducer'
-import type { GameEvent, TimelineState, Viewport } from '@/engine/types'
+import type { GameEvent, InvestigationState, Viewport } from '@/engine/types'
 
 export interface GameStore {
-  timeline: TimelineState
-  content: DayContent
+  investigation: InvestigationState
+  content: CaseContent
   viewport: Viewport
   /** Set once the local save has been written at least once. */
   persisted: boolean
@@ -18,46 +18,44 @@ export interface GameStore {
 
   dispatch(input: EventInput): void
   dispatchMany(inputs: readonly EventInput[]): void
-  hydrate(state: TimelineState): void
+  hydrate(state: InvestigationState): void
   setViewport(viewport: Viewport): void
   setSaveError(message: string | null): void
   markPersisted(): void
-  replay(): TimelineState
+  replay(): InvestigationState
 }
 
 export interface CreateStoreOptions {
-  readonly content: DayContent
-  /** Supplied by the shell so the store can swap worlds when `DAY_ADVANCED` lands. */
-  readonly contentForDay?: (day: number) => DayContent
-  readonly timeline?: TimelineState
-  readonly timelineId?: string
-  readonly onEvent?: (event: GameEvent, next: TimelineState, prev: TimelineState) => void
+  readonly content: CaseContent
+  readonly investigation?: InvestigationState
+  readonly investigationId?: string
+  readonly onEvent?: (
+    event: GameEvent,
+    next: InvestigationState,
+    prev: InvestigationState,
+  ) => void
 }
 
 export function createGameStore(options: CreateStoreOptions) {
   const initial =
-    options.timeline ??
-    createTimeline(options.content, {
-      id: options.timelineId ?? crypto.randomUUID(),
+    options.investigation ??
+    createInvestigation(options.content, {
+      id: options.investigationId ?? crypto.randomUUID(),
       now: new Date().toISOString(),
     })
 
   return create<GameStore>()((set, get) => ({
-    timeline: initial,
+    investigation: initial,
     content: options.content,
     viewport: { width: 1280, height: 800 },
     persisted: false,
     saveError: null,
 
     dispatch(input) {
-      const { timeline, content } = get()
-      const event = stamp(timeline, input)
-      const next = reduce(timeline, event, content)
-      if (next === timeline) return
-      // The day turned: the world the player is now standing in is a different one.
-      if (next.day !== timeline.day && options.contentForDay) {
-        set({ content: options.contentForDay(next.day) })
-      }
+      const { investigation, content } = get()
+      const event = stamp(investigation, input)
+      const next = reduce(investigation, event, content)
+      if (next === investigation) return
       let withLog = next
       if (isMeaningful(event)) {
         const log = next.eventLog
@@ -66,8 +64,8 @@ export function createGameStore(options: CreateStoreOptions) {
           : [...log, event]
         withLog = { ...next, eventLog, updatedAt: new Date().toISOString() }
       }
-      set({ timeline: withLog })
-      options.onEvent?.(event, withLog, timeline)
+      set({ investigation: withLog })
+      options.onEvent?.(event, withLog, investigation)
     },
 
     dispatchMany(inputs) {
@@ -75,7 +73,7 @@ export function createGameStore(options: CreateStoreOptions) {
     },
 
     hydrate(state) {
-      set({ timeline: state })
+      set({ investigation: state })
     },
 
     setViewport(viewport) {
@@ -92,13 +90,14 @@ export function createGameStore(options: CreateStoreOptions) {
 
     /** Rebuild state from the log — used by the dev debug panel and by the replay test. */
     replay() {
-      const { timeline, content } = get()
-      const base = createTimeline(options.contentForDay?.(1) ?? content, {
-        id: timeline.id,
-        ownerId: timeline.ownerId,
-        now: timeline.createdAt,
+      const { investigation, content } = get()
+      const base = createInvestigation(content, {
+        id: investigation.id,
+        ownerId: investigation.ownerId,
+        now: investigation.createdAt,
+        services: investigation.services,
       })
-      return applyEvents(base, timeline.eventLog, options.contentForDay ?? content)
+      return applyEvents(base, investigation.eventLog, content)
     },
   }))
 }

@@ -14,7 +14,7 @@ import {
   siteOf,
   worldAsOf,
 } from '@/engine/world'
-import { projectDay, projectedId } from '@/engine/world/project'
+import { projectCase, projectedId } from '@/engine/world/project'
 import { content, dispatch, fresh, run } from './helpers'
 
 /** A small world, so these tests do not depend on how much corpus has been authored yet. */
@@ -67,7 +67,7 @@ const world = WorldSchema.parse({
       date: '2008-11-07',
       title: 'PORTLAND AUTO PARTS',
       source: 'Meridian Savings',
-      surface: 'bank',
+      surface: 'device',
       mentions: ['person.marc-deleon'],
       amountCents: -21400,
       factId: 'fact.marc-saab',
@@ -121,7 +121,7 @@ describe('the world is searchable', () => {
     expect(results.hits.map((h) => h.id)).not.toContain('a.bank-parts')
 
     const dossier = entityDossier(index, 'person.marc-deleon', all)!
-    expect(Object.keys(dossier.known).sort()).toEqual(['bank', 'mail'])
+    expect(Object.keys(dossier.known).sort()).toEqual(['device', 'mail'])
   })
 
   it('an entity outranks a mention of it', () => {
@@ -246,27 +246,27 @@ describe('the day is part of the world', () => {
     })[name] ?? null
 
   it('projects Day 01 into the same graph the search reads', () => {
-    const projected = projectDay(content, { resolve, names })
+    const projected = projectCase(content, { resolve, names })
     // Otherwise there are two worlds: a graph nobody's story happens in, and a story the graph
     // has never heard of.
     expect(projected.length).toBeGreaterThan(20)
     expect(projected.map((a) => a.surface)).toContain('mail')
-    expect(projected.map((a) => a.surface)).toContain('bank')
+    expect(projected.map((a) => a.surface)).toContain('files')
     expect(projected.map((a) => a.surface)).toContain('phone')
 
-    const quota = projected.find((a) => a.title === 'Quota 01 — statement of obligation')
-    expect(quota?.mentions).toContain('org.aion-group')
+    const statement = projected.find((a) => a.title === 'draft-statement-v3.doc')
+    expect(statement?.surface).toBe('files')
   })
 
   it('a projected artifact keeps the metadata a player can cross-reference', () => {
-    const projected = projectDay(content, { resolve, names })
-    const photo = projected.find((a) => a.id.includes('IMG_0114'))
-    expect(photo?.fields.exif).toContain('22:08')
+    const projected = projectCase(content, { resolve, names })
+    const photo = projected.find((a) => a.id.includes('p1'))
+    expect(photo?.fields.exif).toContain('22:47')
   })
 
   it('projected ids are stable across builds', () => {
-    const a = projectDay(content, { resolve, names }).map((x) => x.id)
-    const b = projectDay(content, { resolve, names }).map((x) => x.id)
+    const a = projectCase(content, { resolve, names }).map((x) => x.id)
+    const b = projectCase(content, { resolve, names }).map((x) => x.id)
     expect(a).toEqual(b)
     expect(new Set(a).size).toBe(a.length)
   })
@@ -274,35 +274,28 @@ describe('the day is part of the world', () => {
 
 describe('discovery', () => {
   /** What the desktop is already showing at wake. Every count below is on top of it. */
-  const AT_WAKE = ['d1.mail.m1', 'd1.file.readme']
+  const AT_WAKE = [`${content.id}.mail.m1`, `${content.id}.file.f1`]
 
   it('records what the player met, once', () => {
     let state = dispatch(fresh(), {
       type: 'WORLD_ARTIFACTS_SEEN',
-      artifactIds: ['a.email-parts', 'a.classified'],
+      artifactIds: ['w.fremont-faq', 'w.lost-cat'],
     })
-    expect(state.discovered).toEqual([...AT_WAKE, 'a.email-parts', 'a.classified'])
+    expect(state.discovered).toEqual([...AT_WAKE, 'w.fremont-faq', 'w.lost-cat'])
 
     const before = state
-    state = dispatch(state, { type: 'WORLD_ARTIFACTS_SEEN', artifactIds: ['a.email-parts'] })
+    state = dispatch(state, { type: 'WORLD_ARTIFACTS_SEEN', artifactIds: ['w.fremont-faq'] })
     expect(state).toBe(before)
   })
 
-  it('survives the night, because meeting something is not undone by sleeping', () => {
-    let state = dispatch(fresh(), { type: 'WORLD_ARTIFACTS_SEEN', artifactIds: ['a.email-parts'] })
-    state = dispatch(state, {
-      type: 'DAY_ADVANCED',
-      day: 2,
-      dateISO: '2009-01-16',
-      wakeMinute: 400,
-      threadIds: ['unknown', 'marc', 'lea'],
-      firstMailId: 'm1',
-      firstFileId: 'readme',
-      browserHome: 'corvid.com',
-      terminalBanner: content.terminal.banner,
-    })
-    // Day 02's opening mail and file join it; nothing from Day 01 is taken away.
-    expect(state.discovered).toEqual([...AT_WAKE, 'a.email-parts', 'd2.mail.m1', 'd2.file.readme'])
+  /**
+   * Filing the report closes the case; it does not unmeet what the investigator met. The report
+   * is written from `discovered` as much as from the tray.
+   */
+  it('survives the report, because meeting something is not undone by filing', () => {
+    let state = dispatch(fresh(), { type: 'WORLD_ARTIFACTS_SEEN', artifactIds: ['w.fremont-faq'] })
+    state = dispatch(state, { type: 'REPORT_FILED' })
+    expect(state.discovered).toEqual([...AT_WAKE, 'w.fremont-faq'])
   })
 })
 
@@ -391,7 +384,7 @@ describe('an address leads somewhere', () => {
 describe('reading something is finding it', () => {
   const names = ['Marc', 'Aion']
   const resolve = (name: string) => (name === 'Marc' ? 'person.marc-deleon' : 'org.aion-group')
-  const projected = new Set(projectDay(content, { resolve, names }).map((a) => a.id))
+  const projected = new Set(projectCase(content, { resolve, names }).map((a) => a.id))
 
   /**
    * The invariant the whole surface rests on. Discovery is derived in the reducer from the id
@@ -401,8 +394,8 @@ describe('reading something is finding it', () => {
   it('names artifacts the projection actually built', () => {
     const state = run(fresh(), [
       { type: 'MAIL_OPENED', mailId: content.mail[0]!.id },
-      { type: 'FILE_OPENED', fileId: 'readme' },
-      { type: 'APP_OPENED', app: 'bank' },
+      { type: 'FILE_OPENED', fileId: 'f2' },
+      { type: 'APP_OPENED', app: 'devices' },
       { type: 'PHONE_TOGGLED' },
       { type: 'PHONE_TAB_CHANGED', tab: 'photos' },
       { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
@@ -416,21 +409,21 @@ describe('reading something is finding it', () => {
   it('finds the mail that was opened and not the mail that was not', () => {
     const first = content.mail[0]!
     const state = dispatch(fresh(), { type: 'MAIL_OPENED', mailId: first.id })
-    expect(state.discovered).toContain(projectedId.mail(1, first.id))
+    expect(state.discovered).toContain(projectedId.mail(content.id, first.id))
     for (const other of content.mail.slice(1))
-      expect(state.discovered).not.toContain(projectedId.mail(1, other.id))
+      expect(state.discovered).not.toContain(projectedId.mail(content.id, other.id))
   })
 
   it('reveals the SMS thread only as far as it has been read', () => {
     const sms = (state: { discovered: readonly string[] }) =>
-      state.discovered.filter((id) => id.startsWith('d1.sms.'))
+      state.discovered.filter((id) => id.startsWith(`${content.id}.sms.`))
 
     let state = run(fresh(), [{ type: 'PHONE_TOGGLED' }, { type: 'PHONE_TAB_CHANGED', tab: 'sms' }])
     expect(sms(state)).toHaveLength(1)
 
     state = dispatch(state, { type: 'SMS_ADVANCED' })
     expect(sms(state)).toHaveLength(2)
-    expect(sms(state).length).toBeLessThan(content.phone.sms.length)
+    expect(sms(state).length).toBeLessThan(content.phone!.sms.length)
   })
 
   it('does not record an address that resolves to nothing', () => {
@@ -456,7 +449,7 @@ describe('reading something is finding it', () => {
       { type: 'BROWSER_WENT_BACK' },
       { type: 'BROWSER_NAVIGATED', url },
     ])
-    expect(state.discovered.filter((id) => id === projectedId.web(1, url))).toHaveLength(1)
+    expect(state.discovered.filter((id) => id === projectedId.web(content.id, url))).toHaveLength(1)
   })
 })
 

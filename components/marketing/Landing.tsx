@@ -4,20 +4,20 @@ import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { track } from '@/lib/analytics'
-import { lastTimelineId } from '@/lib/persistence/last-timeline'
+import { lastInvestigationId } from '@/lib/persistence/last-investigation'
 import styles from './Landing.module.css'
 
 const noSubscribe = () => () => {}
 
 /**
- * A light route: no engine, no HALCYON stylesheet, no game bundle. Pressing WAKE UP is the last
- * time the player sees ordinary website chrome.
+ * A light route: no engine, no workstation stylesheet, no game bundle. Opening the case is the
+ * last time the player sees ordinary website chrome.
  */
 export function Landing() {
   const router = useRouter()
   const resumeId = useSyncExternalStore(
     noSubscribe,
-    useCallback(() => lastTimelineId(), []),
+    useCallback(() => lastInvestigationId(), []),
     () => null,
   )
 
@@ -29,27 +29,27 @@ export function Landing() {
   return (
     <main className={styles.root}>
       <div className={styles.top}>
-        <span>2009</span>
-        <span>An interactive record</span>
+        <span>UNLISTED</span>
+        <span>Case 001</span>
       </div>
 
       <div className={styles.middle}>
         <h1 className={styles.headline}>
-          YOU WAKE UP
+          HE NEVER
           <br />
-          IN 2009.
+          CAME HOME.
           <br />
           <span>
-            YOU REMEMBER
+            THE POLICE
             <br />
-            EVERYTHING.
+            ARE NOT LOOKING.
           </span>
         </h1>
 
         <div className={styles.facts}>
-          <span>$437.82 in an account that is not yours.</span>
-          <span>30 days.</span>
-          <span className={styles.last}>What do you do first?</span>
+          <span>A laptop image, a locked handset, and a sister who does not believe them.</span>
+          <span>One evening at the workstation.</span>
+          <span className={styles.last}>Where do you look first?</span>
         </div>
 
         <div className={styles.actions}>
@@ -57,9 +57,9 @@ export function Landing() {
             href="/play"
             className={styles.wake}
             prefetch
-            onClick={() => track('wake_clicked', {})}
+            onClick={() => track('case_opened', { caseId: 'case001' })}
           >
-            WAKE UP
+            OPEN THE CASE
           </Link>
           <span className={styles.note}>No account. It starts immediately.</span>
           {resumeId ? (
@@ -68,13 +68,13 @@ export function Landing() {
               className={styles.resume}
               onClick={() => router.push(`/play/${resumeId}`)}
             >
-              resume your timeline
+              resume your investigation
             </button>
           ) : null}
         </div>
       </div>
 
-      <div className={styles.foot}>15 JAN 2009 · 07:32 · PORTLAND, OR</div>
+      <div className={styles.foot}>CASE 24-118 · 17 JUN 2026 · PORTLAND, OR</div>
     </main>
   )
 }

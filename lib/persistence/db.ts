@@ -1,6 +1,6 @@
 import type DexieType from 'dexie'
 import type { Table } from 'dexie'
-import type { StoredTimeline } from './types'
+import type { StoredInvestigation } from './types'
 
 /**
  * Guest saves. Local-first: a player never needs an account to keep their Day 01.
@@ -11,7 +11,7 @@ import type { StoredTimeline } from './types'
  */
 
 export interface TimelineDatabase {
-  timelines: Table<StoredTimeline, string>
+  timelines: Table<StoredInvestigation, string>
   quarantine: Table<{ id: string; raw: string; reason: string; at: string }, string>
 }
 

@@ -1,14 +1,14 @@
 'use client'
 
 import { selectMail, selectOpenMail } from '@/engine/selectors'
-import { useContent, useDispatch, useTimeline } from '../GameContext'
+import { useContent, useDispatch, useInvestigation } from '../GameContext'
 import { PinButton } from '../PinButton'
 
 export function MailApp() {
   const content = useContent()
   const dispatch = useDispatch()
-  const list = useTimeline((s) => selectMail(s, content))
-  const open = useTimeline((s) => selectOpenMail(s, content))
+  const list = useInvestigation((s) => selectMail(s, content))
+  const open = useInvestigation((s) => selectOpenMail(s, content))
 
   return (
     <>

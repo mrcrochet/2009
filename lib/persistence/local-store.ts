@@ -1,21 +1,21 @@
-import type { TimelineState } from '@/engine/types'
+import type { InvestigationState } from '@/engine/types'
 import { reportError } from '@/lib/errors'
 import { getDb } from './db'
-import { rememberTimelineId } from './last-timeline'
+import { rememberInvestigationId } from './last-investigation'
 import { MigrationError, migrateStored } from './migrations'
-import { fromStored, toStored, type StoredTimeline } from './types'
+import { fromStored, toStored, type StoredInvestigation } from './types'
 
 /**
  * Local persistence is best-effort by design: a private window with IndexedDB disabled must
  * still be able to play Day 01 from start to finish.
  */
 
-export async function saveTimeline(state: TimelineState): Promise<boolean> {
+export async function saveInvestigation(state: InvestigationState): Promise<boolean> {
   const db = await getDb()
   if (!db) return false
   try {
     await db.timelines.put(toStored(state))
-    rememberTimelineId(state.id)
+    rememberInvestigationId(state.id)
     return true
   } catch (error) {
     reportError(error, { scope: 'persistence.save', timelineId: state.id })
@@ -23,7 +23,7 @@ export async function saveTimeline(state: TimelineState): Promise<boolean> {
   }
 }
 
-export async function loadTimeline(id: string): Promise<TimelineState | null> {
+export async function loadInvestigation(id: string): Promise<InvestigationState | null> {
   const db = await getDb()
   if (!db) return null
   try {
@@ -40,7 +40,7 @@ export async function loadTimeline(id: string): Promise<TimelineState | null> {
   }
 }
 
-export async function listTimelines(): Promise<StoredTimeline[]> {
+export async function listInvestigations(): Promise<StoredInvestigation[]> {
   const db = await getDb()
   if (!db) return []
   try {
@@ -58,7 +58,7 @@ export async function listTimelines(): Promise<StoredTimeline[]> {
   }
 }
 
-export async function deleteTimeline(id: string): Promise<void> {
+export async function deleteInvestigation(id: string): Promise<void> {
   const db = await getDb()
   if (!db) return
   try {
@@ -87,18 +87,18 @@ async function quarantine(id: string, error: MigrationError): Promise<void> {
 
 /** Debounced autosave. Returns a disposer so the shell can flush on unmount. */
 export function createAutosave(delayMs = 600): {
-  schedule(state: TimelineState): void
+  schedule(state: InvestigationState): void
   flush(): Promise<void>
   dispose(): void
 } {
   let timer: ReturnType<typeof setTimeout> | null = null
-  let pending: TimelineState | null = null
+  let pending: InvestigationState | null = null
 
   const run = async () => {
     timer = null
     const state = pending
     pending = null
-    if (state) await saveTimeline(state)
+    if (state) await saveInvestigation(state)
   }
 
   return {
@@ -122,4 +122,4 @@ export function createAutosave(delayMs = 600): {
   }
 }
 
-export { lastTimelineId } from './last-timeline'
+export { lastInvestigationId } from './last-investigation'

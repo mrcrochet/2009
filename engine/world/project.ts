@@ -1,15 +1,15 @@
-import type { DayContent } from '../content-schema'
+import type { CaseContent } from '../case-schema'
 import type { WorldArtifact } from './schema'
 
 /**
- * The day's authored content, projected into the world graph.
+ * The case's authored content, projected into the world graph.
  *
  * Without this there would be two worlds: a graph nobody's story happens in, and a story the
- * graph has never heard of. A player who searches "Marc" has to reach the mail they actually
- * read, not a second Marc who exists only in a database.
+ * graph has never heard of. A player who searches a name has to reach the mail they actually
+ * read, not a second person who exists only in a database.
  *
- * Days stay the unit of authoring. This makes them events *in* the world rather than the only
- * things in it.
+ * The case stays the unit of authoring. This makes it an event *in* the world rather than the
+ * only thing in it.
  */
 
 /**
@@ -20,12 +20,11 @@ import type { WorldArtifact } from './schema'
  * One definition, two callers.
  */
 export const projectedId = {
-  mail: (day: number, id: string) => `d${day}.mail.${id}`,
-  file: (day: number, id: string) => `d${day}.file.${id}`,
-  photo: (day: number, id: string) => `d${day}.photo.${id}`,
-  sms: (day: number, time: string) => `d${day}.sms.${time.replace(/[^0-9]/g, '')}`,
-  txn: (day: number, id: string) => `d${day}.txn.${id}`,
-  web: (day: number, url: string) => `d${day}.web.${url.replace(/[^a-z0-9]/gi, '-')}`,
+  mail: (kase: string, id: string) => `${kase}.mail.${id}`,
+  file: (kase: string, id: string) => `${kase}.file.${id}`,
+  photo: (kase: string, id: string) => `${kase}.photo.${id}`,
+  sms: (kase: string, time: string) => `${kase}.sms.${time.replace(/[^0-9]/g, '')}`,
+  web: (kase: string, url: string) => `${kase}.web.${url.replace(/[^a-z0-9]/gi, '-')}`,
 } as const
 
 /** `@/content` owns the mapping from an author's short name to a graph entity. */
@@ -49,9 +48,9 @@ export interface ProjectionOptions {
   readonly names: readonly string[]
 }
 
-export function projectDay(content: DayContent, options: ProjectionOptions): WorldArtifact[] {
+export function projectCase(content: CaseContent, options: ProjectionOptions): WorldArtifact[] {
   const { resolve, names } = options
-  const day = content.day
+  const kase = content.id
   const date = content.dateISO
   const artifacts: WorldArtifact[] = []
 
@@ -74,23 +73,28 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
     amountCents: null,
     factId: null,
     variants: [],
-    // A projected day is the machine's own record of what it showed. Whether the *content* of a
-    // document is true is a matter for the day that authored it, and it says so in its own
+    // A projected case is the machine's own record of what it showed. Whether the *content* of
+    // a document is true is a matter for the case that authored it, and it says so in its own
     // words rather than in a field here.
     reliability: 'reliable',
     contradicts: [],
   })
 
+  // Surfaces are named by the case, never by this file. It said "Corvid Mail" and "Nokora N90"
+  // outright, which is authored prose living in the engine.
+  const mailAppTitle = content.apps.find((a) => a.id === 'mail')?.title ?? 'Mail'
+  const phoneLabel = content.phone?.device ?? 'Phone'
+
   for (const mail of content.mail) {
     const text = `${mail.from} ${mail.subject} ${mail.body.join(' ')}`
     artifacts.push({
       ...base(),
-      id: projectedId.mail(day, mail.id),
+      id: projectedId.mail(kase, mail.id),
       type: 'email',
       date,
       title: mail.subject,
       body: mail.body.join('\n\n'),
-      source: `Corvid Mail — ${mail.from}`,
+      source: `${mailAppTitle} — ${mail.from}`,
       surface: 'mail',
       mentions: mentionsIn(text, resolve, names),
       fields: { from: mail.from, received: mail.time },
@@ -101,7 +105,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
   for (const file of content.files) {
     artifacts.push({
       ...base(),
-      id: projectedId.file(day, file.id),
+      id: projectedId.file(kase, file.id),
       type: 'document',
       date,
       title: file.name,
@@ -113,15 +117,15 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
     })
   }
 
-  for (const photo of content.phone.photos) {
+  for (const photo of content.phone?.photos ?? []) {
     artifacts.push({
       ...base(),
-      id: projectedId.photo(day, photo.id),
+      id: projectedId.photo(kase, photo.id),
       type: 'photo',
       date,
       title: photo.label,
       body: photo.meta,
-      source: `Nokora N90 — Photos`,
+      source: `${phoneLabel} — Photos`,
       surface: 'phone',
       mentions: mentionsIn(photo.meta, resolve, names),
       // The metadata is the point. A player who reads it can cross-reference it.
@@ -129,34 +133,18 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
     })
   }
 
-  for (const sms of content.phone.sms) {
+  for (const sms of content.phone?.sms ?? []) {
     artifacts.push({
       ...base(),
-      id: projectedId.sms(day, sms.time),
+      id: projectedId.sms(kase, sms.time),
       type: 'sms',
       date,
       title: `${sms.who} — ${sms.time}`,
       body: sms.text,
-      source: 'Nokora N90 — SMS',
+      source: `${phoneLabel} — SMS`,
       surface: 'phone',
       mentions: mentionsIn(`${sms.who} ${sms.text}`, resolve, names),
       fields: { sent: sms.time },
-    })
-  }
-
-  for (const entry of content.economy.openingLedger) {
-    artifacts.push({
-      ...base(),
-      id: projectedId.txn(day, entry.id),
-      type: 'transaction',
-      date,
-      title: entry.label,
-      body: '',
-      source: `${content.economy.bankName} — ${content.economy.accountLabel}`,
-      surface: 'bank',
-      mentions: mentionsIn(entry.label, resolve, names),
-      amountCents: entry.amount,
-      fields: { posted: entry.date },
     })
   }
 
@@ -166,7 +154,7 @@ export function projectDay(content: DayContent, options: ProjectionOptions): Wor
       .join(' ')
     artifacts.push({
       ...base(),
-      id: projectedId.web(day, page.url),
+      id: projectedId.web(kase, page.url),
       type: 'webPage',
       date,
       url: page.url,

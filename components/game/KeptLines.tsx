@@ -1,6 +1,6 @@
 'use client'
 
-import { useContent, useTimeline } from './GameContext'
+import { useContent, useInvestigation } from './GameContext'
 
 /**
  * Lines the player carried back from the far side of the relay.
@@ -16,9 +16,8 @@ import { useContent, useTimeline } from './GameContext'
  */
 export function KeptLines({ variant }: { variant: 'tray' | 'board' }) {
   const content = useContent()
-  const kept = useTimeline((s) => s.wayup.futureEvidence)
-  const day = useTimeline((s) => s.day)
-  const cfg = content.wayup
+  const kept = useInvestigation((s) => s.wayup.kept)
+  const cfg = content.relay
 
   if (!cfg || kept.length === 0) return null
 
@@ -34,12 +33,6 @@ export function KeptLines({ variant }: { variant: 'tray' | 'board' }) {
             <span className="hal-kept__excerpt">“{entry.excerpt}”</span>
             <span className="hal-kept__src">
               {entry.sourceTitle || entry.sourceUrl || entry.snapshotId}
-              {entry.capturedDay !== day ? (
-                <span className="hal-kept__day">
-                  {' '}
-                  · DAY {String(entry.capturedDay).padStart(2, '0')}
-                </span>
-              ) : null}
             </span>
           </li>
         ))}

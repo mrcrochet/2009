@@ -1,5 +1,11 @@
 # Authoring a day
 
+> **Reading this after the pivot.** Where this document says *day*, read **case**: the unit is
+> `content/cases/<id>/`, validated by `CaseContentSchema`, and a case is worked in one sitting
+> rather than across thirty days. The economy and Recall sections describe mechanics that left
+> with 2009 — see `docs/ARCHIVE_2009.md`. Everything about mail, threads, files, the browser, the
+> terminal and the report is current.
+
 The architectural claim in `CLAUDE.md` is that **Days 02–30 are content, not rewrites**. This
 document is how that claim is cashed. If adding a day requires editing `engine/` or
 `components/`, either the day needs a genuinely new mechanic — or the design is wrong and this

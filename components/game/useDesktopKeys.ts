@@ -15,8 +15,8 @@ export function useDesktopKeys(api: GameStoreApi): void {
 
       // Ctrl+` — cycle to the window behind the front one, the way ⌘` always did.
       if (event.key === '`') {
-        const { timeline, dispatch } = api.getState()
-        const open = timeline.windows.filter((w) => !w.minimized)
+        const { investigation, dispatch } = api.getState()
+        const open = investigation.windows.filter((w) => !w.minimized)
         if (open.length < 2) return
         event.preventDefault()
         const front = open.reduce((a, b) => (b.z > a.z ? b : a))
@@ -39,9 +39,9 @@ export function useDesktopKeys(api: GameStoreApi): void {
 
       // Ctrl+E — the evidence tray.
       if (key === 'e') {
-        const { timeline, dispatch } = api.getState()
+        const { investigation, dispatch } = api.getState()
         event.preventDefault()
-        if (!timeline.ui.trayOpen) dispatch({ type: 'TRAY_TOGGLED', open: true })
+        if (!investigation.ui.trayOpen) dispatch({ type: 'TRAY_TOGGLED', open: true })
         requestAnimationFrame(() => {
           document.querySelector<HTMLElement>('.hal-tray__board')?.focus()
         })

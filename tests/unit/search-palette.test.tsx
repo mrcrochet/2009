@@ -58,7 +58,7 @@ const world = WorldSchema.parse({
       title: 'SAAB SERVICE MTL',
       body: 'Marc paid for a service.',
       source: 'Chequing',
-      surface: 'bank',
+      surface: 'device',
       mentions: ['marc'],
       factId: 'fact-saab',
       amountCents: -18400,
@@ -138,7 +138,7 @@ const noop = () => {}
 describe('search palette', () => {
   it('shows a count per surface before anything is opened', async () => {
     const user = userEvent.setup()
-    mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
 
     await user.type(screen.getByLabelText('Find:'), 'marc')
 
@@ -148,13 +148,13 @@ describe('search palette', () => {
     expect(within(filters).getByRole('button', { name: /People/ })).toHaveTextContent('3')
     expect(within(filters).getByRole('button', { name: /Mail/ })).toHaveTextContent('2')
     expect(within(filters).getByRole('button', { name: /Files/ })).toHaveTextContent('1')
-    expect(within(filters).getByRole('button', { name: /Bank/ })).toHaveTextContent('1')
+    expect(within(filters).getByRole('button', { name: /Devices/ })).toHaveTextContent('1')
     expect(within(filters).getByRole('button', { name: /Web/ })).toHaveTextContent('1')
   })
 
   it('filters to one surface without shrinking the other counts', async () => {
     const user = userEvent.setup()
-    mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
 
     await user.type(screen.getByLabelText('Find:'), 'marc')
     await user.click(screen.getByRole('button', { name: /Mail/ }))
@@ -168,12 +168,12 @@ describe('search palette', () => {
 
     // The point of the column: while reading the mail you can still see there is a bank line.
     const filters = screen.getByRole('group', { name: 'Filter by source' })
-    expect(within(filters).getByRole('button', { name: /Bank/ })).toHaveTextContent('1')
+    expect(within(filters).getByRole('button', { name: /Devices/ })).toHaveTextContent('1')
   })
 
   it('restricts to what the player has found, and does not leak an unmet name', async () => {
     const user = userEvent.setup()
-    mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
 
     await user.type(screen.getByLabelText('Find:'), 'marc')
     expect(screen.getByText('Marc Delacroix')).toBeInTheDocument()
@@ -189,7 +189,7 @@ describe('search palette', () => {
 
   it('reaches a person through an alias', async () => {
     const user = userEvent.setup()
-    mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
 
     await user.type(screen.getByLabelText('Find:'), 'saabman81')
     expect(screen.getAllByRole('option')[0]).toHaveTextContent('Marc Trudeau')
@@ -199,7 +199,7 @@ describe('search palette', () => {
     const user = userEvent.setup()
     const onOpenHit = vi.fn<(hit: SearchHit) => void>()
     const onClose = vi.fn()
-    mount(<SearchPalette open onClose={onClose} onOpenHit={onOpenHit} />)
+    mount(<SearchPalette open onClose={onClose} onOpenHit={onOpenHit} machine="NOVA" />)
 
     const input = screen.getByLabelText('Find:')
     await user.type(input, 'marc')
@@ -229,7 +229,7 @@ describe('search palette', () => {
 
   it('wraps at the ends and jumps with Home and End', async () => {
     const user = userEvent.setup()
-    mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
 
     await user.type(screen.getByLabelText('Find:'), 'marc')
     const count = screen.getAllByRole('option').length
@@ -247,7 +247,7 @@ describe('search palette', () => {
   it('closes on Escape and on the close button', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
-    mount(<SearchPalette open onClose={onClose} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={onClose} onOpenHit={noop} machine="NOVA" />)
 
     await user.keyboard('{Escape}')
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -262,9 +262,9 @@ describe('search palette', () => {
     document.body.append(opener)
     opener.focus()
 
-    const { rerender } = mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    const { rerender } = mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
 
-    const dialog = screen.getByRole('dialog', { name: 'Search HALCYON' })
+    const dialog = screen.getByRole('dialog', { name: 'Search NOVA' })
     for (let i = 0; i < 8; i += 1) {
       await user.tab()
       expect(dialog.contains(document.activeElement)).toBe(true)
@@ -272,7 +272,7 @@ describe('search palette', () => {
 
     rerender(
       <WorldProvider value={{ index, discovered: found }}>
-        <SearchPalette open={false} onClose={noop} onOpenHit={noop} />
+        <SearchPalette open={false} onClose={noop} onOpenHit={noop} machine="NOVA" />
       </WorldProvider>,
     )
     expect(opener).toHaveFocus()
@@ -280,13 +280,13 @@ describe('search palette', () => {
   })
 
   it('says nothing rather than nothing-found before the query is a query', () => {
-    mount(<SearchPalette open onClose={noop} onOpenHit={noop} />)
+    mount(<SearchPalette open onClose={noop} onOpenHit={noop} machine="NOVA" />)
     expect(screen.getByRole('status')).toHaveTextContent(/at least two characters/)
     expect(screen.queryAllByRole('option')).toHaveLength(0)
   })
 
   it('renders nothing at all when closed', () => {
-    const { container } = mount(<SearchPalette open={false} onClose={noop} onOpenHit={noop} />)
+    const { container } = mount(<SearchPalette open={false} onClose={noop} onOpenHit={noop} machine="NOVA" />)
     expect(container).toBeEmptyDOMElement()
   })
 })

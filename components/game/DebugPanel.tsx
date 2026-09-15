@@ -1,19 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { useGame, useTimeline } from './GameContext'
+import { useGame, useInvestigation } from './GameContext'
 
 /** Development only. Never rendered in a production game session. */
 export function DebugPanel() {
   const [open, setOpen] = useState(false)
   const replay = useGame((s) => s.replay)
-  const state = useTimeline((s) => s)
+  const state = useInvestigation((s) => s)
 
   if (process.env.NEXT_PUBLIC_DEBUG_PANEL !== '1') return null
 
   const replayed = open ? replay() : null
   const matches = replayed
-    ? replayed.cashCents === state.cashCents && replayed.minuteOfDay === state.minuteOfDay
+    ? replayed.evidence.length === state.evidence.length && replayed.minute === state.minute
     : null
 
   return (
@@ -48,12 +48,16 @@ export function DebugPanel() {
       {open ? (
         <div style={{ marginTop: 6 }}>
           <div>events: {state.eventLog.length}</div>
-          <div>minute: {state.minuteOfDay}</div>
-          <div>cash: {state.cashCents}c</div>
+          <div>minute: {state.minute}</div>
           <div>
-            shift: {state.temporalShift} · div: {state.divergence} · heat: {state.heat}
+            evidence: {state.evidence.length} · claims: {state.claimLog.length} · exposure:{' '}
+            {state.exposure}
           </div>
-          <div>integrity: {state.memoryIntegrity}</div>
+          <div>
+            devices:{' '}
+            {Object.values(state.devices).filter((d) => d.unlocked).length}/
+            {Object.keys(state.devices).length} · services: {state.services.length}
+          </div>
           <div>replay: {matches ? 'matches snapshot' : 'DIVERGED'}</div>
         </div>
       ) : null}
