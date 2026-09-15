@@ -290,6 +290,29 @@ describe('the world corpus holds together', () => {
   })
 
   /**
+   * The rule `docs/CORPUS.md` states and nothing enforced.
+   *
+   * Two traces is the floor for anything, and it is not enough for a fact the case turns on: a
+   * plot fact on two traces is a key with a spare. Four means any two or three of them are
+   * enough, two players assemble it from different halves, and the rest are why the world feels
+   * larger than the case. The anomalous layer is held to three rather than four because it is
+   * rationed to about one page in a hundred by the ratio above, and four of a thing that rare
+   * starts to look like signposting.
+   */
+  it('carries a plot fact on enough traces to be worked out', () => {
+    const floors: Record<string, number> = { suggestive: 4, anomalous: 3 }
+    for (const fact of WORLD.facts) {
+      const floor = floors[fact.register]
+      if (!floor) continue
+      const traces = WORLD.artifacts.filter((a) => a.factId === fact.id).length
+      expect(
+        traces,
+        `"${fact.statement}" is ${fact.register} and rests on ${traces} trace(s)`,
+      ).toBeGreaterThanOrEqual(floor)
+    }
+  })
+
+  /**
    * One fact, many surfaces. A fact carried by a single artifact is a key: lose it and the chain
    * is dead, find it and there was nothing to work out.
    */

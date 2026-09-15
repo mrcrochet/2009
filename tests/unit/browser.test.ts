@@ -3,6 +3,8 @@ import { selectPage, selectSearchResults } from '@/engine/selectors'
 import { searchIndex } from '@/engine/rules'
 import { normalizeUrl } from '@/engine/url'
 import { resolveBlocks } from '@/engine/pages'
+import { GAME_WORLD } from '@/content'
+import { artifactUrl } from '@/engine/world'
 import { content, dispatch, fresh, run } from './helpers'
 
 /** Every flag any page variant keys on, so a check can see every version of the web. */
@@ -97,17 +99,33 @@ describe('fictional browser', () => {
 describe('the web is actually a web', () => {
   const pageUrls = new Set(content.browser.pages.map((p) => p.url))
 
+  /**
+   * A case's pages and the corpus are one internet.
+   *
+   * This used to check a link against the case's own pages only, which would have made linking
+   * to the rest of the web a test failure — and the rest of the web is the point of having a
+   * corpus. What has to be true is narrower and stricter: every address written on a page goes
+   * somewhere, whether that somewhere was authored by this case or by the world it happens in.
+   */
+  const reachableUrls = new Set([
+    ...pageUrls,
+    ...GAME_WORLD.artifacts.flatMap((a) => {
+      const url = artifactUrl(a)
+      return url ? [url] : []
+    }),
+  ])
+
   it('every link and nav item on every page resolves to a page that exists', () => {
     for (const page of content.browser.pages) {
       for (const flags of [{}, EVERY_FLAG]) {
         for (const block of resolveBlocks(page, flags)) {
           if (block.kind === 'nav') {
             for (const item of block.items) {
-              expect(pageUrls.has(item.url), `${page.url} → ${item.url}`).toBe(true)
+              expect(reachableUrls.has(item.url), `${page.url} → ${item.url}`).toBe(true)
             }
           }
           if (block.kind === 'link' && block.url) {
-            expect(pageUrls.has(block.url), `${page.url} → ${block.url}`).toBe(true)
+            expect(reachableUrls.has(block.url), `${page.url} → ${block.url}`).toBe(true)
           }
         }
       }

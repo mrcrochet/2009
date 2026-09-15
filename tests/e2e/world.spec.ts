@@ -48,8 +48,18 @@ test.describe('the world', () => {
     await expect(results).toContainText('receipt-fremont-0609.pdf')
     await expect(results).toContainText('Frequently asked questions')
 
-    // Dates are stored ISO so they sort, and never shown that way.
-    await expect(results).not.toContainText(/\d{4}-\d{2}/)
+    /*
+     * Dates are stored ISO so they sort, and never *rendered* that way.
+     *
+     * Asserted on the date itself rather than on the whole row: a detail line is "date · source",
+     * and a real news URL has a date in it. Forbidding the string anywhere in the listbox would
+     * have banned `kgw-portland.com/traffic/2026-06-16`, which is what such a page is called.
+     */
+    const dates = await results.locator('.nova-search__hitdetail').allTextContents()
+    expect(dates.length).toBeGreaterThan(0)
+    for (const detail of dates) {
+      expect(detail.split(' · ')[0], detail).not.toMatch(/\d{4}-\d{2}/)
+    }
 
     // Arrows move the selection; the field keeps the caret.
     await page.keyboard.press('ArrowDown')

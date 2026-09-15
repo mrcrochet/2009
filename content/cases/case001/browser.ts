@@ -42,10 +42,17 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
             { label: 'Nonprofits', url: 'marlowfoundation.org' },
             { label: 'Business', url: 'ridgelinepartners.com/team' },
             { label: 'Local', url: 'pdxbands.com/the-hollow-coast' },
+            { label: 'Telecoms', url: 'cascademobile.com' },
           ],
         },
         { kind: 'p', text: 'Portland · Oregon · 4,112 listings' },
         { kind: 'link', label: 'Fremont Street Parking', url: 'fremontparking.com', note: null },
+        {
+          kind: 'link',
+          label: 'Ridgeline Partners',
+          url: 'ridgelinepartners.com',
+          note: 'Private capital',
+        },
       ],
     },
     {
@@ -163,7 +170,56 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
           kind: 'p',
           text: 'The 2013 filing is not published here. A scanned copy is held in the Oregon nonprofit registry.',
         },
-        { kind: 'link', label: 'Oregon nonprofit registry', url: null, note: 'Offline' },
+        {
+          kind: 'link',
+          label: 'Oregon nonprofit registry',
+          url: null,
+          note: 'sos.oregon.gov/nonprofits',
+        },
+      ],
+    },
+    {
+      url: 'ridgelinepartners.com',
+      background: '#f7f7f4',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Ridgeline Partners', ink: '#2b3a2f' },
+        { kind: 'sub', text: 'Private capital · Portland, Oregon · founded 2011' },
+        { kind: 'rule' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Team', url: 'ridgelinepartners.com/team' },
+            { label: 'About', url: 'ridgelinepartners.com/about' },
+            { label: 'Careers', url: 'ridgelinepartners.com/careers' },
+          ],
+        },
+        {
+          kind: 'p',
+          text: 'We manage capital for families and foundations in the Pacific Northwest. We are not accepting new clients.',
+        },
+      ],
+    },
+    {
+      url: 'cascademobile.com',
+      background: '#ffffff',
+      dark: false,
+      blocks: [
+        { kind: 'heading', text: 'Cascade Mobile', ink: '#2a4a6a' },
+        { kind: 'sub', text: 'Coverage · Plans · Support' },
+        { kind: 'rule' },
+        {
+          kind: 'nav',
+          items: [
+            { label: 'Plans', url: 'cascademobile.com/plans' },
+            { label: 'Records', url: 'cascademobile.com/support/records' },
+            { label: 'Status', url: 'cascademobile.com/status' },
+          ],
+        },
+        {
+          kind: 'p',
+          text: 'Handsets hold the last 30 days of call and message metadata. Longer histories are held on the account and released under our carrier obligations.',
+        },
       ],
     },
     {
@@ -279,7 +335,24 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
       title: 'Oregon Nonprofit Registry',
       url: 'sos.oregon.gov/nonprofits',
       snippet: 'Search registered nonprofit corporations. Scanned filings 2008–present.',
-      // Indexed, but not a page inside this simulation.
+      // Indexed, and the scanned filings themselves live in the corpus rather than here — an
+      // address typed from this row reaches a document the case never authored.
+      go: null,
+    },
+    {
+      id: 'i-cascade',
+      keys: ['cascade mobile', 'carrier', 'call records'],
+      title: 'Cascade Mobile',
+      url: 'cascademobile.com',
+      snippet: 'Handsets hold the last 30 days of call and message metadata.',
+      go: 'cascademobile.com',
+    },
+    {
+      id: 'i-okafor',
+      keys: ['nadia okafor', 'okafor'],
+      title: 'Ridgeline Partners — Careers',
+      url: 'ridgelinepartners.com/careers',
+      snippet: 'We are hiring an operations associate. Portland office, four days on site.',
       go: null,
     },
   ],

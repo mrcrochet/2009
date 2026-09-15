@@ -61,10 +61,15 @@ Portland, Oregon · present day · USD · **NOVA 3.2** workstation · the **UNLI
 **Case 001 — He Never Came Home.** 17 June 2026. Client Claire Mercer; subject Daniel Mercer,
 missing since 9 June; Richard Vale, Ridgeline Partners, the Marlow Foundation, Nadia Okafor.
 
-The case content in `content/cases/case001/` is a **scaffold**: every surface the engine has is
-authored at least once so the shape of a case is legible and the invariants are exercised. The
-density this product needs — the ordinary web around the case, the side stories, the sixth trace
-on a fact — is authoring still to come.
+`content/cases/case001/` authors ten pieces of evidence, four claims, five messages, eight
+documents, two devices, one paid recovery and eleven pages of its own web. `content/world/` holds
+sixty-nine artifacts carrying thirteen facts, and `content/index.ts` projects the case into it, so
+the searchable world is ninety-four documents deep.
+
+The shape of the corpus is measured, not asserted: **64% ordinary, 12% side story, 7% economic,
+13% suggestive, 4% anomalous.** The suggestive facts carry four and five traces, so any two or
+three of them are enough and two players can assemble the same conclusion from different halves.
+`tests/unit/content.test.ts` fails the build when that stops being true.
 
 ## 4. Production stack
 
@@ -246,8 +251,9 @@ page variants, the report gate, save migration, engine purity.
 The corpus has invariants of its own, and they fail the build: a page on the web with no address,
 two documents at one address, a connection nothing the player could hold supports, a fact carried
 by a single trace, an untrue document nothing catches, a world that has stopped being mostly
-ordinary, a device nothing can open, an app the dock names and the case never declared, and a case
-whose only sound claim is behind a paywall. `tests/unit/content.test.ts` is the corpus report — it
+ordinary, a plot fact resting on too few traces to be worked out, a device nothing can open, an
+app the dock names and the case never declared, and a case whose only sound claim is behind a
+paywall. `tests/unit/content.test.ts` is the corpus report — it
 fails with the numbers in the message.
 
 E2E: the full Case 001 golden path (`tests/e2e/case001.spec.ts`), the world surfaces
