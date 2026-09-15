@@ -2,17 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GameProvider } from '@/components/game/GameContext'
-import { WayUpOverlay } from '@/components/game/WayUpOverlay'
+import { RelayOverlay } from '@/components/game/RelayOverlay'
 import { createGameStore, type GameStoreApi } from '@/state/store'
 import type { EventInput } from '@/engine/events'
-import type { WayUpSnapshot } from '@/lib/wayup/types'
+import type { RelaySnapshot } from '@/lib/relay/types'
 import { content, fresh } from './helpers'
 
 /**
  * The relay console.
  *
  * Everything behind this screen is already proven elsewhere: the reducer meters the signal
- * (`mysteries.test.ts`), the routes refuse hostile addresses (`wayup-security.test.ts`), the
+ * (`mysteries.test.ts`), the routes refuse hostile addresses (`relay-security.test.ts`), the
  * snapshot is immutable and replays (`replay.test.ts`). What is only provable here is that the
  * *console* is honest about all of it — that it spends what it says it spends, says what the day
  * authored rather than what the server muttered, and never puts a byte of the real web into the
@@ -24,7 +24,7 @@ import { content, fresh } from './helpers'
 
 const cfg = content.relay!
 
-const SNAPSHOT: WayUpSnapshot = {
+const SNAPSHOT: RelaySnapshot = {
   id: 'wu_0123456789abcdef0123456789abcdef',
   canonicalUrl: 'https://columbia-register.com/archive/173',
   title: 'Aion Group — settlements, filings',
@@ -94,8 +94,8 @@ function stubFetch(answers: Answers) {
 
 /** The console as the terminal leaves it: the process admitted, the screen taken. */
 const ATTACHED: EventInput[] = [
-  { type: 'WAYUP_UNLOCKED', via: 'terminal' },
-  { type: 'WAYUP_TOGGLED', open: true },
+  { type: 'RELAY_UNLOCKED', via: 'terminal' },
+  { type: 'RELAY_TOGGLED', open: true },
 ]
 
 function mount(seed: readonly EventInput[] = ATTACHED) {
@@ -103,7 +103,7 @@ function mount(seed: readonly EventInput[] = ATTACHED) {
   for (const input of seed) api.getState().dispatch(input)
   const utils = render(
     <GameProvider value={api}>
-      <WayUpOverlay />
+      <RelayOverlay />
     </GameProvider>,
   )
   return { api, ...utils }
@@ -126,7 +126,7 @@ function selectContentsOf(node: Node) {
 }
 
 const observations = (api: GameStoreApi) =>
-  api.getState().investigation.eventLog.filter((e) => e.type === 'WAYUP_SNAPSHOT_OBSERVED')
+  api.getState().investigation.eventLog.filter((e) => e.type === 'RELAY_SNAPSHOT_OBSERVED')
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -137,7 +137,7 @@ afterEach(() => {
 
 describe('no carrier', () => {
   /**
-   * There is no `FIRECRAWL_API_KEY` in development or in CI, so `/api/wayup/search` answers 503
+   * There is no `FIRECRAWL_API_KEY` in development or in CI, so `/api/relay/search` answers 503
    * and this is the whole feature as most people will meet it. It has to be a screen the machine
    * would print, not a failed request wearing a stack trace.
    */
@@ -154,11 +154,11 @@ describe('no carrier', () => {
     expect(document.body.textContent).not.toContain('the relay has no index on this side')
 
     // And nothing on this screen could spend the day's signal: there is nothing to open.
-    expect(container.querySelectorAll('.hal-wayup__row')).toHaveLength(0)
+    expect(container.querySelectorAll('.hal-relay__row')).toHaveLength(0)
     expect(screen.queryByRole('button', { name: cfg.pinLabel })).not.toBeInTheDocument()
-    expect(api.getState().investigation.wayup.signalSpent).toBe(0)
+    expect(api.getState().investigation.relay.signalSpent).toBe(0)
     // Rendered from the case's own template, because the console's vocabulary is content.
-    expect(screen.getByTestId('wayup-signal')).toHaveTextContent(
+    expect(screen.getByTestId('relay-signal')).toHaveTextContent(
       cfg.signalTemplate
         .replace('{{left}}', String(cfg.signalBudget))
         .replace('{{budget}}', String(cfg.signalBudget)),
@@ -244,9 +244,9 @@ describe('the budget', () => {
       ),
     ).toBeInTheDocument()
 
-    expect(api.getState().investigation.wayup.observed).toEqual([SNAPSHOT.id])
+    expect(api.getState().investigation.relay.observed).toEqual([SNAPSHOT.id])
     // Asking cost too. The question is charged on the answer, the page on the opening.
-    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.searchCost + cfg.openCost)
+    expect(api.getState().investigation.relay.signalSpent).toBe(cfg.searchCost + cfg.openCost)
     expect(observations(api)).toHaveLength(1)
     expect(observations(api)[0]).toMatchObject({
       snapshotId: SNAPSHOT.id,
@@ -260,7 +260,7 @@ describe('the budget', () => {
     await user.click(await screen.findByRole('button', { name: /settlements, filings/i }))
     await screen.findByRole('button', { name: cfg.backLabel })
 
-    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.searchCost + cfg.openCost)
+    expect(api.getState().investigation.relay.signalSpent).toBe(cfg.searchCost + cfg.openCost)
     expect(observations(api)).toHaveLength(1)
     expect(fetchMock).toHaveBeenCalledTimes(3)
   })
@@ -276,7 +276,7 @@ describe('the budget', () => {
     const fetchMock = stubFetch({ search: reply(200, { query: 'x', results: [], provider: 'f' }) })
     const { api } = mount([
       ...ATTACHED,
-      { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_spent', signalCost: cfg.signalBudget },
+      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_spent', signalCost: cfg.signalBudget },
     ])
 
     const button = screen.getByRole('button', { name: cfg.submitLabel })
@@ -289,7 +289,7 @@ describe('the budget', () => {
     // The reducer would refuse the spend anyway; the point is that the player is never sent to
     // find that out.
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.signalBudget)
+    expect(api.getState().investigation.relay.signalSpent).toBe(cfg.signalBudget)
   })
 
   it('closes the returns the moment the day’s signal runs out', async () => {
@@ -307,7 +307,7 @@ describe('the budget', () => {
     // rows are still on screen.
     act(() => {
       api.getState().dispatch({
-        type: 'WAYUP_SNAPSHOT_OBSERVED',
+        type: 'RELAY_SNAPSHOT_OBSERVED',
         snapshotId: 'wu_elsewhere',
         // Everything the day had left after the question that produced these rows.
         signalCost: cfg.signalBudget - cfg.searchCost,
@@ -336,17 +336,17 @@ describe('the budget', () => {
     // Asking first: no index, and the console says so and takes nothing.
     await transmit(user, 'aion group')
     expect(await screen.findByText(cfg.offlineTitle)).toBeInTheDocument()
-    expect(api.getState().investigation.wayup.signalSpent).toBe(0)
+    expect(api.getState().investigation.relay.signalSpent).toBe(0)
 
     // The same field, given an address whole.
     await transmit(user, 'example.test/filings/aion')
     await screen.findByRole('button', { name: cfg.backLabel })
-    expect(api.getState().investigation.wayup.observed).toEqual([SNAPSHOT.id])
+    expect(api.getState().investigation.relay.observed).toEqual([SNAPSHOT.id])
     // It cost an opening, not a question.
-    expect(api.getState().investigation.wayup.signalSpent).toBe(cfg.openCost)
+    expect(api.getState().investigation.relay.signalSpent).toBe(cfg.openCost)
 
     const calls = fetchMock.mock.calls.map((c) => String(c[0]))
-    expect(calls).toContain('/api/wayup/fetch')
+    expect(calls).toContain('/api/relay/fetch')
   })
 
   it('says the authored line rather than an empty list', async () => {
@@ -440,8 +440,8 @@ describe('keeping a line', () => {
     expect(doc).toHaveAttribute('aria-activedescendant', options[1]!.id)
 
     await user.keyboard('{Enter}')
-    await waitFor(() => expect(api.getState().investigation.wayup.kept).toHaveLength(1))
-    expect(api.getState().investigation.wayup.kept[0]!.excerpt).toBe(
+    await waitFor(() => expect(api.getState().investigation.relay.kept).toHaveLength(1))
+    expect(api.getState().investigation.relay.kept[0]!.excerpt).toBe(
       options[1]!.textContent?.trim(),
     )
   })
@@ -454,7 +454,7 @@ describe('keeping a line', () => {
     await user.click(screen.getByRole('button', { name: cfg.pinLabel }))
     // The hint is in the console's own status line as well as beside the control.
     expect((await screen.findAllByText(cfg.pinHint)).length).toBeGreaterThan(0)
-    expect(api.getState().investigation.wayup.kept).toHaveLength(0)
+    expect(api.getState().investigation.relay.kept).toHaveLength(0)
   })
 
   it('keeps the selected line, hashed the way the other side hashes', async () => {
@@ -465,11 +465,11 @@ describe('keeping a line', () => {
     selectContentsOf(screen.getByText(line))
     await user.click(screen.getByRole('button', { name: cfg.pinLabel }))
 
-    await waitFor(() => expect(api.getState().investigation.wayup.kept).toHaveLength(1))
-    const kept = api.getState().investigation.wayup.kept[0]!
+    await waitFor(() => expect(api.getState().investigation.relay.kept).toHaveLength(1))
+    const kept = api.getState().investigation.relay.kept[0]!
     expect(kept.snapshotId).toBe(SNAPSHOT.id)
     expect(kept.excerpt).toBe(line)
-    // Hex SHA-256, the shape `lib/wayup/cache.ts` produces on the server side.
+    // Hex SHA-256, the shape `lib/relay/cache.ts` produces on the server side.
     expect(kept.excerptHash).toMatch(/^[0-9a-f]{64}$/)
 
     // And the control says so, in the day's word for it, rather than by going grey.
@@ -491,7 +491,7 @@ describe('keeping a line', () => {
     await user.click(screen.getByRole('button', { name: cfg.pinLabel }))
 
     expect(screen.getByRole('status')).toHaveTextContent(cfg.pinHint)
-    expect(api.getState().investigation.wayup.kept).toHaveLength(0)
+    expect(api.getState().investigation.relay.kept).toHaveLength(0)
   })
 })
 
@@ -514,7 +514,7 @@ describe('the console as a mode', () => {
 
     await user.keyboard('{Escape}')
 
-    expect(api.getState().investigation.ui.wayupOpen).toBe(false)
+    expect(api.getState().investigation.ui.relayOpen).toBe(false)
     await waitFor(() => expect(opener).toHaveFocus())
     opener.remove()
   })
@@ -524,7 +524,7 @@ describe('the console as a mode', () => {
     const { api } = mount()
 
     await user.click(screen.getByRole('button', { name: cfg.closeLabel }))
-    expect(api.getState().investigation.ui.wayupOpen).toBe(false)
+    expect(api.getState().investigation.ui.relayOpen).toBe(false)
   })
 
   it('is not on the machine until the process has been found', () => {

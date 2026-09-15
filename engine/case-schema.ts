@@ -298,7 +298,7 @@ export const RelayConfigSchema = z.object({
   /** Shown when the case's signal is gone. */
   exhausted: z.string().min(1),
   emptyResults: z.string().min(1),
-  /** How the console reports each way a request can be refused, keyed by `WayUpRefusal`. */
+  /** How the console reports each way a request can be refused, keyed by `RelayRefusal`. */
   refusals: z.record(z.string().max(64), z.string()),
   fallbackRefusal: z.string().min(1),
   /**

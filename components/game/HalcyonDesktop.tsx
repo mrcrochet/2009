@@ -11,7 +11,7 @@ import { InvestigationBoard } from './InvestigationBoard'
 import { MenuBar } from './MenuBar'
 import { PhoneOverlay } from './PhoneOverlay'
 import { SurveillanceOverlay } from './SurveillanceOverlay'
-import { WayUpOverlay } from './WayUpOverlay'
+import { RelayOverlay } from './RelayOverlay'
 import { WindowManager } from './WindowManager'
 import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { useWorldOptional } from './WorldContext'
@@ -45,7 +45,7 @@ export function HalcyonDesktop({ onFileReport }: { onFileReport: () => void }) {
   const [directoryFocus, setDirectoryFocus] = useState<string | null>(null)
   const trayOpen = useInvestigation((s) => s.ui.trayOpen)
   const boardOpen = useInvestigation((s) => s.ui.boardOpen)
-  const wayupOpen = useInvestigation((s) => s.ui.wayupOpen)
+  const relayOpen = useInvestigation((s) => s.ui.relayOpen)
   const phoneOpen = useInvestigation((s) => s.phone.open)
 
   // One search across the whole machine. Ctrl+K rather than a dock icon: it is a route through
@@ -64,13 +64,13 @@ export function HalcyonDesktop({ onFileReport }: { onFileReport: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (searchOpen || boardOpen || wayupOpen) return // each handles its own Escape
+      if (searchOpen || boardOpen || relayOpen) return // each handles its own Escape
       if (trayOpen) dispatch({ type: 'TRAY_TOGGLED', open: false })
       else if (phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen, wayupOpen])
+  }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen, relayOpen])
 
   /**
    * Opening a result has to arrive at the document, not at the application that happens to hold
@@ -121,7 +121,7 @@ export function HalcyonDesktop({ onFileReport }: { onFileReport: () => void }) {
       <PhoneOverlay />
       <EvidenceTray />
       <InvestigationBoard />
-      <WayUpOverlay />
+      <RelayOverlay />
       <SearchPalette
         machine={content.osName.split(' ')[0] ?? 'the machine'}
         open={searchOpen}

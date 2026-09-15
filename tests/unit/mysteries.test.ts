@@ -170,24 +170,24 @@ describe('unlocking', () => {
 
 describe('signal', () => {
   it('a page already read costs nothing to read again', () => {
-    let state = dispatch(fresh(), { type: 'WAYUP_UNLOCKED', via: 'terminal' })
+    let state = dispatch(fresh(), { type: 'RELAY_UNLOCKED', via: 'terminal' })
     const before = signalRemaining(state, content)
 
-    state = dispatch(state, { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
+    state = dispatch(state, { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
     expect(signalRemaining(state, content)).toBe(before - 6)
 
-    state = dispatch(state, { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
+    state = dispatch(state, { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
     expect(signalRemaining(state, content)).toBe(before - 6)
-    expect(state.wayup.observed).toEqual(['wu_a'])
+    expect(state.relay.observed).toEqual(['wu_a'])
   })
 
   it('nothing is observed before the relay has been found', () => {
     const state = dispatch(fresh(), {
-      type: 'WAYUP_SNAPSHOT_OBSERVED',
+      type: 'RELAY_SNAPSHOT_OBSERVED',
       snapshotId: 'wu_a',
       signalCost: 6,
     })
-    expect(state.wayup.observed).toEqual([])
+    expect(state.relay.observed).toEqual([])
   })
 
   /**
@@ -199,17 +199,17 @@ describe('signal', () => {
    */
   it('does not refill, because a case is one sitting', () => {
     const state = run(fresh(), [
-      { type: 'WAYUP_UNLOCKED', via: 'terminal' },
-      { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 9 },
+      { type: 'RELAY_UNLOCKED', via: 'terminal' },
+      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 9 },
     ])
     expect(signalRemaining(state, content)).toBe(content.relay!.signalBudget - 9)
-    expect(state.wayup.observed).toEqual(['wu_a'])
-    expect(state.wayup.unlocked).toBe(true)
+    expect(state.relay.observed).toEqual(['wu_a'])
+    expect(state.relay.unlocked).toBe(true)
   })
 
   it('an excerpt can only be pinned from a page actually seen', () => {
     const unseen = dispatch(fresh(), {
-      type: 'WAYUP_EXCERPT_KEPT',
+      type: 'RELAY_EXCERPT_KEPT',
       id: 'f1',
       snapshotId: 'wu_never',
       excerpt: 'x',
@@ -217,13 +217,13 @@ describe('signal', () => {
       sourceTitle: 'A page',
       excerptHash: 'a'.repeat(64),
     })
-    expect(unseen.wayup.kept).toEqual([])
+    expect(unseen.relay.kept).toEqual([])
 
     const seen = run(fresh(), [
-      { type: 'WAYUP_UNLOCKED', via: 'terminal' },
-      { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
+      { type: 'RELAY_UNLOCKED', via: 'terminal' },
+      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
       {
-        type: 'WAYUP_EXCERPT_KEPT',
+        type: 'RELAY_EXCERPT_KEPT',
         id: 'f1',
         snapshotId: 'wu_a',
         excerpt: 'Its incorporation date has changed.',
@@ -232,8 +232,8 @@ describe('signal', () => {
         excerptHash: 'b'.repeat(64),
       },
     ])
-    expect(seen.wayup.kept).toHaveLength(1)
-    expect(seen.wayup.kept[0]?.capturedAt).toBe(seen.minute)
+    expect(seen.relay.kept).toHaveLength(1)
+    expect(seen.relay.kept[0]?.capturedAt).toBe(seen.minute)
   })
 })
 
@@ -243,7 +243,7 @@ describe('signal', () => {
  */
 describe('what a kept line costs, and where it goes', () => {
   const keep = (id: string, hash: string) => ({
-    type: 'WAYUP_EXCERPT_KEPT' as const,
+    type: 'RELAY_EXCERPT_KEPT' as const,
     id,
     snapshotId: 'wu_a',
     excerpt: 'a sentence that has not happened',
@@ -254,21 +254,21 @@ describe('what a kept line costs, and where it goes', () => {
 
   const seen = () =>
     run(fresh(), [
-      { type: 'WAYUP_UNLOCKED', via: 'terminal' },
-      { type: 'WAYUP_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
+      { type: 'RELAY_UNLOCKED', via: 'terminal' },
+      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
     ])
 
   it('moves the world, because the sentence is now somewhere it was not', () => {
     const before = seen()
     const after = dispatch(before, keep('f1', 'a'.repeat(64)))
     expect(after.exposure).toBe(before.exposure + content.relay!.keepExposure)
-    expect(after.wayup.kept).toHaveLength(1)
+    expect(after.relay.kept).toHaveLength(1)
   })
 
   it('remembers where it came from, so an offline replay can still say', () => {
     const after = dispatch(seen(), keep('f1', 'a'.repeat(64)))
-    expect(after.wayup.kept[0]?.sourceUrl).toBe('example.test/a')
-    expect(after.wayup.kept[0]?.sourceTitle).toBe('A page')
+    expect(after.relay.kept[0]?.sourceUrl).toBe('example.test/a')
+    expect(after.relay.kept[0]?.sourceTitle).toBe('A page')
   })
 
   it('is read back on the report', () => {
@@ -281,7 +281,7 @@ describe('what a kept line costs, and where it goes', () => {
     let state = dispatch(seen(), keep('f1', 'a'.repeat(64)))
     const once = state.exposure
     state = dispatch(state, keep('f2', 'a'.repeat(64)))
-    expect(state.wayup.kept).toHaveLength(1)
+    expect(state.relay.kept).toHaveLength(1)
     expect(state.exposure).toBe(once)
   })
 })
@@ -289,8 +289,8 @@ describe('what a kept line costs, and where it goes', () => {
 describe('asking costs, even when nothing comes back', () => {
   it('spends signal on the question, not only on the answer', () => {
     const state = run(fresh(), [
-      { type: 'WAYUP_UNLOCKED', via: 'terminal' },
-      { type: 'WAYUP_SEARCHED', signalCost: content.relay!.searchCost },
+      { type: 'RELAY_UNLOCKED', via: 'terminal' },
+      { type: 'RELAY_SEARCHED', signalCost: content.relay!.searchCost },
     ])
     expect(signalRemaining(state, content)).toBe(
       content.relay!.signalBudget - content.relay!.searchCost,
@@ -298,16 +298,16 @@ describe('asking costs, even when nothing comes back', () => {
   })
 
   it('cannot be asked past the case’s budget', () => {
-    const unlocked = dispatch(fresh(), { type: 'WAYUP_UNLOCKED', via: 'terminal' })
+    const unlocked = dispatch(fresh(), { type: 'RELAY_UNLOCKED', via: 'terminal' })
     const over = dispatch(unlocked, {
-      type: 'WAYUP_SEARCHED',
+      type: 'RELAY_SEARCHED',
       signalCost: content.relay!.signalBudget + 1,
     })
     expect(over).toBe(unlocked)
   })
 
   it('is not a thing an unattached machine can do', () => {
-    const state = dispatch(fresh(), { type: 'WAYUP_SEARCHED', signalCost: 1 })
-    expect(state.wayup.signalSpent).toBe(0)
+    const state = dispatch(fresh(), { type: 'RELAY_SEARCHED', signalCost: 1 })
+    expect(state.relay.signalSpent).toBe(0)
   })
 })

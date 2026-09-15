@@ -9,15 +9,15 @@ import {
   rateLimit,
   rateLimitKey,
   safeFetch,
-} from '@/lib/wayup/security'
+} from '@/lib/relay/security'
 import {
   contentHashOf,
   extractFromHtml,
   snapshotFrom,
   snapshotIdFor,
   toBlocks,
-} from '@/lib/wayup/cache'
-import { WayUpRefused } from '@/lib/wayup/types'
+} from '@/lib/relay/cache'
+import { RelayRefused } from '@/lib/relay/types'
 
 /**
  * The Way Up Machine reaches the real internet on a player's behalf, which makes this the one
@@ -30,7 +30,7 @@ function refusalFor(url: string): string | null {
     assertSafeUrl(url)
     return null
   } catch (error) {
-    return error instanceof WayUpRefused ? error.refusal : 'unknown'
+    return error instanceof RelayRefused ? error.refusal : 'unknown'
   }
 }
 
@@ -305,7 +305,7 @@ describe('safeFetch', () => {
   it('refuses a host that resolves into the private network', async () => {
     const fetchImpl = vi.fn(async () => response({ body: 'ok' })) as unknown as typeof fetch
     const resolve = async () => {
-      throw new WayUpRefused('private-address', 'that host points somewhere private')
+      throw new RelayRefused('private-address', 'that host points somewhere private')
     }
     await expect(
       safeFetch('https://rebind.example/', { fetchImpl, resolve }),

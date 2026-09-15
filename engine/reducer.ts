@@ -36,7 +36,7 @@ export const LIMITS = {
   claimLog: 128,
   notes: 20_000,
   discovered: 4096,
-  wayupObserved: 512,
+  relayObserved: 512,
   kept: 256,
 } as const
 
@@ -636,7 +636,7 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
         minute: content.sessionMinutes,
         windows: [],
         phone: { ...state.phone, open: false },
-        ui: { trayOpen: false, boardOpen: false, watched: true, reportCard: false, wayupOpen: false },
+        ui: { trayOpen: false, boardOpen: false, watched: true, reportCard: false, relayOpen: false },
         mail: { ...state.mail, unknownArrived: true, openId: content.unknownMail.id },
       }
     }
@@ -646,17 +646,17 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return { ...state, ui: { ...state.ui, reportCard: true } }
 
     // --- the relay ---------------------------------------------------------
-    case 'WAYUP_UNLOCKED': {
-      if (state.wayup.unlocked) return state
-      return { ...state, wayup: { ...state.wayup, unlocked: true } }
+    case 'RELAY_UNLOCKED': {
+      if (state.relay.unlocked) return state
+      return { ...state, relay: { ...state.relay, unlocked: true } }
     }
 
-    case 'WAYUP_TOGGLED': {
+    case 'RELAY_TOGGLED': {
       // Nothing to open until the machine has admitted the process exists.
-      if (!state.wayup.unlocked) return state
-      const open = event.open ?? !state.ui.wayupOpen
-      if (open === state.ui.wayupOpen) return state
-      return { ...state, ui: { ...state.ui, wayupOpen: open } }
+      if (!state.relay.unlocked) return state
+      const open = event.open ?? !state.ui.relayOpen
+      if (open === state.ui.relayOpen) return state
+      return { ...state, ui: { ...state.ui, relayOpen: open } }
     }
 
     /**
@@ -664,40 +664,40 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
      * snapshot and what the look cost, so a replay shows the bytes the player read rather than
      * whatever the site says today.
      */
-    case 'WAYUP_SNAPSHOT_OBSERVED': {
-      if (!state.wayup.unlocked) return state
-      const seen = state.wayup.observed.includes(event.snapshotId)
+    case 'RELAY_SNAPSHOT_OBSERVED': {
+      if (!state.relay.unlocked) return state
+      const seen = state.relay.observed.includes(event.snapshotId)
       // The budget is the mechanic. Without this the cost is a number the console prints and
       // the player can ignore, and a metered look at the future is not metered at all.
       const budget = content.relay?.signalBudget ?? 0
-      if (!seen && state.wayup.signalSpent + event.signalCost > budget) return state
+      if (!seen && state.relay.signalSpent + event.signalCost > budget) return state
       return {
         ...state,
-        wayup: {
-          ...state.wayup,
+        relay: {
+          ...state.relay,
           observed: seen
-            ? state.wayup.observed
-            : [...state.wayup.observed, event.snapshotId].slice(-LIMITS.wayupObserved),
+            ? state.relay.observed
+            : [...state.relay.observed, event.snapshotId].slice(-LIMITS.relayObserved),
           // A page already read costs nothing to read again. The cost is in reaching for it.
-          signalSpent: seen ? state.wayup.signalSpent : state.wayup.signalSpent + event.signalCost,
+          signalSpent: seen ? state.relay.signalSpent : state.relay.signalSpent + event.signalCost,
         },
       }
     }
 
-    case 'WAYUP_SEARCHED': {
-      if (!state.wayup.unlocked) return state
+    case 'RELAY_SEARCHED': {
+      if (!state.relay.unlocked) return state
       const budget = content.relay?.signalBudget ?? 0
-      if (state.wayup.signalSpent + event.signalCost > budget) return state
+      if (state.relay.signalSpent + event.signalCost > budget) return state
       if (event.signalCost === 0) return state
       return {
         ...state,
-        wayup: { ...state.wayup, signalSpent: state.wayup.signalSpent + event.signalCost },
+        relay: { ...state.relay, signalSpent: state.relay.signalSpent + event.signalCost },
       }
     }
 
-    case 'WAYUP_EXCERPT_KEPT': {
-      if (!state.wayup.observed.includes(event.snapshotId)) return state
-      if (state.wayup.kept.some((e) => e.excerptHash === event.excerptHash)) return state
+    case 'RELAY_EXCERPT_KEPT': {
+      if (!state.relay.observed.includes(event.snapshotId)) return state
+      if (state.relay.kept.some((e) => e.excerptHash === event.excerptHash)) return state
       /*
        * Keeping a line is not free, and it is not free in the currency signal is.
        *
@@ -707,10 +707,10 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return {
         ...state,
         exposure: state.exposure + (content.relay?.keepExposure ?? 0),
-        wayup: {
-          ...state.wayup,
+        relay: {
+          ...state.relay,
           kept: [
-            ...state.wayup.kept,
+            ...state.relay.kept,
             {
               id: event.id,
               snapshotId: event.snapshotId,
@@ -733,10 +733,10 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     }
 
     case 'MYSTERY_OPENED': {
-      if (state.wayup.mysteries.includes(event.mysteryId)) return state
+      if (state.relay.mysteries.includes(event.mysteryId)) return state
       return {
         ...state,
-        wayup: { ...state.wayup, mysteries: [...state.wayup.mysteries, event.mysteryId] },
+        relay: { ...state.relay, mysteries: [...state.relay.mysteries, event.mysteryId] },
         flags: event.setsFlags.reduce(
           (flags, flag) => ({ ...flags, [flag]: true }),
           state.flags as Record<string, boolean>,
@@ -815,17 +815,17 @@ function runTerminal(
     out.push(doc ? { text: doc.body, tone: 'out' } : { text: cfg.catBinary, tone: 'out' })
   } else if (cfg.relay && verb === cfg.relay.command) {
     const relay = cfg.relay
-    if (state.wayup.unlocked) {
+    if (state.relay.unlocked) {
       out.push(...relay.opened)
-      nextState = { ...nextState, ui: { ...nextState.ui, wayupOpen: true } }
+      nextState = { ...nextState, ui: { ...nextState.ui, relayOpen: true } }
     } else if (lower.includes(relay.unlockPhrase.toLowerCase())) {
       // The player worked out the argument from three pages that never mention each other.
       // Nothing announces it; the machine simply stops refusing.
       out.push(...relay.granted)
       nextState = {
         ...nextState,
-        wayup: { ...nextState.wayup, unlocked: true },
-        ui: { ...nextState.ui, wayupOpen: true },
+        relay: { ...nextState.relay, unlocked: true },
+        ui: { ...nextState.ui, relayOpen: true },
       }
     } else {
       out.push(...relay.locked)

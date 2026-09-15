@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assertSafeUrl, parseAddress, isBlockedAddress } from '@/lib/wayup/security'
+import { assertSafeUrl, parseAddress, isBlockedAddress } from '@/lib/relay/security'
 
 const blocked = (raw: string) => {
   try {
@@ -11,7 +11,7 @@ const blocked = (raw: string) => {
 }
 
 /**
- * Written independently of `wayup-security.test.ts`, against the module's public surface only.
+ * Written independently of `relay-security.test.ts`, against the module's public surface only.
  * Its job is to disagree: the two suites were authored separately so that a shared assumption
  * about what a URL means has somewhere to surface. This one found that `http://localhost/`
  * passed `assertSafeUrl` and was refused only later, at the DNS stage.

@@ -282,7 +282,7 @@ export interface InvestigationState {
    * The relay to the open web. Snapshots the player has observed are immutable and kept by id;
    * the excerpts they chose to keep carry their own provenance.
    */
-  readonly wayup: {
+  readonly relay: {
     /**
      * Whether this machine will open the line at all.
      *
@@ -342,7 +342,7 @@ export interface InvestigationState {
     readonly watched: boolean
     readonly reportCard: boolean
     /** The relay console, which takes the screen the way the board does. */
-    readonly wayupOpen: boolean
+    readonly relayOpen: boolean
   }
 
   /** The gate on filing a report. */
@@ -429,22 +429,22 @@ export type GameEvent =
   | (Base & { type: 'REPORT_FILED' })
   | (Base & { type: 'REPORT_CARD_SHOWN' })
   | (Base & { type: 'INVESTIGATION_CLAIMED'; ownerId: string })
-  | (Base & { type: 'WAYUP_UNLOCKED'; via: string })
-  | (Base & { type: 'WAYUP_TOGGLED'; open?: boolean })
+  | (Base & { type: 'RELAY_UNLOCKED'; via: string })
+  | (Base & { type: 'RELAY_TOGGLED'; open?: boolean })
   /**
    * Asking costs signal even when nothing useful comes back, which is what makes the player
    * think before they ask. The query itself is never carried: freeform player text does not
    * enter the event log any more than it enters analytics.
    */
-  | (Base & { type: 'WAYUP_SEARCHED'; signalCost: number })
+  | (Base & { type: 'RELAY_SEARCHED'; signalCost: number })
   /**
    * A capture, not a fetch. The network happened outside the engine; what the log records is the
    * immutable snapshot the player saw, so a replay shows the bytes they read rather than
    * whatever the site says today.
    */
-  | (Base & { type: 'WAYUP_SNAPSHOT_OBSERVED'; snapshotId: string; signalCost: number })
+  | (Base & { type: 'RELAY_SNAPSHOT_OBSERVED'; snapshotId: string; signalCost: number })
   | (Base & {
-      type: 'WAYUP_EXCERPT_KEPT'
+      type: 'RELAY_EXCERPT_KEPT'
       id: string
       snapshotId: string
       excerpt: string

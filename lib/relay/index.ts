@@ -1,5 +1,5 @@
-export { assertSafeUrl, isBlockedAddress, parseAddress, safeFetch, WAYUP_LIMITS } from './security'
-export { getProvider, isRelayConfigured, type WayUpProvider } from './provider'
+export { assertSafeUrl, isBlockedAddress, parseAddress, safeFetch, RELAY_LIMITS } from './security'
+export { getProvider, isRelayConfigured, type RelayProvider } from './provider'
 export {
   contentHashOf,
   recallSnapshot,
@@ -9,14 +9,14 @@ export {
   toBlocks,
 } from './cache'
 export {
-  WayUpRefused,
-  type WayUpBlock,
-  type WayUpDocument,
-  type WayUpLink,
-  type WayUpRefusal,
-  type WayUpResult,
-  type WayUpSearchResponse,
-  type WayUpSnapshot,
+  RelayRefused,
+  type RelayBlock,
+  type RelayDocument,
+  type RelayLink,
+  type RelayRefusal,
+  type RelayResult,
+  type RelaySearchResponse,
+  type RelaySnapshot,
 } from './types'
 
 // The fictional-overlay boundary. Exported here so nothing has to reach past the barrel to

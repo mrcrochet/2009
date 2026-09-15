@@ -41,7 +41,7 @@ test.describe('the relay', () => {
     await run(page, 'relay')
     await expect(log).toContainText('relay: no outbound route on this session.')
     await expect(log).toContainText('does not reach the open web by default')
-    await expect(page.getByTestId('wayup')).toHaveCount(0)
+    await expect(page.getByTestId('relay')).toHaveCount(0)
 
     // The argument is the whole puzzle. Nothing announces that it worked; the machine simply
     // stops refusing, and the screen is taken.

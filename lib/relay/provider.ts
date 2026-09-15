@@ -1,7 +1,7 @@
 import 'server-only'
 import { extractFromHtml, normaliseLinks } from './cache'
 import { safeFetch } from './security'
-import { WayUpRefused, type WayUpDocument, type WayUpResult } from './types'
+import { RelayRefused, type RelayDocument, type RelayResult } from './types'
 
 /**
  * A provider is an interface, not a vendor.
@@ -10,10 +10,10 @@ import { WayUpRefused, type WayUpDocument, type WayUpResult } from './types'
  * detail that should be replaceable without the game noticing. Snapshots record which provider
  * produced them, so a change of vendor is visible in the data rather than silent.
  */
-export interface WayUpProvider {
+export interface RelayProvider {
   readonly name: string
-  search(query: string, signal: AbortSignal): Promise<WayUpResult[]>
-  fetch(url: string, signal: AbortSignal): Promise<WayUpDocument>
+  search(query: string, signal: AbortSignal): Promise<RelayResult[]>
+  fetch(url: string, signal: AbortSignal): Promise<RelayDocument>
 }
 
 const FIRECRAWL_BASE = 'https://api.firecrawl.dev/v2'
@@ -28,7 +28,7 @@ function isConfigured(): boolean {
  * Firecrawl renders the page and hands back markdown, which is exactly what the relay wants:
  * text and links, never executable markup.
  */
-function firecrawlProvider(apiKey: string): WayUpProvider {
+function firecrawlProvider(apiKey: string): RelayProvider {
   const call = async (path: string, body: unknown, signal: AbortSignal): Promise<unknown> => {
     const response = await globalThis.fetch(`${FIRECRAWL_BASE}${path}`, {
       method: 'POST',
@@ -37,7 +37,7 @@ function firecrawlProvider(apiKey: string): WayUpProvider {
       body: JSON.stringify(body),
     })
     if (!response.ok) {
-      throw new WayUpRefused(
+      throw new RelayRefused(
         'network',
         `the relay could not reach the other side (${response.status})`,
       )
@@ -96,12 +96,12 @@ function firecrawlProvider(apiKey: string): WayUpProvider {
  * It cannot search — there is no index to search — but it means the relay is not a dead app on a
  * developer's machine, and it is the path that proves `safeFetch` is actually load-bearing.
  */
-function directProvider(): WayUpProvider {
+function directProvider(): RelayProvider {
   return {
     name: 'direct',
 
     async search() {
-      throw new WayUpRefused('network', 'the relay cannot search without an index')
+      throw new RelayRefused('network', 'the relay cannot search without an index')
     },
 
     async fetch(url, signal) {
@@ -118,7 +118,7 @@ function directProvider(): WayUpProvider {
   }
 }
 
-export function getProvider(): WayUpProvider | null {
+export function getProvider(): RelayProvider | null {
   const key = process.env.FIRECRAWL_API_KEY
   if (key) return firecrawlProvider(key)
   // Direct fetch still works and is genuinely useful; only search needs an index.

@@ -121,8 +121,10 @@ test.describe('the world', () => {
       .getByRole('option')
       .count()
 
-    // Out of the way, or its window sits over the inbox and swallows the clicks.
+    // Both out of the way first: the cascade puts these over the inbox, and a window that
+    // overlaps the list swallows the clicks rather than failing visibly.
     await page.locator('[data-app="directory"]').getByLabel('Close Directory').click()
+    await page.locator('[data-app="msg"]').getByLabel('Close Dispatch').click()
 
     // Read the whole inbox, then come back.
     await openApp(page, 'Relay Mail')

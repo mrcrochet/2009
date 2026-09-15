@@ -80,11 +80,11 @@ export function signalBudget(content: CaseContent): number {
 }
 
 export function signalSpent(state: InvestigationState): number {
-  return state.wayup.signalSpent
+  return state.relay.signalSpent
 }
 
 export function signalRemaining(state: InvestigationState, content: CaseContent): number {
-  return Math.max(0, signalBudget(content) - state.wayup.signalSpent)
+  return Math.max(0, signalBudget(content) - state.relay.signalSpent)
 }
 
 export function canAfford(

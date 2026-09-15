@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { reportError } from '@/lib/errors'
-import { recallSnapshot, rememberSnapshot, snapshotFrom } from '@/lib/wayup/cache'
-import { getProvider } from '@/lib/wayup/provider'
-import { assertSafeUrl, rateLimit, rateLimitKey } from '@/lib/wayup/security'
-import { WayUpRefused } from '@/lib/wayup/types'
+import { recallSnapshot, rememberSnapshot, snapshotFrom } from '@/lib/relay/cache'
+import { getProvider } from '@/lib/relay/provider'
+import { assertSafeUrl, rateLimit, rateLimitKey } from '@/lib/relay/security'
+import { RelayRefused } from '@/lib/relay/types'
 import { getCurrentUser } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   try {
     safe = assertSafeUrl(url)
   } catch (error) {
-    if (error instanceof WayUpRefused) {
+    if (error instanceof RelayRefused) {
       return NextResponse.json({ error: error.message, refusal: error.refusal }, { status: 400 })
     }
     return NextResponse.json({ error: 'that is not an address' }, { status: 400 })
@@ -80,13 +80,13 @@ export async function POST(request: Request) {
     rememberSnapshot(snapshot)
     return NextResponse.json({ snapshot, cached: false })
   } catch (error) {
-    if (error instanceof WayUpRefused) {
+    if (error instanceof RelayRefused) {
       const status = error.refusal === 'too-large' || error.refusal === 'content-type' ? 415 : 400
       return NextResponse.json({ error: error.message, refusal: error.refusal }, { status })
     }
     // The URL is the player's own input, so it stays out of the report for the same reason their
     // Recall queries do.
-    reportError(error, { scope: 'wayup.fetch' })
+    reportError(error, { scope: 'relay.fetch' })
     return NextResponse.json({ error: 'the other side did not answer' }, { status: 502 })
   } finally {
     clearTimeout(timer)

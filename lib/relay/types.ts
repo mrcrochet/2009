@@ -10,7 +10,7 @@
  */
 
 /** Why a URL or a response was refused. Stable strings — the UI and the tests both read them. */
-export type WayUpRefusal =
+export type RelayRefusal =
   | 'scheme'
   | 'credentials'
   | 'private-address'
@@ -24,13 +24,13 @@ export type WayUpRefusal =
   | 'unresolvable'
   | 'network'
 
-export class WayUpRefused extends Error {
+export class RelayRefused extends Error {
   constructor(
-    readonly refusal: WayUpRefusal,
+    readonly refusal: RelayRefusal,
     message: string,
   ) {
     super(message)
-    this.name = 'WayUpRefused'
+    this.name = 'RelayRefused'
   }
 }
 
@@ -38,7 +38,7 @@ export class WayUpRefused extends Error {
  * A block of remote content, already normalised. Deliberately not HTML: the client renders these
  * with HALCYON's own renderer, so no third-party markup is ever handed to the game's origin.
  */
-export type WayUpBlock =
+export type RelayBlock =
   | { readonly kind: 'heading'; readonly text: string; readonly level: 1 | 2 | 3 }
   | { readonly kind: 'p'; readonly text: string }
   | { readonly kind: 'quote'; readonly text: string }
@@ -46,7 +46,7 @@ export type WayUpBlock =
   | { readonly kind: 'code'; readonly text: string }
   | { readonly kind: 'rule' }
 
-export interface WayUpLink {
+export interface RelayLink {
   readonly label: string
   readonly url: string
 }
@@ -59,7 +59,7 @@ export interface WayUpLink {
  * one. That is what makes the temporal-checksum beat possible without any extra bookkeeping:
  * two ids for one URL means the document moved.
  */
-export interface WayUpSnapshot {
+export interface RelaySnapshot {
   readonly id: string
   readonly canonicalUrl: string
   readonly title: string
@@ -67,31 +67,31 @@ export interface WayUpSnapshot {
   readonly remoteFetchedAt: string
   /** SHA-256 over the normalised content, hex. Independent of when it was captured. */
   readonly contentHash: string
-  readonly blocks: readonly WayUpBlock[]
-  readonly outgoingLinks: readonly WayUpLink[]
+  readonly blocks: readonly RelayBlock[]
+  readonly outgoingLinks: readonly RelayLink[]
   /** Which provider produced it, so a later change of vendor is visible rather than silent. */
   readonly provider: string
   readonly byteLength: number
 }
 
 /** One row of a search result set. Opening one is a separate, metered act. */
-export interface WayUpResult {
+export interface RelayResult {
   readonly title: string
   readonly url: string
   readonly snippet: string
 }
 
 /** What a provider returns before it is normalised into a snapshot. */
-export interface WayUpDocument {
+export interface RelayDocument {
   readonly canonicalUrl: string
   readonly title: string
   readonly text: string
-  readonly links: readonly WayUpLink[]
+  readonly links: readonly RelayLink[]
   readonly remoteFetchedAt: string
 }
 
-export interface WayUpSearchResponse {
+export interface RelaySearchResponse {
   readonly query: string
-  readonly results: readonly WayUpResult[]
+  readonly results: readonly RelayResult[]
   readonly provider: string
 }

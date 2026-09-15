@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { canAfford, signalBudget, signalRemaining } from '@/engine/mysteries'
 import { reportError } from '@/lib/errors'
-import type { WayUpBlock, WayUpResult, WayUpSearchResponse, WayUpSnapshot } from '@/lib/wayup/types'
+import type { RelayBlock, RelayResult, RelaySearchResponse, RelaySnapshot } from '@/lib/relay/types'
 import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { useFocusTrap } from './useFocusTrap'
 import { pace, useReducedMotion } from './useReducedMotion'
@@ -18,7 +18,7 @@ import { pace, useReducedMotion } from './useReducedMotion'
  * those blocks with HALCYON's own elements, and an address the page names is a line of text the
  * player may send back through the relay, never something the browser can follow on its own.
  *
- * Every word on this screen is authored in `content/day01/wayup.ts`. Nothing about the machine's
+ * Every word on this screen is authored in `content/day01/relay.ts`. Nothing about the machine's
  * voice is decided here, because the moment one line of it is written in TypeScript the console
  * starts sounding like software that understands what it is doing.
  */
@@ -46,7 +46,7 @@ type Screen = 'blank' | 'offline' | 'results' | 'page'
  * is what keeps the raw server message — which is written for a developer reading a log — off
  * the screen.
  */
-type RelayResult<T> =
+type RequestOutcome<T> =
   | { readonly status: 'ok'; readonly value: T }
   | { readonly status: 'offline' }
   | { readonly status: 'slow'; readonly seconds: number }
@@ -61,7 +61,7 @@ async function readJson<T>(response: Response): Promise<T | null> {
   }
 }
 
-async function relay<T>(path: string, body: unknown, signal: AbortSignal): Promise<RelayResult<T>> {
+async function relay<T>(path: string, body: unknown, signal: AbortSignal): Promise<RequestOutcome<T>> {
   let response: Response
   try {
     response = await globalThis.fetch(path, {
@@ -74,7 +74,7 @@ async function relay<T>(path: string, body: unknown, signal: AbortSignal): Promi
     if (signal.aborted) return { status: 'aborted' }
     // What the player typed is in the request body and stays there. What is reported is that the
     // line went down — never the query, for the same reason a Recall query is never reported.
-    reportError(error, { scope: 'wayup.console' })
+    reportError(error, { scope: 'relay.console' })
     return { status: 'refused', refusal: 'network' }
   }
 
@@ -96,7 +96,7 @@ async function relay<T>(path: string, body: unknown, signal: AbortSignal): Promi
   return value === null ? { status: 'refused', refusal: null } : { status: 'ok', value }
 }
 
-/** Hex SHA-256, the same shape `lib/wayup/cache.ts` hashes with on the other side. */
+/** Hex SHA-256, the same shape `lib/relay/cache.ts` hashes with on the other side. */
 async function sha256Hex(value: string): Promise<string> {
   const digest = await globalThis.crypto.subtle.digest('SHA-256', new TextEncoder().encode(value))
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('')
@@ -116,7 +116,7 @@ const sleep = (ms: number): Promise<void> =>
   })
 
 /** The text of a block, for the keyboard path — what keeping the line the caret is on keeps. */
-function blockText(block: WayUpBlock): string {
+function blockText(block: RelayBlock): string {
   switch (block.kind) {
     case 'heading':
     case 'p':
@@ -133,40 +133,40 @@ function blockText(block: WayUpBlock): string {
 }
 
 /** Normalised text, drawn by HALCYON. Nothing here can emit markup; every branch sets a text node. */
-function Block({ block }: { block: WayUpBlock }) {
+function Block({ block }: { block: RelayBlock }) {
   switch (block.kind) {
     case 'heading': {
       const Tag = block.level === 1 ? 'h3' : block.level === 2 ? 'h4' : 'h5'
-      return <Tag className="hal-wayup__h">{block.text}</Tag>
+      return <Tag className="hal-relay__h">{block.text}</Tag>
     }
     case 'p':
-      return <p className="hal-wayup__p">{block.text}</p>
+      return <p className="hal-relay__p">{block.text}</p>
     case 'quote':
-      return <blockquote className="hal-wayup__quote">{block.text}</blockquote>
+      return <blockquote className="hal-relay__quote">{block.text}</blockquote>
     case 'list':
       return (
-        <ul className="hal-wayup__list">
+        <ul className="hal-relay__list">
           {block.items.map((item, i) => (
             <li key={i}>{item}</li>
           ))}
         </ul>
       )
     case 'code':
-      return <pre className="hal-wayup__code">{block.text}</pre>
+      return <pre className="hal-relay__code">{block.text}</pre>
     case 'rule':
-      return <hr className="hal-wayup__rule" />
+      return <hr className="hal-relay__rule" />
     default:
       return null
   }
 }
 
-export function WayUpOverlay() {
+export function RelayOverlay() {
   const content = useContent()
   const dispatch = useDispatch()
   const cfg = content.relay
-  const open = useInvestigation((s) => s.ui.wayupOpen)
-  const observed = useInvestigation((s) => s.wayup.observed)
-  const futureEvidence = useInvestigation((s) => s.wayup.kept)
+  const open = useInvestigation((s) => s.ui.relayOpen)
+  const observed = useInvestigation((s) => s.relay.observed)
+  const futureEvidence = useInvestigation((s) => s.relay.kept)
   const remaining = useInvestigation((s) => signalRemaining(s, content))
   const affordsOpen = useInvestigation((s) => canAfford(s, content, cfg?.openCost ?? 0))
   const affordsSearch = useInvestigation((s) => canAfford(s, content, cfg?.searchCost ?? 0))
@@ -180,8 +180,8 @@ export function WayUpOverlay() {
   const [query, setQuery] = useState('')
   const [sending, setSending] = useState(false)
   const [screen, setScreen] = useState<Screen>('blank')
-  const [results, setResults] = useState<readonly WayUpResult[]>([])
-  const [snapshot, setSnapshot] = useState<WayUpSnapshot | null>(null)
+  const [results, setResults] = useState<readonly RelayResult[]>([])
+  const [snapshot, setSnapshot] = useState<RelaySnapshot | null>(null)
   const [line, setLine] = useState('')
   const [selection, setSelection] = useState('')
 
@@ -231,7 +231,7 @@ export function WayUpOverlay() {
   )
 
   const close = useCallback(() => {
-    dispatch({ type: 'WAYUP_TOGGLED', open: false })
+    dispatch({ type: 'RELAY_TOGGLED', open: false })
   }, [dispatch])
 
   useEffect(() => {
@@ -267,7 +267,7 @@ export function WayUpOverlay() {
    * the one they are reading.
    */
   const send = useCallback(
-    async <T,>(path: string, body: unknown): Promise<RelayResult<T> | null> => {
+    async <T,>(path: string, body: unknown): Promise<RequestOutcome<T> | null> => {
       abortRef.current?.abort()
       const controller = new AbortController()
       abortRef.current = controller
@@ -301,7 +301,7 @@ export function WayUpOverlay() {
     return authored && authored.length > 0 ? authored : cfg.fallbackRefusal
   }
 
-  const noticeFor = (outcome: RelayResult<unknown>): string =>
+  const noticeFor = (outcome: RequestOutcome<unknown>): string =>
     outcome.status === 'slow'
       ? fill(cfg.rateLimited, { seconds: String(outcome.seconds) })
       : outcome.status === 'refused'
@@ -332,7 +332,7 @@ export function WayUpOverlay() {
     }
     if (!affordsSearch) return
 
-    const outcome = await send<WayUpSearchResponse>('/api/wayup/search', { query: asked })
+    const outcome = await send<RelaySearchResponse>('/api/relay/search', { query: asked })
     if (!outcome) return
     if (outcome.status === 'offline') {
       setScreen('offline')
@@ -351,7 +351,7 @@ export function WayUpOverlay() {
      * same rule the API route follows — so what the log records is that a question was asked and
      * what it cost. A far end that never answered has not taken anything.
      */
-    if (cfg.searchCost > 0) dispatch({ type: 'WAYUP_SEARCHED', signalCost: cfg.searchCost })
+    if (cfg.searchCost > 0) dispatch({ type: 'RELAY_SEARCHED', signalCost: cfg.searchCost })
     setResults(outcome.value.results)
     setSnapshot(null)
     setSelection('')
@@ -367,7 +367,7 @@ export function WayUpOverlay() {
   const openAddress = async (url: string) => {
     if (sending || (!affordsOpen && !alreadyObserved(url))) return
 
-    const outcome = await send<{ snapshot?: WayUpSnapshot }>('/api/wayup/fetch', { url })
+    const outcome = await send<{ snapshot?: RelaySnapshot }>('/api/relay/fetch', { url })
     if (!outcome) return
     if (outcome.status === 'offline') {
       setScreen('offline')
@@ -389,7 +389,7 @@ export function WayUpOverlay() {
     // out of the save.
     if (!observed.includes(captured.id)) {
       dispatch({
-        type: 'WAYUP_SNAPSHOT_OBSERVED',
+        type: 'RELAY_SNAPSHOT_OBSERVED',
         snapshotId: captured.id,
         signalCost: cfg.openCost,
       })
@@ -452,7 +452,7 @@ export function WayUpOverlay() {
     // two pieces of evidence, and the reducer's dedupe then means "this line, from this page".
     const excerptHash = await sha256Hex(`${snapshot.id}\n${excerpt}`)
     dispatch({
-      type: 'WAYUP_EXCERPT_KEPT',
+      type: 'RELAY_EXCERPT_KEPT',
       id: `fe_${excerptHash.slice(0, 16)}`,
       snapshotId: snapshot.id,
       excerpt,
@@ -470,21 +470,21 @@ export function WayUpOverlay() {
   const canTransmit = query.trim().length > 0 && !sending && affordsThis
 
   return (
-    <div className="hal-wayup" data-testid="wayup">
+    <div className="hal-relay" data-testid="relay">
       <div
-        className="hal-wayup__panel"
+        className="hal-relay__panel"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label={cfg.title}
         tabIndex={-1}
       >
-        <div className="hal-wayup__head">
-          <span className="hal-wayup__title">{cfg.title}</span>
-          <span className="hal-wayup__sub">{cfg.subtitle}</span>
+        <div className="hal-relay__head">
+          <span className="hal-relay__title">{cfg.title}</span>
+          <span className="hal-relay__sub">{cfg.subtitle}</span>
           <button
             type="button"
-            className="hal-wayup__close"
+            className="hal-relay__close"
             aria-label={cfg.closeLabel}
             onClick={close}
           >
@@ -493,19 +493,19 @@ export function WayUpOverlay() {
         </div>
 
         <form
-          className="hal-wayup__send"
+          className="hal-relay__send"
           onSubmit={(e) => {
             e.preventDefault()
             void transmit()
           }}
         >
-          <label className="hal-wayup__label" htmlFor="wayup-query">
+          <label className="hal-relay__label" htmlFor="relay-query">
             {cfg.queryLabel}
           </label>
           <input
-            id="wayup-query"
+            id="relay-query"
             ref={inputRef}
-            className="hal-wayup__input"
+            className="hal-relay__input"
             value={query}
             maxLength={256}
             spellCheck={false}
@@ -514,7 +514,7 @@ export function WayUpOverlay() {
           />
           <button
             type="submit"
-            className="hal-wayup__go"
+            className="hal-relay__go"
             /* Never `disabled`: a control that goes disabled under the player's own focus drops
                them to <body> and costs them their place on the screen. */
             aria-disabled={!canTransmit}
@@ -524,50 +524,50 @@ export function WayUpOverlay() {
           </button>
         </form>
 
-        <div className="hal-wayup__meter">
-          <span className="hal-wayup__signal" data-testid="wayup-signal">
+        <div className="hal-relay__meter">
+          <span className="hal-relay__signal" data-testid="relay-signal">
             {fill(cfg.signalTemplate, { left: String(remaining), budget: String(budget) })}
           </span>
-          <span className="hal-wayup__say" role="status">
+          <span className="hal-relay__say" role="status">
             {say}
           </span>
         </div>
 
-        <div className="hal-wayup__out">
+        <div className="hal-relay__out">
           {screen === 'offline' ? (
-            <section className="hal-wayup__notice" aria-labelledby="wayup-offline">
-              <h2 className="hal-wayup__noticetitle" id="wayup-offline">
+            <section className="hal-relay__notice" aria-labelledby="relay-offline">
+              <h2 className="hal-relay__noticetitle" id="relay-offline">
                 {cfg.offlineTitle}
               </h2>
-              <p className="hal-wayup__noticebody">{cfg.offlineBody}</p>
-              {cfg.offlineDial ? <p className="hal-wayup__noticebody">{cfg.offlineDial}</p> : null}
+              <p className="hal-relay__noticebody">{cfg.offlineBody}</p>
+              {cfg.offlineDial ? <p className="hal-relay__noticebody">{cfg.offlineDial}</p> : null}
             </section>
           ) : null}
 
           {screen === 'results' ? (
             results.length === 0 ? (
-              <p className="hal-wayup__empty">{cfg.emptyResults}</p>
+              <p className="hal-relay__empty">{cfg.emptyResults}</p>
             ) : (
               <>
-                <div className="hal-wayup__label">{cfg.resultsLabel}</div>
-                <div className="hal-wayup__rows">
+                <div className="hal-relay__label">{cfg.resultsLabel}</div>
+                <div className="hal-relay__rows">
                   {results.map((result) => {
                     const free = alreadyObserved(result.url)
                     return (
                       <button
                         key={result.url}
                         type="button"
-                        className="hal-wayup__row"
+                        className="hal-relay__row"
                         data-url={result.url}
                         aria-disabled={!affordsOpen && !free}
                         onClick={() => void openAddress(result.url)}
                       >
-                        <span className="hal-wayup__rowtitle">{result.title}</span>
-                        <span className="hal-wayup__rowurl">{result.url}</span>
+                        <span className="hal-relay__rowtitle">{result.title}</span>
+                        <span className="hal-relay__rowurl">{result.url}</span>
                         {result.snippet.length > 0 ? (
-                          <span className="hal-wayup__rowsnip">{result.snippet}</span>
+                          <span className="hal-relay__rowsnip">{result.snippet}</span>
                         ) : null}
-                        <span className="hal-wayup__rowcost">
+                        <span className="hal-relay__rowcost">
                           {free ? '' : fill(cfg.costTemplate, { cost: String(cfg.openCost) })}
                         </span>
                       </button>
@@ -579,18 +579,18 @@ export function WayUpOverlay() {
           ) : null}
 
           {screen === 'page' && snapshot ? (
-            <article className="hal-wayup__doc">
-              <div className="hal-wayup__docbar">
+            <article className="hal-relay__doc">
+              <div className="hal-relay__docbar">
                 <button
                   type="button"
-                  className="hal-wayup__back"
+                  className="hal-relay__back"
                   onClick={() => setScreen('results')}
                 >
                   {cfg.backLabel}
                 </button>
                 <button
                   type="button"
-                  className="hal-wayup__keep"
+                  className="hal-relay__keep"
                   aria-disabled={alreadyKept}
                   /* Pressing a button collapses the document selection before the click lands,
                      which would make the control that keeps a marked line the one thing that
@@ -602,17 +602,17 @@ export function WayUpOverlay() {
                 </button>
               </div>
 
-              <h2 className="hal-wayup__doctitle">{snapshot.title}</h2>
-              <div className="hal-wayup__docurl">{snapshot.canonicalUrl}</div>
+              <h2 className="hal-relay__doctitle">{snapshot.title}</h2>
+              <div className="hal-relay__docurl">{snapshot.canonicalUrl}</div>
 
               <div
-                className="hal-wayup__blocks"
+                className="hal-relay__blocks"
                 ref={blocksRef}
                 role="listbox"
                 aria-label={cfg.docLabel}
                 aria-activedescendant={
                   lines[activeLine] !== undefined
-                    ? `hal-wayup-line-${lines[activeLine]}`
+                    ? `hal-relay-line-${lines[activeLine]}`
                     : undefined
                 }
                 tabIndex={0}
@@ -625,10 +625,10 @@ export function WayUpOverlay() {
                   return (
                     <div
                       key={i}
-                      id={`hal-wayup-line-${i}`}
+                      id={`hal-relay-line-${i}`}
                       role="option"
                       aria-selected={at === activeLine}
-                      className="hal-wayup__line"
+                      className="hal-relay__line"
                       onMouseDown={() => setActiveLine(at)}
                     >
                       <Block block={block} />
@@ -637,7 +637,7 @@ export function WayUpOverlay() {
                 })}
               </div>
 
-              <div className="hal-wayup__captured">
+              <div className="hal-relay__captured">
                 {fill(cfg.capturedTemplate, {
                   when: snapshot.remoteFetchedAt,
                   bytes: String(snapshot.byteLength),
@@ -645,13 +645,13 @@ export function WayUpOverlay() {
                 })}
               </div>
 
-              <p className="hal-wayup__hint">{cfg.pinHint}</p>
+              <p className="hal-relay__hint">{cfg.pinHint}</p>
 
               {kept.length > 0 ? (
-                <div className="hal-wayup__kept">
-                  <div className="hal-wayup__label">{cfg.pinnedLabel}</div>
+                <div className="hal-relay__kept">
+                  <div className="hal-relay__label">{cfg.pinnedLabel}</div>
                   {kept.map((entry) => (
-                    <div key={entry.id} className="hal-wayup__keptline">
+                    <div key={entry.id} className="hal-relay__keptline">
                       {entry.excerpt}
                     </div>
                   ))}
@@ -659,8 +659,8 @@ export function WayUpOverlay() {
               ) : null}
 
               {snapshot.outgoingLinks.length > 0 ? (
-                <div className="hal-wayup__links">
-                  <div className="hal-wayup__label">{cfg.linksLabel}</div>
+                <div className="hal-relay__links">
+                  <div className="hal-relay__label">{cfg.linksLabel}</div>
                   {/* Text, never an anchor. An address on a page from the other side is
                       something the player may choose to send back through the relay — it is
                       never something this browser can be made to follow on its own. */}
@@ -668,7 +668,7 @@ export function WayUpOverlay() {
                     <button
                       key={link.url}
                       type="button"
-                      className="hal-wayup__link"
+                      className="hal-relay__link"
                       data-url={link.url}
                       aria-disabled={!affordsOpen && !alreadyObserved(link.url)}
                       onClick={() => void openAddress(link.url)}

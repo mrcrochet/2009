@@ -1,4 +1,4 @@
-import type { WayUpBlock, WayUpLink, WayUpSnapshot } from '@/lib/wayup/types'
+import type { RelayBlock, RelayLink, RelaySnapshot } from '@/lib/relay/types'
 import { reportError } from '@/lib/errors'
 import { createAdminClient } from './admin'
 import { createServerSupabase } from './server'
@@ -32,15 +32,15 @@ interface SnapshotRow {
   created_at: string
 }
 
-function rowToSnapshot(row: SnapshotRow): WayUpSnapshot {
+function rowToSnapshot(row: SnapshotRow): RelaySnapshot {
   return {
     id: row.id,
     canonicalUrl: row.canonical_url,
     title: row.title,
     remoteFetchedAt: row.remote_fetched_at,
     contentHash: row.content_hash,
-    blocks: (Array.isArray(row.blocks) ? row.blocks : []) as readonly WayUpBlock[],
-    outgoingLinks: (Array.isArray(row.outgoing_links) ? row.outgoing_links : []) as WayUpLink[],
+    blocks: (Array.isArray(row.blocks) ? row.blocks : []) as readonly RelayBlock[],
+    outgoingLinks: (Array.isArray(row.outgoing_links) ? row.outgoing_links : []) as RelayLink[],
     provider: row.provider,
     byteLength: row.byte_length,
   }
@@ -58,13 +58,13 @@ const NOT_CONFIGURED = 'the Way Up relay is not configured'
  * exactly what the checksum beat compares.
  */
 export async function recordSnapshot(
-  snapshot: WayUpSnapshot,
+  snapshot: RelaySnapshot,
   screenshotPath: string | null = null,
 ): Promise<Result<string>> {
   const admin = createAdminClient()
   if (!admin) return { ok: false, error: NOT_CONFIGURED }
 
-  const { error } = await admin.from('wayup_snapshots').upsert(
+  const { error } = await admin.from('relay_snapshots').upsert(
     {
       id: snapshot.id,
       canonical_url: snapshot.canonicalUrl,
@@ -81,7 +81,7 @@ export async function recordSnapshot(
   )
 
   if (error) {
-    reportError(error, { scope: 'wayup.snapshot.record', snapshotId: snapshot.id })
+    reportError(error, { scope: 'relay.snapshot.record', snapshotId: snapshot.id })
     return { ok: false, error: error.message }
   }
   return { ok: true, value: snapshot.id }
@@ -91,11 +91,11 @@ export async function recordSnapshot(
  * Reads a snapshot the player has actually visited. RLS does the enforcing — an id alone is not
  * enough, so this returns null for anything their timelines never opened.
  */
-export async function loadVisitedSnapshot(snapshotId: string): Promise<WayUpSnapshot | null> {
+export async function loadVisitedSnapshot(snapshotId: string): Promise<RelaySnapshot | null> {
   const supabase = await createServerSupabase()
   if (!supabase) return null
   const { data, error } = await supabase
-    .from('wayup_snapshots')
+    .from('relay_snapshots')
     .select('*')
     .eq('id', snapshotId)
     .maybeSingle<SnapshotRow>()
@@ -107,11 +107,11 @@ export async function loadVisitedSnapshot(snapshotId: string): Promise<WayUpSnap
  * The relay's own cache lookup, before it spends a real fetch. Runs as the service role because
  * it must see snapshots this player has never visited — that is the whole point of a cache.
  */
-export async function findCachedSnapshot(canonicalUrl: string): Promise<WayUpSnapshot | null> {
+export async function findCachedSnapshot(canonicalUrl: string): Promise<RelaySnapshot | null> {
   const admin = createAdminClient()
   if (!admin) return null
   const { data, error } = await admin
-    .from('wayup_snapshots')
+    .from('relay_snapshots')
     .select('*')
     .eq('canonical_url', canonicalUrl)
     .order('remote_fetched_at', { ascending: false })
@@ -139,15 +139,15 @@ export interface VisitInput {
 export async function recordVisit(visit: VisitInput): Promise<Result<null>> {
   const admin = createAdminClient()
   if (!admin) return { ok: false, error: NOT_CONFIGURED }
-  const { error } = await admin.from('timeline_wayup_visits').insert({
-    timeline_id: visit.timelineId,
+  const { error } = await admin.from('investigation_relay_visits').insert({
+    investigation_id: visit.timelineId,
     snapshot_id: visit.snapshotId,
     opened_game_day: visit.openedGameDay,
     opened_game_minute: visit.openedGameMinute,
     signal_cost: visit.signalCost,
   })
   if (error) {
-    reportError(error, { scope: 'wayup.visit.record', timelineId: visit.timelineId })
+    reportError(error, { scope: 'relay.visit.record', timelineId: visit.timelineId })
     return { ok: false, error: error.message }
   }
   return { ok: true, value: null }
@@ -184,7 +184,7 @@ interface FutureEvidenceRow {
   captured_game_day: number
   captured_game_minute: number
   pinned_at: string
-  wayup_snapshots: {
+  relay_snapshots: {
     canonical_url: string
     remote_fetched_at: string
     content_hash: string
@@ -204,8 +204,8 @@ export interface PinInput {
 export async function pinFutureEvidence(pin: PinInput): Promise<Result<null>> {
   const supabase = await createServerSupabase()
   if (!supabase) return { ok: false, error: NOT_CONFIGURED }
-  const { error } = await supabase.from('future_evidence').insert({
-    timeline_id: pin.timelineId,
+  const { error } = await supabase.from('kept_lines').insert({
+    investigation_id: pin.timelineId,
     snapshot_id: pin.snapshotId,
     excerpt: pin.excerpt,
     excerpt_hash: pin.excerptHash,
@@ -220,11 +220,11 @@ export async function listFutureEvidence(timelineId: string): Promise<FutureEvid
   const supabase = await createServerSupabase()
   if (!supabase) return []
   const { data, error } = await supabase
-    .from('future_evidence')
+    .from('kept_lines')
     .select(
-      'id, snapshot_id, excerpt, excerpt_hash, captured_game_day, captured_game_minute, pinned_at, wayup_snapshots(canonical_url, remote_fetched_at, content_hash, title)',
+      'id, snapshot_id, excerpt, excerpt_hash, captured_game_day, captured_game_minute, pinned_at, relay_snapshots(canonical_url, remote_fetched_at, content_hash, title)',
     )
-    .eq('timeline_id', timelineId)
+    .eq('investigation_id', timelineId)
     .order('pinned_at', { ascending: false })
     .limit(256)
 
@@ -237,17 +237,17 @@ export async function listFutureEvidence(timelineId: string): Promise<FutureEvid
     capturedGameDay: row.captured_game_day,
     capturedGameMinute: row.captured_game_minute,
     pinnedAt: row.pinned_at,
-    sourceUrl: row.wayup_snapshots?.canonical_url ?? '',
-    remoteFetchedAt: row.wayup_snapshots?.remote_fetched_at ?? '',
-    contentHash: row.wayup_snapshots?.content_hash ?? '',
-    sourceTitle: row.wayup_snapshots?.title ?? '',
+    sourceUrl: row.relay_snapshots?.canonical_url ?? '',
+    remoteFetchedAt: row.relay_snapshots?.remote_fetched_at ?? '',
+    contentHash: row.relay_snapshots?.content_hash ?? '',
+    sourceTitle: row.relay_snapshots?.title ?? '',
   }))
 }
 
 export async function unpinFutureEvidence(evidenceId: string): Promise<Result<null>> {
   const supabase = await createServerSupabase()
   if (!supabase) return { ok: false, error: NOT_CONFIGURED }
-  const { error } = await supabase.from('future_evidence').delete().eq('id', evidenceId)
+  const { error } = await supabase.from('kept_lines').delete().eq('id', evidenceId)
   if (error) return { ok: false, error: error.message }
   return { ok: true, value: null }
 }
@@ -270,8 +270,8 @@ export async function unlockMystery(
   const { error } = await supabase
     .from('mystery_unlocks')
     .upsert(
-      { timeline_id: timelineId, mystery_id: mysteryId, source_event: sourceEvent },
-      { onConflict: 'timeline_id,mystery_id', ignoreDuplicates: true },
+      { investigation_id: timelineId, mystery_id: mysteryId, source_event: sourceEvent },
+      { onConflict: 'investigation_id,mystery_id', ignoreDuplicates: true },
     )
   if (error) return { ok: false, error: error.message }
   return { ok: true, value: null }
@@ -283,7 +283,7 @@ export async function listMysteryUnlocks(timelineId: string): Promise<MysteryUnl
   const { data, error } = await supabase
     .from('mystery_unlocks')
     .select('mystery_id, source_event, unlocked_at')
-    .eq('timeline_id', timelineId)
+    .eq('investigation_id', timelineId)
     .limit(256)
   if (error || !data) return []
   return (data as { mystery_id: string; source_event: string; unlocked_at: string }[]).map(
@@ -347,12 +347,12 @@ export async function contributeFragment(
       mystery_id: mysteryId,
       fragment_id: fragmentId,
       user_id: userId,
-      timeline_id: timelineId,
+      investigation_id: timelineId,
     },
     { onConflict: 'mystery_id,user_id', ignoreDuplicates: true },
   )
   if (insertError) {
-    reportError(insertError, { scope: 'wayup.fragment.contribute', mysteryId })
+    reportError(insertError, { scope: 'relay.fragment.contribute', mysteryId })
     return { ok: false, error: insertError.message }
   }
 

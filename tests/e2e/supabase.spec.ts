@@ -36,7 +36,7 @@ test.describe('Supabase', () => {
   test('RLS is the boundary, not the route handler', async ({ request }) => {
     // The publishable key is public by design, so anyone can reach PostgREST directly. An
     // anonymous read of every table must see nothing rather than everything.
-    for (const table of ['timelines', 'profiles', 'subscriptions', 'billing_customers']) {
+    for (const table of ['investigations', 'profiles', 'subscriptions', 'billing_customers']) {
       const res = await request.get(`${SUPABASE_URL}/rest/v1/${table}?select=*`, {
         headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}` },
       })
@@ -51,8 +51,8 @@ test.describe('Supabase', () => {
     for (const fn of [
       'prune_billing_events',
       'handle_new_user',
-      'prune_orphan_wayup_snapshots',
-      'future_evidence_cap',
+      'prune_orphan_relay_snapshots',
+      'kept_lines_cap',
     ]) {
       const res = await request.post(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
         headers: {
@@ -72,9 +72,9 @@ test.describe('Supabase', () => {
     // `select=*` on a public key would be a free scraped-web API, a record of what every player
     // looked up, and a spoiler table for a game whose subject is discovery.
     for (const table of [
-      'wayup_snapshots',
-      'timeline_wayup_visits',
-      'future_evidence',
+      'relay_snapshots',
+      'investigation_relay_visits',
+      'kept_lines',
       'mystery_unlocks',
       'global_mystery_fragments',
     ]) {
@@ -90,7 +90,7 @@ test.describe('Supabase', () => {
     // Only the relay route, holding the service role, has actually fetched a page and computed
     // its hash. A client-writable cache would let one player author a document another player
     // reads inside the game's own renderer.
-    const res = await request.post(`${SUPABASE_URL}/rest/v1/wayup_snapshots`, {
+    const res = await request.post(`${SUPABASE_URL}/rest/v1/relay_snapshots`, {
       headers: {
         apikey: SUPABASE_KEY,
         authorization: `Bearer ${SUPABASE_KEY}`,

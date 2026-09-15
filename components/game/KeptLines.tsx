@@ -16,7 +16,7 @@ import { useContent, useInvestigation } from './GameContext'
  */
 export function KeptLines({ variant }: { variant: 'tray' | 'board' }) {
   const content = useContent()
-  const kept = useInvestigation((s) => s.wayup.kept)
+  const kept = useInvestigation((s) => s.relay.kept)
   const cfg = content.relay
 
   if (!cfg || kept.length === 0) return null

@@ -152,8 +152,8 @@ describe('the lockout locks', () => {
     const relay = content.terminal.relay!
 
     const cold = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: relay.command })
-    expect(cold.wayup.unlocked).toBe(false)
-    expect(cold.ui.wayupOpen).toBe(false)
+    expect(cold.relay.unlocked).toBe(false)
+    expect(cold.ui.relayOpen).toBe(false)
     expect(cold.terminal.lines.map((l) => l.text).join('\n')).toContain('no outbound route')
 
     // A near miss is still a miss.
@@ -161,21 +161,21 @@ describe('the lockout locks', () => {
       type: 'TERMINAL_COMMAND_RUN',
       command: `${relay.command} --attach the line`,
     })
-    expect(wrong.wayup.unlocked).toBe(false)
+    expect(wrong.relay.unlocked).toBe(false)
 
     const open = dispatch(fresh(), {
       type: 'TERMINAL_COMMAND_RUN',
       command: `${relay.command} ${relay.unlockPhrase.toUpperCase()}`,
     })
-    expect(open.wayup.unlocked).toBe(true)
-    expect(open.ui.wayupOpen).toBe(true)
+    expect(open.relay.unlocked).toBe(true)
+    expect(open.ui.relayOpen).toBe(true)
 
     // And once it is known, running it just opens it.
     const again = dispatch(
-      { ...open, ui: { ...open.ui, wayupOpen: false } },
+      { ...open, ui: { ...open.ui, relayOpen: false } },
       { type: 'TERMINAL_COMMAND_RUN', command: relay.command },
     )
-    expect(again.ui.wayupOpen).toBe(true)
+    expect(again.ui.relayOpen).toBe(true)
   })
 
   it('the relay is a case’s decision, not a build-time one', () => {
@@ -186,7 +186,7 @@ describe('the lockout locks', () => {
       stamp(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'relay' }),
       without,
     )
-    expect(state.wayup.unlocked).toBe(false)
+    expect(state.relay.unlocked).toBe(false)
     expect(state.terminal.lines.at(-1)?.text).toContain('command not found')
   })
 

@@ -440,8 +440,8 @@ function selectDeeds(state: InvestigationState, content: CaseContent): readonly 
     deeds.push(t.notes.replace('{{count}}', String(state.notes.length)))
   }
   // Reaching outside the case file is a deed like any other.
-  if (state.wayup.kept.length > 0 && t.kept) {
-    deeds.push(t.kept.replace('{{count}}', String(state.wayup.kept.length)))
+  if (state.relay.kept.length > 0 && t.kept) {
+    deeds.push(t.kept.replace('{{count}}', String(state.relay.kept.length)))
   }
 
   return deeds
@@ -461,7 +461,7 @@ export const selectReportSummary: (
     s.files,
     s.flags,
     s.notes.length,
-    s.wayup,
+    s.relay,
     c,
   ],
   (state, content) => {

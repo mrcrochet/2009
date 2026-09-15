@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { reportError } from '@/lib/errors'
-import { getProvider, isRelayConfigured } from '@/lib/wayup/provider'
-import { rateLimit, rateLimitKey } from '@/lib/wayup/security'
-import { WayUpRefused, type WayUpSearchResponse } from '@/lib/wayup/types'
+import { getProvider, isRelayConfigured } from '@/lib/relay/provider'
+import { rateLimit, rateLimitKey } from '@/lib/relay/security'
+import { RelayRefused, type RelaySearchResponse } from '@/lib/relay/types'
 import { getCurrentUser } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -66,15 +66,15 @@ export async function POST(request: Request) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
     const results = await provider.search(query, controller.signal)
-    const payload: WayUpSearchResponse = { query, results, provider: provider.name }
+    const payload: RelaySearchResponse = { query, results, provider: provider.name }
     return NextResponse.json(payload)
   } catch (error) {
-    if (error instanceof WayUpRefused) {
+    if (error instanceof RelayRefused) {
       return NextResponse.json({ error: error.message, refusal: error.refusal }, { status: 400 })
     }
     // The query itself is never included: freeform player text does not leave the device, and an
     // error report is still a place text can leak to.
-    reportError(error, { scope: 'wayup.search' })
+    reportError(error, { scope: 'relay.search' })
     return NextResponse.json({ error: 'the other side did not answer' }, { status: 502 })
   } finally {
     clearTimeout(timer)

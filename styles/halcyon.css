@@ -2125,7 +2125,7 @@
  * column: hard edges, one monospace measure, and no affordance that had not been invented yet.
  */
 
-.hal-wayup {
+.hal-relay {
   position: absolute;
   inset: var(--menubar-height) 0 0 0;
   z-index: var(--z-board);
@@ -2139,7 +2139,7 @@
   animation: fadein 0.2s both;
 }
 
-.hal-wayup__panel {
+.hal-relay__panel {
   width: min(760px, 100%);
   max-height: 100%;
   display: flex;
@@ -2153,7 +2153,7 @@
   color: #c2cdd4;
 }
 
-.hal-wayup__head {
+.hal-relay__head {
   flex: none;
   display: flex;
   align-items: baseline;
@@ -2162,11 +2162,11 @@
   border-bottom: 1px solid #22282d;
 }
 
-.hal-wayup__title {
+.hal-relay__title {
   color: #6f9ab5;
 }
 
-.hal-wayup__sub {
+.hal-relay__sub {
   flex: 1;
   min-width: 0;
   color: var(--ink-dimmer);
@@ -2176,7 +2176,7 @@
   white-space: nowrap;
 }
 
-.hal-wayup__close {
+.hal-relay__close {
   appearance: none;
   background: none;
   border: none;
@@ -2187,7 +2187,7 @@
   cursor: pointer;
 }
 
-.hal-wayup__send {
+.hal-relay__send {
   flex: none;
   display: flex;
   align-items: center;
@@ -2196,13 +2196,13 @@
   border-bottom: 1px solid #22282d;
 }
 
-.hal-wayup__label {
+.hal-relay__label {
   color: #6f9ab5;
   font-size: 10.5px;
   letter-spacing: 0.04em;
 }
 
-.hal-wayup__input {
+.hal-relay__input {
   flex: 1;
   min-width: 0;
   background: transparent;
@@ -2213,12 +2213,12 @@
   font-size: 11.5px;
 }
 
-.hal-wayup__input:focus-visible {
+.hal-relay__input:focus-visible {
   outline: 1px solid var(--menubar-accent);
   outline-offset: -2px;
 }
 
-.hal-wayup__go {
+.hal-relay__go {
   appearance: none;
   border: 1px solid #3c4750;
   background: #171c21;
@@ -2230,21 +2230,21 @@
   cursor: pointer;
 }
 
-.hal-wayup__go:hover[aria-disabled='false'] {
+.hal-relay__go:hover[aria-disabled='false'] {
   border-color: var(--menubar-accent);
   color: #fff;
 }
 
 /* aria-disabled rather than disabled, so the control never drops a keyboard player to <body>. */
-.hal-wayup__go[aria-disabled='true'],
-.hal-wayup__row[aria-disabled='true'],
-.hal-wayup__link[aria-disabled='true'],
-.hal-wayup__keep[aria-disabled='true'] {
+.hal-relay__go[aria-disabled='true'],
+.hal-relay__row[aria-disabled='true'],
+.hal-relay__link[aria-disabled='true'],
+.hal-relay__keep[aria-disabled='true'] {
   opacity: 0.45;
   cursor: default;
 }
 
-.hal-wayup__meter {
+.hal-relay__meter {
   flex: none;
   display: flex;
   gap: 12px;
@@ -2253,32 +2253,32 @@
   font-size: 10.5px;
 }
 
-.hal-wayup__signal {
+.hal-relay__signal {
   flex: none;
   color: var(--ink-dimmer);
 }
 
-.hal-wayup__say {
+.hal-relay__say {
   flex: 1;
   min-width: 0;
   color: var(--conf-mid);
 }
 
-.hal-wayup__out {
+.hal-relay__out {
   flex: 1;
   min-height: 0;
   overflow: auto;
   padding: 13px;
 }
 
-.hal-wayup__notice {
+.hal-relay__notice {
   border: 1px solid #3a3330;
   border-left: 3px solid #7a4a42;
   padding: 13px 15px;
   max-width: 60ch;
 }
 
-.hal-wayup__noticetitle {
+.hal-relay__noticetitle {
   margin: 0 0 8px;
   font-family: var(--font-terminal);
   font-size: 12px;
@@ -2288,19 +2288,19 @@
   color: #e2887a;
 }
 
-.hal-wayup__noticebody {
+.hal-relay__noticebody {
   margin: 0;
   color: var(--overlay-prose);
   line-height: 1.85;
 }
 
-.hal-wayup__empty {
+.hal-relay__empty {
   margin: 0;
   color: var(--overlay-empty);
   max-width: 60ch;
 }
 
-.hal-wayup__rows {
+.hal-relay__rows {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -2309,7 +2309,7 @@
   border: 1px solid #22282d;
 }
 
-.hal-wayup__row {
+.hal-relay__row {
   appearance: none;
   display: block;
   width: 100%;
@@ -2323,23 +2323,23 @@
   color: #c2cdd4;
 }
 
-.hal-wayup__row:hover[aria-disabled='false'] {
+.hal-relay__row:hover[aria-disabled='false'] {
   background: #171e24;
 }
 
-.hal-wayup__rowtitle {
+.hal-relay__rowtitle {
   display: block;
   color: #dfe7ec;
 }
 
-.hal-wayup__rowurl {
+.hal-relay__rowurl {
   display: block;
   color: #6f9ab5;
   font-size: 10.5px;
   word-break: break-all;
 }
 
-.hal-wayup__rowsnip {
+.hal-relay__rowsnip {
   display: block;
   margin-top: 4px;
   color: var(--ink-dim);
@@ -2347,7 +2347,7 @@
   line-height: 1.6;
 }
 
-.hal-wayup__rowcost:not(:empty) {
+.hal-relay__rowcost:not(:empty) {
   display: block;
   margin-top: 5px;
   color: var(--ink-dimmer);
@@ -2355,14 +2355,14 @@
   letter-spacing: 0.08em;
 }
 
-.hal-wayup__docbar {
+.hal-relay__docbar {
   display: flex;
   gap: 8px;
   margin-bottom: 11px;
 }
 
-.hal-wayup__back,
-.hal-wayup__keep {
+.hal-relay__back,
+.hal-relay__keep {
   appearance: none;
   border: 1px solid #3c4750;
   background: #171c21;
@@ -2374,13 +2374,13 @@
   cursor: pointer;
 }
 
-.hal-wayup__back:hover,
-.hal-wayup__keep:hover[aria-disabled='false'] {
+.hal-relay__back:hover,
+.hal-relay__keep:hover[aria-disabled='false'] {
   border-color: var(--menubar-accent);
   color: #fff;
 }
 
-.hal-wayup__doctitle {
+.hal-relay__doctitle {
   margin: 0;
   font-family: var(--font-terminal);
   font-size: 13px;
@@ -2388,58 +2388,58 @@
   color: #dfe7ec;
 }
 
-.hal-wayup__docurl {
+.hal-relay__docurl {
   color: #6f9ab5;
   font-size: 10.5px;
   word-break: break-all;
   margin-bottom: 12px;
 }
 
-.hal-wayup__blocks {
+.hal-relay__blocks {
   border-top: 1px solid #22282d;
   border-bottom: 1px solid #22282d;
   padding: 12px 0;
   max-width: 74ch;
 }
 
-.hal-wayup__h {
+.hal-relay__h {
   margin: 16px 0 6px;
   font-family: var(--font-terminal);
   font-weight: 400;
   color: #dfe7ec;
 }
 
-h3.hal-wayup__h {
+h3.hal-relay__h {
   font-size: 12.5px;
 }
-h4.hal-wayup__h {
+h4.hal-relay__h {
   font-size: 11.5px;
   letter-spacing: 0.06em;
 }
-h5.hal-wayup__h {
+h5.hal-relay__h {
   font-size: 11px;
   color: #a9b6bf;
 }
 
-.hal-wayup__p {
+.hal-relay__p {
   margin: 0 0 10px;
   line-height: 1.85;
 }
 
-.hal-wayup__quote {
+.hal-relay__quote {
   margin: 0 0 10px;
   padding-left: 11px;
   border-left: 2px solid #3c4750;
   color: var(--ink-dim);
 }
 
-.hal-wayup__list {
+.hal-relay__list {
   margin: 0 0 10px;
   padding-left: 18px;
   line-height: 1.85;
 }
 
-.hal-wayup__code {
+.hal-relay__code {
   margin: 0 0 10px;
   padding: 9px 11px;
   background: #080b0e;
@@ -2451,34 +2451,34 @@ h5.hal-wayup__h {
   white-space: pre-wrap;
 }
 
-.hal-wayup__rule {
+.hal-relay__rule {
   border: none;
   border-top: 1px solid #22282d;
   margin: 14px 0;
 }
 
-.hal-wayup__captured {
+.hal-relay__captured {
   margin-top: 10px;
   color: var(--ink-dimmer);
   font-size: 10.5px;
   letter-spacing: 0.04em;
 }
 
-.hal-wayup__hint {
+.hal-relay__hint {
   margin: 4px 0 0;
   color: var(--overlay-empty);
   font-size: 10.5px;
   max-width: 62ch;
 }
 
-.hal-wayup__kept,
-.hal-wayup__links {
+.hal-relay__kept,
+.hal-relay__links {
   margin-top: 14px;
   border-top: 1px solid #22282d;
   padding-top: 10px;
 }
 
-.hal-wayup__keptline {
+.hal-relay__keptline {
   color: var(--conf-high);
   font-size: 10.5px;
   line-height: 1.7;
@@ -2486,7 +2486,7 @@ h5.hal-wayup__h {
   max-width: 70ch;
 }
 
-.hal-wayup__link {
+.hal-relay__link {
   display: block;
   appearance: none;
   background: none;
@@ -2500,7 +2500,7 @@ h5.hal-wayup__h {
   word-break: break-all;
 }
 
-.hal-wayup__link:hover[aria-disabled='false'] {
+.hal-relay__link:hover[aria-disabled='false'] {
   color: #a9c9de;
 }
 
@@ -2846,29 +2846,29 @@ h5.hal-wayup__h {
     border-bottom: 1px solid rgba(255, 255, 255, 0.09);
   }
 
-  .hal-wayup {
+  .hal-relay {
     padding: 0;
     inset: var(--menubar-height) 0 0 0;
   }
 
-  .hal-wayup__panel {
+  .hal-relay__panel {
     width: 100%;
     height: 100%;
     max-height: none;
   }
 
-  .hal-wayup__head {
+  .hal-relay__head {
     flex-wrap: wrap;
   }
 
-  .hal-wayup__sub {
+  .hal-relay__sub {
     order: 3;
     flex-basis: 100%;
     white-space: normal;
   }
 
   /* Full height on a phone, so the dock is over the panel rather than beside it. */
-  .hal-wayup__out {
+  .hal-relay__out {
     padding-bottom: 82px;
   }
 
@@ -3516,18 +3516,18 @@ h5.hal-wayup__h {
 /* A captured document is a list of lines: one tab stop, arrows to move, Enter to keep. The
    active line is marked by a rule in the margin rather than by colour, so it survives a screen
    that cannot show colour and a reader that does not look at one. */
-.hal-wayup__line {
+.hal-relay__line {
   border-left: 2px solid transparent;
   padding-left: 8px;
   margin-left: -10px;
 }
 
-.hal-wayup__line[aria-selected='true'] {
+.hal-relay__line[aria-selected='true'] {
   border-left-color: currentColor;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.hal-wayup__blocks:focus-visible {
+.hal-relay__blocks:focus-visible {
   outline: 1px dotted currentColor;
   outline-offset: 3px;
 }

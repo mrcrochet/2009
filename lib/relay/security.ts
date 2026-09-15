@@ -1,5 +1,5 @@
 import { lookup } from 'node:dns/promises'
-import { WayUpRefused } from './types'
+import { RelayRefused } from './types'
 
 /**
  * The ingestion boundary.
@@ -275,38 +275,38 @@ export function assertSafeUrl(raw: string): URL {
   try {
     url = new URL(raw)
   } catch {
-    throw new WayUpRefused('unresolvable', 'that is not an address')
+    throw new RelayRefused('unresolvable', 'that is not an address')
   }
 
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
-    throw new WayUpRefused('scheme', `the relay only speaks http and https, not ${url.protocol}`)
+    throw new RelayRefused('scheme', `the relay only speaks http and https, not ${url.protocol}`)
   }
 
   // `https://user:pass@host` is how a URL smuggles a credential past a naive allowlist, and how
   // a proxy ends up sending one somewhere it was never meant to go.
   if (url.username !== '' || url.password !== '') {
-    throw new WayUpRefused('credentials', 'the relay will not carry credentials')
+    throw new RelayRefused('credentials', 'the relay will not carry credentials')
   }
 
   const host = url.hostname.toLowerCase().replace(/\.$/, '')
-  if (host.length === 0) throw new WayUpRefused('unresolvable', 'no host')
+  if (host.length === 0) throw new RelayRefused('unresolvable', 'no host')
   if (LOOPBACK_HOSTS.has(host)) {
-    throw new WayUpRefused('private-address', 'that host is this machine')
+    throw new RelayRefused('private-address', 'that host is this machine')
   }
 
   if (METADATA_HOSTS.has(host)) {
-    throw new WayUpRefused('metadata-endpoint', 'that host is not on the public internet')
+    throw new RelayRefused('metadata-endpoint', 'that host is not on the public internet')
   }
 
   const own = ownHost()
   if (own && host === own) {
     // Otherwise the relay is a confused deputy pointed at our own API routes.
-    throw new WayUpRefused('own-origin', 'the relay does not call back into this machine')
+    throw new RelayRefused('own-origin', 'the relay does not call back into this machine')
   }
 
   const literal = parseAddress(url.hostname)
   if (literal && isBlockedAddress(literal)) {
-    throw new WayUpRefused('private-address', 'that address is not on the public internet')
+    throw new RelayRefused('private-address', 'that address is not on the public internet')
   }
 
   return url
@@ -329,14 +329,14 @@ export async function assertResolvesPublicly(url: URL): Promise<void> {
   try {
     addresses = await lookup(url.hostname, { all: true, verbatim: true })
   } catch {
-    throw new WayUpRefused('unresolvable', 'that host does not resolve')
+    throw new RelayRefused('unresolvable', 'that host does not resolve')
   }
-  if (addresses.length === 0) throw new WayUpRefused('unresolvable', 'that host does not resolve')
+  if (addresses.length === 0) throw new RelayRefused('unresolvable', 'that host does not resolve')
 
   for (const { address } of addresses) {
     const parsed = parseAddress(address)
     if (!parsed || isBlockedAddress(parsed)) {
-      throw new WayUpRefused('private-address', 'that host points somewhere private')
+      throw new RelayRefused('private-address', 'that host points somewhere private')
     }
   }
 }
@@ -384,7 +384,7 @@ export async function safeFetch(
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
     if (seen.has(current.toString())) {
-      throw new WayUpRefused('redirect-loop', 'that address redirects to itself')
+      throw new RelayRefused('redirect-loop', 'that address redirects to itself')
     }
     seen.add(current.toString())
     await resolve(current)
@@ -398,21 +398,21 @@ export async function safeFetch(
         // user agent. The relay speaks only for itself.
         headers: {
           accept: 'text/html,application/xhtml+xml,text/plain;q=0.9',
-          'user-agent': 'WayUpRelay/0.3 (+read-only archival fetch)',
+          'user-agent': 'RelayRelay/0.3 (+read-only archival fetch)',
         },
         credentials: 'omit',
         referrerPolicy: 'no-referrer',
       })
     } catch (error) {
-      if (signal.aborted) throw new WayUpRefused('timeout', 'the other side did not answer')
-      throw new WayUpRefused('network', error instanceof Error ? error.message : 'network error')
+      if (signal.aborted) throw new RelayRefused('timeout', 'the other side did not answer')
+      throw new RelayRefused('network', error instanceof Error ? error.message : 'network error')
     }
 
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get('location')
-      if (!location) throw new WayUpRefused('network', 'a redirect with nowhere to go')
+      if (!location) throw new RelayRefused('network', 'a redirect with nowhere to go')
       if (hop === MAX_REDIRECTS) {
-        throw new WayUpRefused('too-many-redirects', 'that address redirects too many times')
+        throw new RelayRefused('too-many-redirects', 'that address redirects too many times')
       }
       // Re-validated from the top, including the scheme: `Location: file:///etc/passwd` is a
       // real answer some servers give.
@@ -423,7 +423,7 @@ export async function safeFetch(
     const contentType = (response.headers.get('content-type') ?? '').toLowerCase()
     const base = contentType.split(';')[0]?.trim() ?? ''
     if (!ALLOWED_CONTENT_TYPES.includes(base)) {
-      throw new WayUpRefused('content-type', `the relay reads pages, not ${base || 'that'}`)
+      throw new RelayRefused('content-type', `the relay reads pages, not ${base || 'that'}`)
     }
 
     const body = await readBounded(response, maxBytes)
@@ -436,7 +436,7 @@ export async function safeFetch(
     }
   }
 
-  throw new WayUpRefused('too-many-redirects', 'that address redirects too many times')
+  throw new RelayRefused('too-many-redirects', 'that address redirects too many times')
 }
 
 /**
@@ -458,7 +458,7 @@ async function readBounded(response: Response, maxBytes: number): Promise<string
       if (!value) continue
       total += value.byteLength
       if (total > maxBytes) {
-        throw new WayUpRefused('too-large', 'that page is larger than the relay will carry')
+        throw new RelayRefused('too-large', 'that page is larger than the relay will carry')
       }
       chunks.push(value)
     }
@@ -475,7 +475,7 @@ async function readBounded(response: Response, maxBytes: number): Promise<string
   return new TextDecoder('utf-8', { fatal: false }).decode(joined)
 }
 
-export const WAYUP_LIMITS = {
+export const RELAY_LIMITS = {
   maxRedirects: MAX_REDIRECTS,
   maxBytes: DEFAULT_MAX_BYTES,
   timeoutMs: DEFAULT_TIMEOUT_MS,

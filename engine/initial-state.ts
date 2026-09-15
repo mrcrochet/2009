@@ -68,7 +68,7 @@ export function createInvestigation(
     devices,
     services: opts.services ?? [],
 
-    wayup: {
+    relay: {
       unlocked: content.relay?.availableAtStart ?? false,
       observed: [],
       kept: [],
@@ -118,7 +118,7 @@ export function createInvestigation(
       boardOpen: false,
       watched: false,
       reportCard: false,
-      wayupOpen: false,
+      relayOpen: false,
     },
 
     beats: {},

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import type { WayUpBlock, WayUpDocument, WayUpLink, WayUpSnapshot } from './types'
+import type { RelayBlock, RelayDocument, RelayLink, RelaySnapshot } from './types'
 
 /**
  * Turns a live document into an immutable snapshot.
@@ -18,7 +18,7 @@ const MAX_BLOCK_CHARS = 4_000
 export function contentHashOf(
   canonicalUrl: string,
   title: string,
-  blocks: readonly WayUpBlock[],
+  blocks: readonly RelayBlock[],
 ): string {
   const hash = createHash('sha256')
   hash.update(canonicalUrl)
@@ -52,8 +52,8 @@ export function snapshotIdFor(canonicalUrl: string, contentHash: string): string
  * paragraph. Nothing here can emit markup: the output is text in a discriminated union, and the
  * renderer sets it as a text node.
  */
-export function toBlocks(text: string): WayUpBlock[] {
-  const blocks: WayUpBlock[] = []
+export function toBlocks(text: string): RelayBlock[] {
+  const blocks: RelayBlock[] = []
   const paragraphs = text.split(/\n{2,}/)
 
   for (const raw of paragraphs) {
@@ -106,7 +106,7 @@ function clip(value: string): string {
   return value.length > MAX_BLOCK_CHARS ? `${value.slice(0, MAX_BLOCK_CHARS)}…` : value
 }
 
-export function snapshotFrom(document: WayUpDocument, provider: string): WayUpSnapshot {
+export function snapshotFrom(document: RelayDocument, provider: string): RelaySnapshot {
   const blocks = toBlocks(document.text)
   const contentHash = contentHashOf(document.canonicalUrl, document.title, blocks)
   return {
@@ -129,11 +129,11 @@ export function snapshotFrom(document: WayUpDocument, provider: string): WayUpSn
  * Supabase for accounts), because a snapshot is part of a save, not part of a server's cache.
  * This only stops the obvious duplicate.
  */
-const memo = new Map<string, { snapshot: WayUpSnapshot; at: number }>()
+const memo = new Map<string, { snapshot: RelaySnapshot; at: number }>()
 const MEMO_TTL_MS = 5 * 60 * 1000
 const MEMO_MAX = 200
 
-export function rememberSnapshot(snapshot: WayUpSnapshot): void {
+export function rememberSnapshot(snapshot: RelaySnapshot): void {
   if (memo.size >= MEMO_MAX) {
     const oldest = [...memo.entries()].sort((a, b) => a[1].at - b[1].at)[0]
     if (oldest) memo.delete(oldest[0])
@@ -141,7 +141,7 @@ export function rememberSnapshot(snapshot: WayUpSnapshot): void {
   memo.set(snapshot.canonicalUrl, { snapshot, at: Date.now() })
 }
 
-export function recallSnapshot(canonicalUrl: string): WayUpSnapshot | null {
+export function recallSnapshot(canonicalUrl: string): RelaySnapshot | null {
   const hit = memo.get(canonicalUrl)
   if (!hit) return null
   if (Date.now() - hit.at > MEMO_TTL_MS) {
@@ -161,9 +161,9 @@ export function __clearSnapshotMemo(): void {
 // carries `server-only`, and this is the code most worth testing. Turning hostile markup into
 // text is a normalisation concern anyway, which is what this module is.
 
-export function normaliseLinks(urls: readonly string[]): WayUpLink[] {
+export function normaliseLinks(urls: readonly string[]): RelayLink[] {
   const seen = new Set<string>()
-  const out: WayUpLink[] = []
+  const out: RelayLink[] = []
   for (const url of urls) {
     if (out.length >= 60) break
     if (!/^https?:\/\//i.test(url) || seen.has(url)) continue
@@ -193,7 +193,7 @@ export function extractFromHtml(
 ): {
   title: string
   text: string
-  links: WayUpLink[]
+  links: RelayLink[]
 } {
   const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html)?.[1]?.trim() ?? baseUrl
 

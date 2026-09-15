@@ -8,11 +8,11 @@ import {
   OverlayRefused,
   scanForRealWorld,
   type OverlayDraft,
-} from '@/lib/wayup/overlay'
-import { OWNED_DOMAINS, REAL_ENTITY_DENYLIST, UNIVERSE } from '@/lib/wayup/universe'
-import type { WayUpBlock, WayUpResult, WayUpSnapshot } from '@/lib/wayup/types'
+} from '@/lib/relay/overlay'
+import { OWNED_DOMAINS, REAL_ENTITY_DENYLIST, UNIVERSE } from '@/lib/relay/universe'
+import type { RelayBlock, RelayResult, RelaySnapshot } from '@/lib/relay/types'
 
-const p = (text: string): WayUpBlock => ({ kind: 'p', text })
+const p = (text: string): RelayBlock => ({ kind: 'p', text })
 
 function draft(overrides: Partial<OverlayDraft> = {}): OverlayDraft {
   return {
@@ -207,7 +207,7 @@ describe('attempts to get something past the check', () => {
 // -------------------------------------------------- structural separation
 
 describe('an overlay is structurally not a capture', () => {
-  const snapshot: WayUpSnapshot = {
+  const snapshot: RelaySnapshot = {
     id: 'wu_abc',
     canonicalUrl: 'https://example.com/',
     title: 'Example',
@@ -261,7 +261,7 @@ describe('an overlay is structurally not a capture', () => {
 // ------------------------------------------------------------------ merge
 
 describe('merging never touches a real result', () => {
-  const real: readonly WayUpResult[] = [
+  const real: readonly RelayResult[] = [
     { title: 'One', url: 'https://a.example/1', snippet: 'first' },
     { title: 'Two', url: 'https://b.example/2', snippet: 'second' },
     { title: 'Three', url: 'https://c.example/3', snippet: 'third' },

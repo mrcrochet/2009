@@ -165,7 +165,7 @@ export const InvestigationStateSchema = z.object({
   // The player's own writing. Capped because it is stored, not because it is suspect.
   notes: z.string().max(20_000),
 
-  wayup: z.object({
+  relay: z.object({
     unlocked: z.boolean(),
     observed: z.array(z.string().max(128)).max(512),
     kept: z
@@ -188,7 +188,7 @@ export const InvestigationStateSchema = z.object({
   ui: z.object({
     trayOpen: z.boolean(),
     boardOpen: z.boolean(),
-    wayupOpen: z.boolean().default(false),
+    relayOpen: z.boolean().default(false),
     watched: z.boolean(),
     reportCard: z.boolean(),
   }),

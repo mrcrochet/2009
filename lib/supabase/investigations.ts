@@ -36,7 +36,7 @@ export async function loadServerInvestigationCase(
   const supabase = await createServerSupabase()
   if (!supabase) return null
   const { data, error } = await supabase
-    .from('timelines')
+    .from('investigations')
     .select('case_id')
     .eq('id', investigationId)
     .eq('user_id', userId)
@@ -52,7 +52,7 @@ export async function loadServerInvestigation(
   const supabase = await createServerSupabase()
   if (!supabase) return null
   const { data, error } = await supabase
-    .from('timelines')
+    .from('investigations')
     .select('*')
     .eq('id', investigationId)
     .eq('user_id', userId)
@@ -65,7 +65,7 @@ export async function listServerInvestigations(userId: string): Promise<StoredIn
   const supabase = await createServerSupabase()
   if (!supabase) return []
   const { data, error } = await supabase
-    .from('timelines')
+    .from('investigations')
     .select('*')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
@@ -84,7 +84,7 @@ export async function upsertServerInvestigation(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createServerSupabase()
   if (!supabase) return { ok: false, error: 'cloud saves are not configured' }
-  const { error } = await supabase.from('timelines').upsert(
+  const { error } = await supabase.from('investigations').upsert(
     {
       id: stored.id,
       user_id: userId,

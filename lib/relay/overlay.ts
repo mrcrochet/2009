@@ -5,7 +5,7 @@ import {
   REAL_ENTITY_DENYLIST,
   type UniverseEntity,
 } from './universe'
-import type { WayUpBlock, WayUpResult, WayUpSnapshot } from './types'
+import type { RelayBlock, RelayResult, RelaySnapshot } from './types'
 
 /**
  * A page that exists only inside one timeline, shown among results that came off the real web.
@@ -30,7 +30,7 @@ import type { WayUpBlock, WayUpResult, WayUpSnapshot } from './types'
  */
 
 /** Set only by `createOverlay`. Cannot be produced by deserialising anything. */
-const OVERLAY_BRAND: unique symbol = Symbol('wayup.fictional-overlay')
+const OVERLAY_BRAND: unique symbol = Symbol('relay.fictional-overlay')
 
 export class OverlayRefused extends Error {
   constructor(
@@ -51,7 +51,7 @@ export interface OverlayDraft {
   /** Where it appears to live. Must be a host the fiction owns. */
   readonly address: string
   readonly snippet: string
-  readonly blocks: readonly WayUpBlock[]
+  readonly blocks: readonly RelayBlock[]
   /**
    * A human has read this and accepts responsibility for what it says. Required for a
    * speculative domain, and the only way past a text-scan finding.
@@ -67,7 +67,7 @@ export interface FictionalOverlay {
   readonly title: string
   readonly address: string
   readonly snippet: string
-  readonly blocks: readonly WayUpBlock[]
+  readonly blocks: readonly RelayBlock[]
   /**
    * Kept on the object rather than inferred, so a UI that forgets to distinguish an overlay from
    * a capture still has the words in hand. The player is meant to find this unsettling; the data
@@ -388,10 +388,10 @@ export function isFictionalOverlay(value: unknown): value is FictionalOverlay {
 }
 
 /** True for a real capture. Checks the fields an overlay structurally does not have. */
-export function isCapturedSnapshot(value: unknown): value is WayUpSnapshot {
+export function isCapturedSnapshot(value: unknown): value is RelaySnapshot {
   if (typeof value !== 'object' || value === null) return false
   if (OVERLAY_BRAND in value) return false
-  const candidate = value as Partial<WayUpSnapshot>
+  const candidate = value as Partial<RelaySnapshot>
   return (
     typeof candidate.contentHash === 'string' &&
     typeof candidate.remoteFetchedAt === 'string' &&
@@ -402,8 +402,8 @@ export function isCapturedSnapshot(value: unknown): value is WayUpSnapshot {
 
 // ------------------------------------------------------------------- merge
 
-export type WayUpFeedEntry =
-  | { readonly kind: 'real'; readonly result: WayUpResult }
+export type RelayFeedEntry =
+  | { readonly kind: 'real'; readonly result: RelayResult }
   | { readonly kind: 'overlay'; readonly overlay: FictionalOverlay }
 
 /** Deterministic, so the same timeline sees the overlay in the same place on every replay. */
@@ -425,7 +425,7 @@ function stablePosition(overlayId: string, span: number): number {
  * network actually returned.
  *
  * **Nothing calls this yet, and that is deliberate.** The merge, the allowlist and the refusals
- * are complete and tested; no overlay has been authored, and `/api/wayup/search` does not call
+ * are complete and tested; no overlay has been authored, and `/api/relay/search` does not call
  * it. Two decisions have to be made before it does, and neither is a coding decision:
  *
  * 1. *Which overlays apply when.* An overlay is a page about our own fiction placed among real
@@ -439,10 +439,10 @@ function stablePosition(overlayId: string, span: number): number {
  * Wiring it without settling those would be worse than leaving it here.
  */
 export function mergeSearchResults(
-  real: readonly WayUpResult[],
+  real: readonly RelayResult[],
   overlay: FictionalOverlay | null,
-): WayUpFeedEntry[] {
-  const entries: WayUpFeedEntry[] = real.map((result) => ({ kind: 'real', result }))
+): RelayFeedEntry[] {
+  const entries: RelayFeedEntry[] = real.map((result) => ({ kind: 'real', result }))
   if (!overlay) return entries
 
   if (!isFictionalOverlay(overlay)) {
