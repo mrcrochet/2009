@@ -80,3 +80,83 @@ export function worldIndexForCase(caseId: string): WorldIndex {
   INDEX_BY_CASE.set(caseId, built)
   return built
 }
+
+// ---------------------------------------------------------------------------
+// The shelf
+// ---------------------------------------------------------------------------
+
+/**
+ * One case, as the library shows it.
+ *
+ * Derived from the registry rather than authored a second time, which is the whole point: a case
+ * cannot appear in the library unless it is written, and a written case cannot be misdescribed
+ * there, because the description is the case's own.
+ */
+export interface ShelfCase {
+  readonly id: string
+  readonly number: number
+  readonly title: string
+  readonly hook: string
+  readonly kind: string
+  readonly art: CaseContent['catalogue']['art']
+  readonly difficulty: string
+  readonly estimate: string
+  readonly surfaces: readonly string[]
+  readonly provided: string
+  readonly access: 'free' | 'members'
+  readonly summary: string
+  readonly series: CaseContent['catalogue']['series']
+  readonly client: string
+  readonly location: string
+}
+
+function shelfCase(kase: CaseContent): ShelfCase {
+  return {
+    id: kase.id,
+    number: kase.number,
+    title: kase.title,
+    hook: kase.catalogue.hook,
+    kind: kase.catalogue.kind,
+    art: kase.catalogue.art,
+    difficulty: kase.catalogue.difficulty,
+    estimate: kase.catalogue.estimate,
+    surfaces: kase.catalogue.surfaces,
+    provided: kase.catalogue.provided,
+    access: kase.catalogue.access,
+    summary: kase.summary,
+    series: kase.catalogue.series,
+    client: kase.client,
+    location: kase.location,
+  }
+}
+
+/** Every case there is, lowest number first. */
+export const SHELF: readonly ShelfCase[] = Object.values(BY_CASE)
+  .map(shelfCase)
+  .sort((a, b) => a.number - b.number)
+
+export function shelfCaseById(caseId: string): ShelfCase | null {
+  return SHELF.find((c) => c.id === caseId) ?? null
+}
+
+/**
+ * Series with more than one case written.
+ *
+ * A season of five with four of them unwritten is a shelf making a promise it cannot keep, so a
+ * series with one case is simply a case.
+ */
+export function shelfSeries(): readonly { name: string; cases: readonly ShelfCase[] }[] {
+  const byName = new Map<string, ShelfCase[]>()
+  for (const entry of SHELF) {
+    if (!entry.series) continue
+    const list = byName.get(entry.series.name) ?? []
+    list.push(entry)
+    byName.set(entry.series.name, list)
+  }
+  return [...byName.entries()]
+    .filter(([, cases]) => cases.length > 1)
+    .map(([name, cases]) => ({
+      name,
+      cases: [...cases].sort((a, b) => (a.series!.position ?? 0) - (b.series!.position ?? 0)),
+    }))
+}

@@ -21,6 +21,23 @@ the corpus machinery, the window manager and the relay survived the cut. The set
 the Recall mechanic and the thirty-day arc did not. Nothing in this file describes 2009, and a
 save written by it is refused rather than reshaped.
 
+### The design rule
+
+> **UNLISTED should feel authored, not decorated.**
+> **NOVA should feel functional, not cinematic.**
+> **The cases carry the drama.**
+
+Three surfaces, three jobs. The **product** — home, account, auth — is pure black, Inter set
+tight with Geist Mono for codes and clocks, white as its only accent, and quiet: no KPI cards, no
+gradients behind text, no badges competing with each other. The **workstation** holds one rule of its own: **chrome is dark, documents are light.** The
+shell, titlebars, lists, sidebars, toolbars and the Find window are the machine and recede; a
+mail message, a spreadsheet, a scan and a web page are somebody else's paper and do not. One
+typeface family for both — Inter, with Geist Mono wherever the output is a code, a clock, an
+address or a filename. The **workstation** is a credible machine
+with its own typefaces and its own chrome, and it is not styled by the product that contains it.
+The **cases** are where colour, tension and key art live. A quiet shelf is what lets a poster be
+loud.
+
 ## 2. Canonical design rules
 
 ### MUST
@@ -39,6 +56,15 @@ save written by it is refused rather than reshaped.
 - Consequences are experienced through changing world content, not through a meter.
 - Guest can begin immediately with no account.
 - Save/account prompt happens only after the case has earned it.
+- **Cases arrive the way a streaming service releases series**: a shelf the player chooses from,
+  one at a time, some standalone and some in a season. The root of the site is therefore the
+  shelf, not a poster for a single case.
+- `/` is the **design reference, built** (`components/product/CasesHome.tsx`). Its catalogue,
+  counts and session figures are the reference's placeholder data; `SHELF` in `content/index.ts`
+  is the seam that replaces them with the registry, and it is derived from `BY_CASE` so the
+  wiring cannot invent a case.
+- Everything the product has is reachable from the front door. An entry whose page is not built
+  keeps the reference's `#` rather than pretending to go somewhere.
 
 ### MUST NOT
 
@@ -77,10 +103,12 @@ three of them are enough and two players can assemble the same conclusion from d
 - Next.js 16.x App Router
 - React 19 + TypeScript (`strict: true`)
 - CSS Modules + scoped global CSS tokens. No utility framework dictates the visual language.
-- **Inter + Geist Mono**, and nothing else. The workstation sets its interface in the system
-  grotesk and its data in a mono, the way a present-day forensic tool does. The period display
-  face and typewriter mono it used to carry were the last costume left over from the product
-  this repository used to be.
+  Two stylesheets that never import each other: `styles/product.css` (UNLISTED, scoped to
+  `.unlisted`) and `styles/nova.css` (the workstation).
+- **Inter + Geist Mono**, and nothing else. The product sets its interface in the system
+  grotesk and its data in a mono; so does the workstation, because a present-day forensic tool
+  does. The period display face and typewriter mono the machine used to carry were the last
+  costume left over from the product this repository used to be.
 - Zustand for client runtime orchestration, backed by a **pure deterministic reducer/event engine**
 - Zod for validating authored case content
 - IndexedDB (Dexie) for guest local-first saves
@@ -97,7 +125,8 @@ analytics, or any UI framework.** This is enforced by `tests/unit/engine-purity.
 ## 5. Route map
 
 ```
-/                          marketing landing (light route, no game bundle)
+/                          home — the shelf, held sessions, case briefs.
+                           The product's front door; light route, no game bundle
 /play                      guest/new investigation
 /play/[investigationId]    resume a local/cloud investigation (?case= selects the case)
 /auth/sign-in              auth flows
@@ -235,7 +264,7 @@ server logging adapter; dev debug panel behind `NEXT_PUBLIC_DEBUG_PANEL` only.
 
 ## 20. Performance
 
-Light landing route; lazy-loaded game bundle and heavy apps; no rerender storms while dragging
+Light front door — `/` ships no game bundle; lazy-loaded game bundle and heavy apps; no rerender storms while dragging
 (transforms during drag, commit on release); `prefers-reduced-motion` respected; no layout shift
 during boot→desktop.
 
@@ -275,6 +304,10 @@ page variants, the report gate, save migration, engine purity, and the reading o
 the sheet parser, the waveform's determinism, what a locked source yields, and what Quick Look
 refuses to hold up.
 
+`tests/unit/library.test.tsx` holds the home page to the reference: three sidebar groups, the
+continue hero and its two posters, four rails, a season of five with one locked, the held session
+bar, the brief's open and close, and a `<symbol>` behind every `<use>`.
+
 Every selector that builds an object is memoised and asserted stable in
 `tests/unit/selectors.test.ts`. Through `useSyncExternalStore` a fresh reference per render is
 not a slow render; it is an infinite one, and the application does not start.
@@ -288,7 +321,8 @@ transcript that runs past the end of it, a spreadsheet that does not parse, a ph
 under a source the case never attached, and a case whose only sound claim is behind a paywall.
 `tests/unit/content.test.ts` is the corpus report — it fails with the numbers in the message.
 
-E2E: the full Case 001 golden path (`tests/e2e/case001.spec.ts`), the world surfaces
+E2E: the front door and the boundary it stops at (`tests/e2e/home.spec.ts`), the full Case 001
+golden path from that door (`tests/e2e/case001.spec.ts`), the world surfaces
 (`tests/e2e/world.spec.ts`), the document surfaces — the reader, Quick Look, the viewer and the
 lock screen (`tests/e2e/documents.spec.ts`) — and the narrow layout and the keyboard routes
 (`tests/e2e/mobile.spec.ts`).
