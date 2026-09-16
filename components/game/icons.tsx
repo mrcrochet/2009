@@ -31,6 +31,13 @@ const GLYPHS: Record<string, ReactElement> = {
       <path d="M2.5 10.4h15" opacity=".55" />
     </g>
   ),
+  photos: (
+    <g>
+      <rect x="2.6" y="4.4" width="14.8" height="11.2" rx="1.4" />
+      <path d="M2.6 12.6l4.1-4 3 2.8 3.2-3.4 4.5 4.6" />
+      <circle cx="13.4" cy="7.6" r="1.5" />
+    </g>
+  ),
   devices: (
     <g>
       <rect x="2.4" y="4.6" width="10.4" height="8.2" rx="1.2" />
@@ -64,19 +71,6 @@ const GLYPHS: Record<string, ReactElement> = {
       <path d="M8.2 5.6h3.6M8.2 14.4h3.6" opacity=".7" />
     </g>
   ),
-}
-
-/** Icon face tints, straight from the handoff's TINT map. */
-export const DOCK_TINT: Record<string, readonly [string, string]> = {
-  mail: ['#6f9ec9', '#2f5d87'],
-  msg: ['#7cb98a', '#2f6a44'],
-  web: ['#69a8c9', '#2b5f80'],
-  files: ['#d9b96a', '#8a6a28'],
-  devices: ['#a3adb8', '#5a6570'],
-  notes: ['#d6c77e', '#8a7a34'],
-  term: ['#5c666f', '#23292e'],
-  directory: ['#8fa4b8', '#4d6076'],
-  phone: ['#8a97a4', '#4a545e'],
 }
 
 export function DockGlyph({ id }: { id: DockId }) {

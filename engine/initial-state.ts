@@ -111,6 +111,7 @@ export function createInvestigation(
       forward: [],
     },
     files: { openId: content.files[0]?.id ?? '', decrypted: {}, decryptAttempts: {} },
+    media: { openPhotoId: content.photos[0]?.id ?? '' },
     terminal: { lines: [content.terminal.banner], input: '' },
 
     ui: {
@@ -119,6 +120,7 @@ export function createInvestigation(
       watched: false,
       reportCard: false,
       relayOpen: false,
+      quickLook: null,
     },
 
     beats: {},

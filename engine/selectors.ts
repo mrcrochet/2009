@@ -1,7 +1,15 @@
-import type { Block, CaseContent, Choice, MailMessage } from './case-schema'
+import type {
+  AudioDoc,
+  Block,
+  CaseContent,
+  Choice,
+  DocumentKind,
+  MailMessage,
+  Photo,
+} from './case-schema'
 import { clockString, menuBarClock } from './clock'
 import { findPage, hasWitnessedChange, resolveBlocks, resolveSearchEntry } from './pages'
-import { canFileReport, outstandingBeats } from './rules'
+import { canFileReport, outstandingBeats, photoAvailable, phoneDeviceId } from './rules'
 import type { AppId, BeatId, Evidence, InvestigationState } from './types'
 
 /** Derived, framework-free view models. Components render these; they never compute story. */
@@ -289,7 +297,7 @@ export const selectPage: (state: InvestigationState, content: CaseContent) => Pa
 export interface FileRow {
   readonly id: string
   readonly name: string
-  readonly icon: CaseContent['files'][number]['icon']
+  readonly kind: DocumentKind
   readonly meta: string
   readonly selected: boolean
 }
@@ -306,30 +314,202 @@ export const selectFiles: (
       .map((f) => ({
         id: f.id,
         name: f.name,
-        icon: f.icon,
+        kind: documentKind(state, f),
         meta: state.files.decrypted[f.id] && f.metaWhenDecrypted ? f.metaWhenDecrypted : f.meta,
         selected: state.files.openId === f.id,
       }))
   },
 )
 
-export function selectFileBody(state: InvestigationState, content: CaseContent): string {
-  const doc = content.files.find((f) => f.id === state.files.openId)
-  if (!doc) return ''
-  if (state.files.decrypted[doc.id] && doc.bodyWhenDecrypted) return doc.bodyWhenDecrypted
-  return doc.body
+/**
+ * One document, resolved.
+ *
+ * Every surface that shows a document — the reader in Files, Quick Look, the desktop — asks for
+ * this and renders it. A component that reached into `content.files` itself would be deciding,
+ * on its own, whether a sealed file has been opened yet.
+ */
+export interface DocumentModel {
+  readonly id: string
+  readonly name: string
+  readonly kind: DocumentKind
+  readonly meta: string
+  readonly body: string
+  readonly audio: AudioDoc | null
+  /** Sealed, and not yet opened. What it will turn out to be is not shown. */
+  readonly sealed: boolean
+  /** The pin, when this document is offering one *now*. */
+  readonly evidenceId: string | null
 }
 
-export function selectFileEvidenceId(
+function documentKind(
+  state: InvestigationState,
+  doc: CaseContent['files'][number],
+): DocumentKind {
+  if (state.files.decrypted[doc.id] && doc.kindWhenDecrypted) return doc.kindWhenDecrypted
+  return doc.kind
+}
+
+export function selectDocument(
   state: InvestigationState,
   content: CaseContent,
+  fileId: string,
+): DocumentModel | null {
+  const doc = content.files.find((f) => f.id === fileId)
+  if (!doc) return null
+  if (isWithheld(state, content, 'file', doc.id)) return null
+  const open = Boolean(state.files.decrypted[doc.id])
+  return {
+    id: doc.id,
+    name: doc.name,
+    kind: documentKind(state, doc),
+    meta: open && doc.metaWhenDecrypted ? doc.metaWhenDecrypted : doc.meta,
+    body: open && doc.bodyWhenDecrypted ? doc.bodyWhenDecrypted : doc.body,
+    audio: doc.audio,
+    sealed: doc.kind === 'encrypted' && !open,
+    evidenceId: fileEvidenceId(state, content, doc, open),
+  }
+}
+
+/**
+ * Memoised, like every selector that builds an object.
+ *
+ * A component reading this through `useSyncExternalStore` compares by identity: handing it a
+ * fresh `DocumentModel` on every render is not a slow render, it is an infinite one.
+ */
+export const selectOpenDocument: (
+  state: InvestigationState,
+  content: CaseContent,
+) => DocumentModel | null = memoBy(
+  (s, c) => [s.files.openId, s.files.decrypted, s.services, c],
+  (state, content) => selectDocument(state, content, state.files.openId),
+)
+
+function fileEvidenceId(
+  state: InvestigationState,
+  content: CaseContent,
+  doc: CaseContent['files'][number],
+  decrypted: boolean,
 ): string | null {
-  const doc = content.files.find((f) => f.id === state.files.openId)
-  if (!doc || !doc.evidenceId) return null
-  if (doc.evidenceRequiresDecryption && !state.files.decrypted[doc.id]) return null
+  if (!doc.evidenceId) return null
+  if (doc.evidenceRequiresDecryption && !decrypted) return null
   if (isWithheld(state, content, 'evidence', doc.evidenceId)) return null
   return doc.evidenceId
 }
+
+// --- Photographs -----------------------------------------------------------
+
+export interface PhotoRow {
+  readonly id: string
+  readonly label: string
+  readonly meta: string
+  readonly subject: Photo['subject']
+  readonly selected: boolean
+  readonly evidenceId: string | null
+}
+
+export interface PhotoModel extends PhotoRow {
+  readonly detail: readonly string[]
+  /** The source it came off, named the way the case names it. */
+  readonly source: string
+}
+
+function photoRow(state: InvestigationState, photo: Photo): PhotoRow {
+  return {
+    id: photo.id,
+    label: photo.label,
+    meta: photo.meta,
+    subject: photo.subject,
+    selected: state.media.openPhotoId === photo.id,
+    evidenceId: photo.evidenceId,
+  }
+}
+
+/** The contact sheet: everything this machine has extracted from a source it can read. */
+export const selectPhotos: (
+  state: InvestigationState,
+  content: CaseContent,
+) => readonly PhotoRow[] = memoBy(
+  (s, c) => [s.devices, s.media.openPhotoId, c],
+  (state, content) =>
+    content.photos
+      .filter((photo) => photoAvailable(photo, state.devices))
+      .map((photo) => photoRow(state, photo)),
+)
+
+/**
+ * The roll on the handset itself.
+ *
+ * The same photographs, reached the other way round — the player holding the phone sees what is
+ * on the phone, and the same file in the workstation's viewer carries the extraction notes the
+ * handset would never show. One set of pictures, two surfaces, no second copy.
+ */
+export const selectPhonePhotos: (
+  state: InvestigationState,
+  content: CaseContent,
+) => readonly PhotoRow[] = memoBy(
+  (s, c) => [s.devices, s.media.openPhotoId, c],
+  (state, content) => {
+    const device = phoneDeviceId(content)
+    if (!device) return []
+    return content.photos
+      .filter((photo) => photo.sourceId === device && photoAvailable(photo, state.devices))
+      .map((photo) => photoRow(state, photo))
+  },
+)
+
+export function selectPhoto(
+  state: InvestigationState,
+  content: CaseContent,
+  photoId: string,
+): PhotoModel | null {
+  const photo = content.photos.find((p) => p.id === photoId)
+  if (!photo || !photoAvailable(photo, state.devices)) return null
+  const device = photo.sourceId ? content.devices.find((d) => d.id === photo.sourceId) : null
+  return {
+    ...photoRow(state, photo),
+    detail: photo.detail,
+    source: device ? device.label : 'Supplied with the case',
+  }
+}
+
+export const selectOpenPhoto: (
+  state: InvestigationState,
+  content: CaseContent,
+) => PhotoModel | null = memoBy(
+  (s, c) => [s.media.openPhotoId, s.devices, c],
+  (state, content) => {
+    const open = selectPhoto(state, content, state.media.openPhotoId)
+    if (open) return open
+    // A locked source, or a case whose first picture is behind one: fall to the first readable
+    // frame rather than showing the viewer an empty pane it cannot explain.
+    const first = selectPhotos(state, content)[0]
+    return first ? selectPhoto(state, content, first.id) : null
+  },
+)
+
+// --- Quick Look ------------------------------------------------------------
+
+export type QuickLookModel =
+  | { readonly kind: 'file'; readonly document: DocumentModel }
+  | { readonly kind: 'photo'; readonly photo: PhotoModel }
+
+/** What Space is holding up, or `null` — including when what it held has since been withheld. */
+export const selectQuickLook: (
+  state: InvestigationState,
+  content: CaseContent,
+) => QuickLookModel | null = memoBy(
+  (s, c) => [s.ui.quickLook, s.files.decrypted, s.services, s.devices, s.media.openPhotoId, c],
+  (state, content) => {
+    const ref = state.ui.quickLook
+    if (!ref) return null
+    if (ref.kind === 'file') {
+      const document = selectDocument(state, content, ref.id)
+      return document ? { kind: 'file', document } : null
+    }
+    const photo = selectPhoto(state, content, ref.id)
+    return photo ? { kind: 'photo', photo } : null
+  },
+)
 
 // --- Investigation ---------------------------------------------------------
 

@@ -1,5 +1,6 @@
 import type { CaseContent } from './case-schema'
-import type { BeatId, Claim, ClaimVerdictKind, Viewport } from './types'
+import type { Photo } from './case-schema'
+import type { BeatId, Claim, ClaimVerdictKind, DeviceState, Viewport } from './types'
 
 /**
  * Deterministic rules. Everything here is a pure function of authored content plus the numbers
@@ -141,4 +142,34 @@ export function searchIndex(content: CaseContent, rawQuery: string): readonly st
       }),
     )
     .map((entry) => entry.id)
+}
+
+// --- Media -----------------------------------------------------------------
+
+/**
+ * Whether a picture is actually on this machine.
+ *
+ * A photograph belongs to the source it came off. If that source is a handset nobody has
+ * unlocked, the workstation has not extracted anything from it, and the viewer showing it
+ * anyway would hand the player the contents of a locked phone. The rule lives here because the
+ * reducer and the surfaces both have to agree about it, and disagreeing is how a grid ends up
+ * one frame ahead of the lock screen.
+ */
+export function photoAvailable(
+  photo: Photo,
+  devices: Readonly<Record<string, DeviceState>>,
+): boolean {
+  if (!photo.sourceId) return true
+  const device = devices[photo.sourceId]
+  return device ? device.connected && device.unlocked : false
+}
+
+/**
+ * The id of the handset this case's phone overlay stands for.
+ *
+ * `content.phone` is the screen; the device in `content.devices` is the source, and the photos
+ * name the source. Nothing else knows how to get from one to the other.
+ */
+export function phoneDeviceId(content: CaseContent): string | null {
+  return content.devices.find((device) => device.kind === 'phone')?.id ?? null
 }

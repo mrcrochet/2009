@@ -44,7 +44,8 @@ save written by it is refused rather than reshaped.
 
 - SaaS dashboard shell around the investigation.
 - Permanent "Cases / Devices / Evidence / Account" navigation inside the workstation.
-- Modern giant rounded cards inside the OS.
+- Modern giant rounded cards inside the OS. Rounded *windows* are not that: a 10px corner on a
+  window is a present-day operating system, a 22px card floating in a blur is a dashboard.
 - Emoji as shipping icons.
 - AI chat replacing authored narrative.
 - External live web search inside the fictional Browser. (The relay is the only route out, it is
@@ -62,9 +63,9 @@ Portland, Oregon · present day · USD · **NOVA 3.2** workstation · the **UNLI
 missing since 9 June; Richard Vale, Ridgeline Partners, the Marlow Foundation, Nadia Okafor.
 
 `content/cases/case001/` authors ten pieces of evidence, four claims, five messages, eight
-documents, two devices, one paid recovery and eleven pages of its own web. `content/world/` holds
-sixty-nine artifacts carrying thirteen facts, and `content/index.ts` projects the case into it, so
-the searchable world is ninety-four documents deep.
+documents, three photographs, two devices, one paid recovery and eleven pages of its own web.
+`content/world/` holds sixty-nine artifacts carrying thirteen facts, and `content/index.ts`
+projects the case into it, so the searchable world is ninety-four documents deep.
 
 The shape of the corpus is measured, not asserted: **64% ordinary, 12% side story, 7% economic,
 13% suggestive, 4% anomalous.** The suggestive facts carry four and five traces, so any two or
@@ -75,8 +76,11 @@ three of them are enough and two players can assemble the same conclusion from d
 
 - Next.js 16.x App Router
 - React 19 + TypeScript (`strict: true`)
-- CSS Modules + scoped global CSS tokens for the workstation shell. No utility framework dictates
-  the visual language.
+- CSS Modules + scoped global CSS tokens. No utility framework dictates the visual language.
+- **Inter + Geist Mono**, and nothing else. The workstation sets its interface in the system
+  grotesk and its data in a mono, the way a present-day forensic tool does. The period display
+  face and typewriter mono it used to carry were the last costume left over from the product
+  this repository used to be.
 - Zustand for client runtime orchestration, backed by a **pure deterministic reducer/event engine**
 - Zod for validating authored case content
 - IndexedDB (Dexie) for guest local-first saves
@@ -126,10 +130,22 @@ content module, one sitting. There is no night, no day counter and no thirty-day
 **Deterministic by default.** Case 001 is authored and deterministic. Any later randomness uses a
 seeded PRNG (`engine/seed.ts`) recorded in the investigation.
 
-**Data-driven content.** Mail, dialogue, browser pages, files, devices, evidence, claims, services
-and reports live under `content/`, validated by Zod. React components render content; they never
-own narrative truth. Which applications exist, which file lands on the desktop and what opens a
-device are all the case's decisions.
+**Data-driven content.** Mail, dialogue, browser pages, files, photographs, devices, evidence,
+claims, services and reports live under `content/`, validated by Zod. React components render
+content; they never own narrative truth. Which applications exist, which file lands on the
+desktop and what opens a device are all the case's decisions.
+
+**A document declares what it is.** `kind` — `note`, `letter`, `sheet`, `scan`, `audio`,
+`encrypted` — and the build draws it as that: a spreadsheet as a table with the comment somebody
+left in a cell, a receipt as paper off a flatbed, a voicemail as a transport over a transcript
+that is legible whether or not it is played. No audio or image files ship; a recording is a
+`durationSec`, a channel and timed cues, and its waveform is derived from its id so a replay
+looks like the session. See `docs/AUTHORING.md`.
+
+**A photograph belongs to the source it came off.** `photos` are authored on the case with a
+`sourceId`; the handset's roll and the workstation's viewer are two surfaces over one set of
+files, and a picture off a source nobody has unlocked is on neither. The same rule gives a
+locked handset a lock screen instead of the thread it is hiding.
 
 **One world.** `content/world/` is the corpus the cases happen inside — entities, artifacts,
 relations, facts — and `content/index.ts` projects every authored case into it, so a player who
@@ -239,25 +255,35 @@ Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mob
   the surveillance hold are timers, not CSS. `pace()` collapses them. The beats still happen; the
   waiting does not.
 - **Keyboard routes**: `Ctrl+\`` cycles windows, `Ctrl+D` reaches the dock, `Ctrl+E` the tray,
-  `Ctrl+K` the search.
+  `Ctrl+K` the search. `Space` on a file or a frame is Quick Look, and `Space` again puts it
+  down — a way to read a document without opening the application that owns it.
 - **Sound** is generated at runtime by `lib/audio/` — no files ship. The mute control lives in the
   menu bar, and the choice persists.
 
 ## 23. Testing
 
 Unit: evidence pinning idempotency, the service gate, claim requirement logic, device unlocking,
-page variants, the report gate, save migration, engine purity.
+page variants, the report gate, save migration, engine purity, and the reading of a document —
+the sheet parser, the waveform's determinism, what a locked source yields, and what Quick Look
+refuses to hold up.
+
+Every selector that builds an object is memoised and asserted stable in
+`tests/unit/selectors.test.ts`. Through `useSyncExternalStore` a fresh reference per render is
+not a slow render; it is an infinite one, and the application does not start.
 
 The corpus has invariants of its own, and they fail the build: a page on the web with no address,
 two documents at one address, a connection nothing the player could hold supports, a fact carried
 by a single trace, an untrue document nothing catches, a world that has stopped being mostly
 ordinary, a plot fact resting on too few traces to be worked out, a device nothing can open, an
-app the dock names and the case never declared, and a case whose only sound claim is behind a
-paywall. `tests/unit/content.test.ts` is the corpus report — it
-fails with the numbers in the message.
+app the dock names and the case never declared, a recording with nothing recorded or a
+transcript that runs past the end of it, a spreadsheet that does not parse, a photograph filed
+under a source the case never attached, and a case whose only sound claim is behind a paywall.
+`tests/unit/content.test.ts` is the corpus report — it fails with the numbers in the message.
 
 E2E: the full Case 001 golden path (`tests/e2e/case001.spec.ts`), the world surfaces
-(`tests/e2e/world.spec.ts`), the narrow layout and the keyboard routes (`tests/e2e/mobile.spec.ts`).
+(`tests/e2e/world.spec.ts`), the document surfaces — the reader, Quick Look, the viewer and the
+lock screen (`tests/e2e/documents.spec.ts`) — and the narrow layout and the keyboard routes
+(`tests/e2e/mobile.spec.ts`).
 
 ## 24. Definition of done
 

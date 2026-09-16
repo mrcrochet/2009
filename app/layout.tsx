@@ -1,19 +1,29 @@
 import type { Metadata, Viewport } from 'next'
-import { Archivo, IBM_Plex_Mono } from 'next/font/google'
+import { Geist_Mono, Inter } from 'next/font/google'
 import { AnalyticsBoot } from '@/components/AnalyticsBoot'
 import '@/styles/tokens.css'
 
-const archivo = Archivo({
+/*
+ * Two typefaces, and there were four.
+ *
+ * Inter set tight, with Geist Mono for anything that is a code, a clock, an address or machine
+ * output. The workstation used to have two of its own — a period display face and a typewriter
+ * mono — on the theory that a fictional computer typing in its publisher's font is not
+ * believable. In practice a present-day forensic tool sets its interface in the system grotesk
+ * and its data in a mono, exactly like this, and the costume faces were the last thing on the
+ * machine still dressed as the product this repository used to be.
+ */
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-archivo',
+  weight: ['400', '500', '600'],
+  variable: '--font-inter',
   display: 'swap',
 })
 
-const plexMono = IBM_Plex_Mono({
+const geistMono = Geist_Mono({
   subsets: ['latin'],
   weight: ['400', '500'],
-  variable: '--font-plex-mono',
+  variable: '--font-geist-mono',
   display: 'swap',
 })
 
@@ -39,7 +49,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${archivo.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${geistMono.variable}`}>
       <body>
         <AnalyticsBoot />
         {children}

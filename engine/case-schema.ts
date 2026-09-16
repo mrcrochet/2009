@@ -151,7 +151,7 @@ export const BlockSchema = z.discriminatedUnion('kind', [
  * A page as it reads once something has happened.
  *
  * Variants were keyed on a drift meter as well as on flags. A meter that silently rewrites the
- * web is a 2009 mechanic; what survives is the half that was always better — a document that
+ * web was a mechanic of the old product; what survives is the half that was always better — a document that
  * reads differently because of something the investigator actually did.
  */
 export const PageVariantSchema = z.object({
@@ -188,6 +188,15 @@ export const BrowserConfigSchema = z.object({
   /** Where an empty result set points the player instead of a dead end. */
   directoryUrl: z.string().min(1),
   directoryLabel: z.string().min(1),
+  /**
+   * The wordmark on the search page, and the line under it.
+   *
+   * Authored, because a component was printing a search engine's name and a copyright year
+   * outright — a brand that belonged to a different product's fiction, hardcoded into the build
+   * that renders every case's web.
+   */
+  homeBrand: z.string().min(1),
+  homeFoot: z.string().min(1),
   notFoundTitle: z.string().min(1),
   notFoundBody: z.string().min(1),
   /** Whoever set this machine up left these behind. */
@@ -198,10 +207,60 @@ export const BrowserConfigSchema = z.object({
 
 // --- Files -----------------------------------------------------------------
 
+/**
+ * What a document *is*, which is the thing the case knows and the component must not guess.
+ *
+ * It replaced `icon`, which was the same fact stated wrongly: a file declared how it should be
+ * drawn in a list, and the receipt scan therefore arrived at the reader as a column of monospace
+ * text with a photograph for an icon. The glyph is derived from the nature now, so the two can
+ * no longer disagree.
+ */
+export const DocumentKindSchema = z.enum([
+  /** Somebody's plain text. Monospace, as it was typed. */
+  'note',
+  /** A word-processor document: paragraphs, margins, a page. */
+  'letter',
+  /** Delimited rows. Rendered as the table it already is. */
+  'sheet',
+  /** Paper that went through a scanner and came back as an image of itself. */
+  'scan',
+  /** A recording. Carries `audio`, and is read as much as it is heard. */
+  'audio',
+  /** Sealed. What is inside it is `bodyWhenDecrypted`, and so is what it becomes. */
+  'encrypted',
+])
+
+export const AudioCueSchema = z.object({
+  /** Seconds from the start of the recording. */
+  at: z.number().nonnegative(),
+  /** Empty for a cue that is not speech — a line staying open, a door, a room going quiet. */
+  who: z.string(),
+  text: z.string().min(1),
+})
+
+/**
+ * A recording, as a forensic object rather than as a media file.
+ *
+ * No audio ships — the rule that sound is generated at runtime is not suspended because the
+ * sound is content — so what the case authors is the *record*: how long it ran, where it came
+ * from, and what was said when. The player hears a recording and reads a transcript, and the
+ * transcript is legible whether or not they ever press play.
+ */
+export const AudioDocSchema = z.object({
+  durationSec: z.number().positive(),
+  /** "Voicemail · 10 Jun 2026 08:14". The line under the transport. */
+  channel: z.string().min(1),
+  cues: z.array(AudioCueSchema).min(1),
+})
+
 export const FileDocSchema = z.object({
   id,
   name: z.string().min(1),
-  icon: z.enum(['document', 'encrypted', 'folder', 'image']),
+  kind: DocumentKindSchema,
+  /** What a sealed document turns out to be. `null` on everything that is not sealed. */
+  kindWhenDecrypted: DocumentKindSchema.nullable().default(null),
+  /** Present exactly when `kind` (or `kindWhenDecrypted`) is `audio`. */
+  audio: AudioDocSchema.nullable().default(null),
   meta: z.string(),
   metaWhenDecrypted: z.string().nullable().default(null),
   body: z.string(),
@@ -368,22 +427,74 @@ export const SmsNodeSchema = z.object({
 export const PhotoSchema = z.object({
   id,
   label: z.string(),
+  /** The one line a handset would show. The longer read is `detail`. */
   meta: z.string(),
-  /** Which frame to draw. A 2009 phone camera, not a stock photo. */
+  /** Which frame to draw. A phone camera at night, not a stock photo. */
   subject: z.enum(['parking-structure', 'interior-night', 'scanned-page']),
+  /**
+   * The device this came off, by id, or `null` for something the case simply supplied.
+   *
+   * It is what makes the workstation's viewer honest: a picture off a handset nobody has
+   * unlocked yet is not on this machine, and the grid must not show it.
+   */
+  sourceId: id.nullable().default(null),
+  /** What the extraction says about the file. Shown in the viewer, not on the handset. */
+  detail: z.array(z.string()).default([]),
   evidenceId: id.nullable().default(null),
 })
 
 export const ContactSchema = z.object({ name: z.string(), number: z.string() })
 
+/**
+ * The handset, as the player holds it. Its pictures are not listed here: they are the case's,
+ * tagged with the source they came off, because the workstation has a viewer too and two copies
+ * of one photograph is exactly the duplication the corpus exists to prevent.
+ */
 export const PhoneConfigSchema = z.object({
   device: z.string().min(1),
   carrier: z.string().min(1),
   sms: z.array(SmsNodeSchema).min(1),
-  photos: z.array(PhotoSchema),
   contacts: z.array(ContactSchema),
 })
 
+
+// --- The catalogue ---------------------------------------------------------
+
+/**
+ * How a case introduces itself before anybody opens it.
+ *
+ * The library is a shop window, and a shop window is where a product is most tempted to lie:
+ * invented difficulty, a completion percentage, a count of people who "solved it". None of that
+ * is here. Everything below is a sentence an author wrote about a case that exists, and the
+ * library can show nothing else — `content/index.ts` builds the shelf from the registry, so a
+ * case that is not written cannot appear on it.
+ */
+export const CatalogueSchema = z.object({
+  /** Which drawn composition is this case's key art. Never a photograph of a real place. */
+  art: z.enum(['lot', 'house', 'screen', 'signal', 'corridor', 'ledger', 'blinds', 'road', 'paper']),
+  /** The one line on the poster. Not the summary — the reason to open it. */
+  hook: z.string().min(1),
+  /** "Missing person", "Financial", "Device". What kind of work this is. */
+  kind: z.string().min(1),
+  difficulty: z.string().min(1),
+  /** "2 to 4 hours". A range, because it is one. */
+  estimate: z.string().min(1),
+  /** What the investigator will actually be working across. */
+  surfaces: z.array(z.string().min(1)).min(1),
+  /** What arrives with the case. */
+  provided: z.string().min(1),
+  access: z.enum(['free', 'members']),
+  /**
+   * The series this belongs to, if any.
+   *
+   * A series shelf only appears once more than one of its cases is written. A season of five
+   * with four of them unwritten is a promise the shelf cannot keep.
+   */
+  series: z
+    .object({ name: z.string().min(1), position: z.number().int().positive() })
+    .nullable()
+    .default(null),
+})
 
 // --- Apps ------------------------------------------------------------------
 
@@ -543,6 +654,10 @@ export const CaseContentSchema = z.object({
   threads: z.array(ThreadSchema).min(1),
   browser: BrowserConfigSchema,
   files: z.array(FileDocSchema).min(1),
+  /** Everything with a picture in it, whatever source it came off. */
+  photos: z.array(PhotoSchema).default([]),
+  /** How this case appears in the library, before anybody opens it. */
+  catalogue: CatalogueSchema,
   terminal: TerminalConfigSchema,
   /** `null` on a case with no line to the open web. */
   relay: RelayConfigSchema.nullable().default(null),
@@ -554,7 +669,7 @@ export const CaseContentSchema = z.object({
   /**
    * What the gate says is still outstanding, per beat.
    *
-   * Authored, because it was a hardcoded map in the menu bar naming Day 01's characters — which
+   * Authored, because it was a hardcoded map in the menu bar naming one case's characters — which
    * meant the second case's gate would have told the player to answer somebody who is not in it.
    * A beat with no hint here reads as its own id, which is ugly and honest rather than wrong.
    */
@@ -569,6 +684,11 @@ export type MailMessage = z.infer<typeof MailMessageSchema>
 export type FileDoc = z.infer<typeof FileDocSchema>
 export type SmsNode = z.infer<typeof SmsNodeSchema>
 export type Photo = z.infer<typeof PhotoSchema>
+export type Catalogue = z.infer<typeof CatalogueSchema>
+export type CaseArt = Catalogue['art']
+export type DocumentKind = z.infer<typeof DocumentKindSchema>
+export type AudioDoc = z.infer<typeof AudioDocSchema>
+export type AudioCue = z.infer<typeof AudioCueSchema>
 export type Contact = z.infer<typeof ContactSchema>
 export type Thread = z.infer<typeof ThreadSchema>
 export type ChatNode = z.infer<typeof ChatNodeSchema>

@@ -5,6 +5,7 @@ import { BY_CASE, GAME_WORLD } from '@/content'
 import { artifactUrl } from '@/engine/world'
 import { WORLD } from '@/content/world'
 import { resolveBlocks } from '@/engine/pages'
+import { parseSheet } from '@/engine/documents'
 import { content } from './helpers'
 
 /** Authored content is data, and data has to hold together. */
@@ -21,10 +22,13 @@ describe('case 001 content', () => {
     expect(content.client).toBe('Claire Mercer')
   })
 
-  it('has no leftover 2009 content', () => {
+  /**
+   * The authored half of the same rule `tests/unit/pivot.test.ts` holds over the build: no case
+   * may carry a name from the product this repository used to be.
+   */
+  it('has no leftover content from the product this used to be', () => {
     const blob = JSON.stringify(content)
-    // The machine is called NOVA now, so the old machine's name is the token to forbid.
-    for (const legacy of ['HALCYON', 'Owen T. Rask', 'Aion', 'Meridian', 'Quoteline', 'Recall']) {
+    for (const legacy of ['HALCYON', 'Owen T. Rask', 'Aion', 'Meridian', 'Quoteline', 'Nokora']) {
       expect(blob.includes(legacy), `found legacy token "${legacy}"`).toBe(false)
     }
   })
@@ -66,9 +70,10 @@ describe('case 001 content', () => {
   it.each(Object.entries(BY_CASE))('case %s can be closed without paying', (_id, kase) => {
     const withheld = new Set(kase.services.flatMap((s) => s.grantsEvidenceIds))
     const soundClaims = kase.claims.filter((c) => c.sound)
-    expect(soundClaims.length, 'a case with no sound claim cannot be closed at all').toBeGreaterThan(
-      0,
-    )
+    expect(
+      soundClaims.length,
+      'a case with no sound claim cannot be closed at all',
+    ).toBeGreaterThan(0)
     const free = soundClaims.filter((claim) => claim.need.every((id) => !withheld.has(id)))
     expect(
       free.length,
@@ -124,6 +129,60 @@ describe('case 001 content', () => {
   it.each(Object.entries(BY_CASE))('case %s names its own beats', (_id, kase) => {
     expect(new Set(kase.requiredBeats).size).toBe(kase.requiredBeats.length)
   })
+
+  /**
+   * A document's nature is what the build draws it as, so a nature a document does not actually
+   * have is a reader showing an empty transport where a voicemail should be.
+   */
+  it.each(Object.entries(BY_CASE))(
+    'case %s gives every document the nature it has',
+    (_id, kase) => {
+      for (const file of kase.files) {
+        const isRecording = file.kind === 'audio' || file.kindWhenDecrypted === 'audio'
+        expect(Boolean(file.audio), `${file.id} is a recording with nothing recorded`).toBe(
+          isRecording,
+        )
+        if (!file.audio) continue
+
+        // A transcript that runs past the end of the tape, or backwards, is not a transcript.
+        let last = -1
+        for (const cue of file.audio.cues) {
+          expect(cue.at, `${file.id} runs a cue backwards`).toBeGreaterThanOrEqual(last)
+          expect(cue.at, `${file.id} speaks past the end of itself`).toBeLessThanOrEqual(
+            file.audio.durationSec,
+          )
+          last = cue.at
+        }
+      }
+    },
+  )
+
+  /** A spreadsheet that does not parse is a spreadsheet the player reads as a paragraph. */
+  it.each(Object.entries(BY_CASE))('case %s writes every sheet as a sheet', (_id, kase) => {
+    for (const file of kase.files) {
+      if (file.kind !== 'sheet') continue
+      const table = parseSheet(file.body)
+      expect(table.columns.length, `${file.id} has no columns`).toBeGreaterThan(1)
+      expect(table.rows.length, `${file.id} has no rows`).toBeGreaterThan(0)
+    }
+  })
+
+  /**
+   * A photograph belongs to the source it came off. One naming a device the case never attached
+   * can never be reached — `photoAvailable` refuses it — so it is a file nobody will ever see.
+   */
+  it.each(Object.entries(BY_CASE))(
+    'case %s files every photograph under a real source',
+    (_id, kase) => {
+      const devices = new Set(kase.devices.map((d) => d.id))
+      for (const photo of kase.photos) {
+        if (photo.sourceId === null) continue
+        expect(devices.has(photo.sourceId), `${photo.id} came off nothing this case attached`).toBe(
+          true,
+        )
+      }
+    },
+  )
 
   /**
    * A device nothing can open is a locked box with no key in the world — which is a different

@@ -7,7 +7,7 @@
  * everything that is merely the surface of the machine lives in another.
  */
 
-export const SCHEMA_VERSION = 13
+export const SCHEMA_VERSION = 14
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -67,6 +67,17 @@ export interface DeviceState {
 }
 
 export type PhoneTab = 'sms' | 'photos' | 'contacts'
+
+/**
+ * What Quick Look is holding up.
+ *
+ * A reference rather than a copy: the overlay shows the same document the window shows, read
+ * from the same content, so the two can never drift into disagreeing about what a file says.
+ */
+export interface QuickLookRef {
+  readonly kind: 'file' | 'photo'
+  readonly id: string
+}
 
 export interface PhoneState {
   readonly open: boolean
@@ -334,6 +345,8 @@ export interface InvestigationState {
     readonly decrypted: Readonly<Record<string, boolean>>
     readonly decryptAttempts: Readonly<Record<string, number>>
   }
+  /** Which frame the viewer is on. Playback position is not here: a transport is not state. */
+  readonly media: { readonly openPhotoId: string }
   readonly terminal: { readonly lines: readonly TerminalLine[]; readonly input: string }
 
   readonly ui: {
@@ -343,6 +356,8 @@ export interface InvestigationState {
     readonly reportCard: boolean
     /** The relay console, which takes the screen the way the board does. */
     readonly relayOpen: boolean
+    /** Space, on whatever the player has their hands on. `null` when nothing is held up. */
+    readonly quickLook: QuickLookRef | null
   }
 
   /** The gate on filing a report. */
@@ -410,6 +425,16 @@ export type GameEvent =
   | (Base & { type: 'BROWSER_WENT_BACK' })
   | (Base & { type: 'BROWSER_WENT_FORWARD' })
   | (Base & { type: 'FILE_OPENED'; fileId: string })
+  | (Base & { type: 'PHOTO_SELECTED'; photoId: string })
+  /**
+   * Held up to the light without opening anything.
+   *
+   * It is in the log because it is how a player reads half a case — a report written from a
+   * session where every document was read in Quick Look should replay as that session, not as
+   * one where nothing was ever looked at.
+   */
+  | (Base & { type: 'QUICK_LOOK_OPENED'; ref: QuickLookRef })
+  | (Base & { type: 'QUICK_LOOK_CLOSED' })
   | (Base & { type: 'TERMINAL_INPUT_CHANGED'; value: string })
   | (Base & { type: 'TERMINAL_COMMAND_RUN'; command: string })
   | (Base & { type: 'NOTES_CHANGED'; value: string })

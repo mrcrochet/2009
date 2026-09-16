@@ -1,7 +1,7 @@
 'use client'
 
 import type { AppId, DockId } from '@/engine/types'
-import { DOCK_TINT, DockGlyph } from './icons'
+import { DockGlyph } from './icons'
 import { useContent, useDispatch, useInvestigation } from './GameContext'
 
 export function Dock() {
@@ -22,7 +22,6 @@ export function Dock() {
           const def = content.apps.find((a) => a.id === id)
           const label = isPhone ? (content.phone?.device ?? 'Phone') : (def?.title ?? id)
           const isOpen = isPhone ? phoneOpen : open.has(id)
-          const [top, bottom] = DOCK_TINT[id] ?? DOCK_TINT.term ?? ['#4a5560', '#2b333c']
           return (
             <button
               key={id}
@@ -39,10 +38,12 @@ export function Dock() {
                 else dispatch({ type: 'APP_OPENED', app: id as AppId, viewport: measure() })
               }}
             >
-              <span
-                className="nova-dockitem__icon"
-                style={{ background: `linear-gradient(180deg, ${top}, ${bottom})` }}
-              >
+              {/*
+                One surface for every application, and the glyph carries the identity.
+                A row of individually tinted tiles is a phone's home screen; a tool's dock is
+                monochrome, and the only colour on it says which one is running.
+              */}
+              <span className="nova-dockitem__icon">
                 <DockGlyph id={id} />
               </span>
               <span className="nova-dockitem__dot" aria-hidden="true" />

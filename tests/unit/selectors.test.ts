@@ -5,8 +5,12 @@ import {
   selectFiles,
   selectDevices,
   selectMail,
+  selectOpenDocument,
+  selectOpenPhoto,
   selectOutstandingBeats,
   selectPage,
+  selectPhotos,
+  selectQuickLook,
   selectSearchResults,
 } from '@/engine/selectors'
 import { content, dispatch, fresh, run } from './helpers'
@@ -26,6 +30,12 @@ describe('selector stability', () => {
     ['selectSearchResults', selectSearchResults],
     ['selectOutstandingBeats', selectOutstandingBeats],
     ['selectReportSummary', selectReportSummary],
+    // Every one of these builds an object. A fresh reference per render is not a slow render —
+    // through `useSyncExternalStore` it is an infinite one, and the app does not start.
+    ['selectOpenDocument', selectOpenDocument],
+    ['selectPhotos', selectPhotos],
+    ['selectOpenPhoto', selectOpenPhoto],
+    ['selectQuickLook', selectQuickLook],
   ] as const
 
   it('an unrelated event does not invalidate anything', () => {

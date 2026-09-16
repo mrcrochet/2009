@@ -2,8 +2,9 @@
 
 import { useCallback, useRef } from 'react'
 import { clockString } from '@/engine/clock'
+import { selectPhonePhotos } from '@/engine/selectors'
 import type { PhoneTab } from '@/engine/types'
-import { defaultPhonePosition } from '@/engine/rules'
+import { defaultPhonePosition, phoneDeviceId } from '@/engine/rules'
 import { useContent, useDispatch, useGame, useInvestigation } from './GameContext'
 import { PhotoFrame } from './PhotoFrame'
 import { PinButton } from './PinButton'
@@ -23,6 +24,17 @@ export function PhoneOverlay() {
   const viewport = useGame((s) => s.viewport)
   const phone = useInvestigation((s) => s.phone)
   const clock = useInvestigation((s) => clockString(s.minute))
+  /*
+   * A handset on the desk that nobody has opened is a lock screen.
+   *
+   * It used to be the whole phone: the tabs were there, the thread was there, and the passcode
+   * the case goes to some trouble to hide was decoration. The rule that a locked source yields
+   * nothing has to hold on the object itself, not only in the workstation's viewer.
+   */
+  const locked = useInvestigation((s) => {
+    const id = phoneDeviceId(content)
+    return id ? !s.devices[id]?.unlocked : false
+  })
   const ref = useRef<HTMLDivElement>(null)
   const compact = useIsCompact()
 
@@ -57,24 +69,30 @@ export function PhoneOverlay() {
             <span>{device.carrier}</span>
             <span>{clock}</span>
           </div>
-          <div className="nova-phone__tabs" role="tablist" aria-label="Phone">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className="nova-phone__tab"
-                {...tabProps(t.id)}
-                onClick={() => dispatch({ type: 'PHONE_TAB_CHANGED', tab: t.id })}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          <div className="nova-phone__view" {...panelProps}>
-            {phone.tab === 'sms' ? <Sms /> : null}
-            {phone.tab === 'photos' ? <Photos /> : null}
-            {phone.tab === 'contacts' ? <Contacts /> : null}
-          </div>
+          {locked ? (
+            <Locked onOpenDevices={() => dispatch({ type: 'APP_OPENED', app: 'devices' })} />
+          ) : (
+            <>
+              <div className="nova-phone__tabs" role="tablist" aria-label="Phone">
+                {TABS.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className="nova-phone__tab"
+                    {...tabProps(t.id)}
+                    onClick={() => dispatch({ type: 'PHONE_TAB_CHANGED', tab: t.id })}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <div className="nova-phone__view" {...panelProps}>
+                {phone.tab === 'sms' ? <Sms /> : null}
+                {phone.tab === 'photos' ? <Photos /> : null}
+                {phone.tab === 'contacts' ? <Contacts /> : null}
+              </div>
+            </>
+          )}
         </div>
         <div className="nova-phone__foot">
           <button
@@ -85,6 +103,39 @@ export function PhoneOverlay() {
           />
         </div>
       </div>
+    </div>
+  )
+}
+
+/** The screen a locked handset actually shows. The verb lives in Devices; this points at it. */
+function Locked({ onOpenDevices }: { onOpenDevices: () => void }) {
+  return (
+    <div className="nova-phone__locked">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+        <path
+          d="M7.6 10.4V7.6a4.4 4.4 0 0 1 8.8 0v2.8"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <rect
+          x="5.4"
+          y="10.4"
+          width="13.2"
+          height="9.6"
+          rx="1.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.7"
+        />
+      </svg>
+      <p className="nova-phone__lockedline">Locked</p>
+      <p className="nova-phone__lockedhint">
+        This handset has not been opened. Nothing on it has been extracted.
+      </p>
+      <button type="button" className="nova-phone__lockedcta" onClick={onOpenDevices}>
+        OPEN IT IN DEVICES
+      </button>
     </div>
   )
 }
@@ -130,11 +181,18 @@ function Sms() {
   )
 }
 
+/**
+ * The roll, as the handset shows it: a picture and the one line under it.
+ *
+ * The same three files are in the workstation's viewer with the extraction notes attached. This
+ * is the phone's version, and a phone does not tell you the ISO.
+ */
 function Photos() {
   const content = useContent()
+  const photos = useInvestigation((s) => selectPhonePhotos(s, content))
   return (
     <div className="nova-phone__photos">
-      {(content.phone?.photos ?? []).map((p) => (
+      {photos.map((p) => (
         <div key={p.id} className="nova-phone__photo">
           <div className="nova-phone__thumb">
             <PhotoFrame subject={p.subject} label={p.label} />

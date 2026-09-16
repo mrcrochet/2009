@@ -17,6 +17,8 @@ export const browser: z.input<typeof BrowserConfigSchema> = {
     'Your search did not match any documents.\nTry different keywords, or browse the directory.',
   directoryUrl: 'orbit.com/directory',
   directoryLabel: 'Browse the Orbit directory',
+  homeBrand: 'orbit',
+  homeFoot: 'Web · Images · Groups · News — Orbit Search',
   notFoundTitle: 'This page could not be reached',
   notFoundBody:
     'The site you are looking for could not be found. It may have been taken down.\n\nCheck the address, search from the Orbit home page, or browse the directory.',

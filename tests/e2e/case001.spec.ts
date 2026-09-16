@@ -34,8 +34,8 @@ test.describe('Case 001', () => {
     // No SaaS shell anywhere in the playing surface. Anchored positively first, so this cannot
     // pass by virtue of nothing having rendered.
     const dockItems = page.getByRole('navigation', { name: 'Dock' }).getByRole('button')
-    // Eight applications this case ships, and the handset it supplies.
-    await expect(dockItems).toHaveCount(9)
+    // Nine applications this case ships, and the handset it supplies.
+    await expect(dockItems).toHaveCount(10)
     await expect(page.locator('.nova-desktop')).toBeVisible()
     // The tray is the only aside, and it stays collapsed until something is pinned.
     await expect(page.locator('aside')).toHaveCount(0)

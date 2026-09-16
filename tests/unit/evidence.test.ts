@@ -31,7 +31,7 @@ describe('evidence', () => {
     for (const f of content.files) if (f.evidenceId) reachable.add(f.evidenceId)
     for (const p of content.browser.pages)
       for (const b of p.blocks) if (b.kind === 'evidence') reachable.add(b.evidenceId)
-    for (const p of content.phone?.photos ?? []) if (p.evidenceId) reachable.add(p.evidenceId)
+    for (const p of content.photos) if (p.evidenceId) reachable.add(p.evidenceId)
     for (const s of content.phone?.sms ?? []) if (s.evidenceId) reachable.add(s.evidenceId)
     reachable.add(content.terminal.decrypt.evidenceId)
 
