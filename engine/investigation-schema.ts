@@ -150,8 +150,14 @@ export const InvestigationStateSchema = z.object({
     cwd: z.string().max(512).default('/Users/investigator/Desktop'),
   }),
   machine: z
-    .object({ cwd: z.string().max(512) })
-    .default({ cwd: '/Users/investigator' }),
+    .object({
+      cwd: z.string().max(512),
+      killed: z
+        .array(z.object({ pid: z.number().int(), at: z.number().int().nonnegative() }))
+        .max(64)
+        .default([]),
+    })
+    .default({ cwd: '/Users/investigator', killed: [] }),
   media: z.object({ openPhotoId: z.string().max(64) }).default({ openPhotoId: '' }),
   terminal: z.object({
     lines: z

@@ -1,5 +1,6 @@
 import type { CaseContent } from '../case-schema'
-import type { TerminalLine } from '../types'
+import type { InvestigationState, TerminalLine } from '../types'
+import { processTable, type ProcessRow } from './processes'
 import {
   HOME,
   basename,
@@ -35,9 +36,17 @@ export interface ShellResult {
   readonly opened: string | null
   /** A photograph this command put in front of the player, by photo id. */
   readonly openedPhoto: string | null
+  /** A process this command ended. The reducer decides what that costs. */
+  readonly killed: number | null
 }
 
-const nothing: ShellResult = { lines: [], cwd: null, opened: null, openedPhoto: null }
+const nothing: ShellResult = {
+  lines: [],
+  cwd: null,
+  opened: null,
+  openedPhoto: null,
+  killed: null,
+}
 
 function say(lines: readonly TerminalLine[], rest: Partial<ShellResult> = {}): ShellResult {
   return { ...nothing, ...rest, lines }
@@ -67,6 +76,9 @@ export const SHELL_COMMANDS: readonly string[] = [
   'open',
   'mount',
   'df',
+  'ps',
+  'top',
+  'kill',
 ]
 
 export function isShellCommand(verb: string): boolean {
@@ -86,10 +98,11 @@ export function promptFor(content: CaseContent, cwd: string): string {
 
 export function runShellCommand(
   fs: FileSystem,
-  cwd: string,
+  state: InvestigationState,
   argv: readonly string[],
   content: CaseContent,
 ): ShellResult {
+  const cwd = state.machine.cwd
   const [verb = '', ...rest] = argv
   const flags = rest.filter((token) => token.startsWith('-'))
   const args = rest.filter((token) => !token.startsWith('-'))
@@ -122,6 +135,15 @@ export function runShellCommand(
     case 'mount':
     case 'df':
       return attached(fs)
+
+    case 'ps':
+      return running(processTable(state, content), rest.some((token) => token.includes('a')))
+
+    case 'top':
+      return busiest(processTable(state, content))
+
+    case 'kill':
+      return end(state, content, args[0])
 
     default:
       return say([])
@@ -315,6 +337,88 @@ function attached(fs: FileSystem): ShellResult {
       ),
     ),
   ])
+}
+
+// ---------------------------------------------------------------------------
+// What is running
+// ---------------------------------------------------------------------------
+
+/**
+ * `ps`, and `ps aux` for the columns a long form adds.
+ *
+ * The short form is a list of what is on the machine; the long one is what it is costing. Both
+ * are the same table, because there is only one.
+ */
+function running(table: readonly ProcessRow[], long: boolean): ShellResult {
+  if (table.length === 0) return say([dim('no processes')])
+  if (!long) {
+    return say([
+      dim('  PID  COMMAND'),
+      ...table.map((process) => out(`${String(process.pid).padStart(5)}  ${process.command}`)),
+    ])
+  }
+  return say([
+    dim('  PID  USER          %CPU    RSS  COMMAND'),
+    ...table.map((process) =>
+      out(
+        [
+          String(process.pid).padStart(5),
+          '  ',
+          process.user.padEnd(14),
+          process.cpu.toFixed(1).padStart(4),
+          `${process.mem}M`.padStart(7),
+          '  ',
+          process.command,
+        ].join(''),
+      ),
+    ),
+  ])
+}
+
+/** The same table, heaviest first — which is the only question anybody opens it to ask. */
+function busiest(table: readonly ProcessRow[]): ShellResult {
+  const byLoad = [...table].sort((a, b) => b.cpu - a.cpu || b.mem - a.mem)
+  return say([
+    dim(`  ${table.length} processes`),
+    dim('  PID  %CPU    RSS  COMMAND'),
+    ...byLoad.map((process) =>
+      out(
+        [
+          String(process.pid).padStart(5),
+          process.cpu.toFixed(1).padStart(6),
+          `${process.mem}M`.padStart(7),
+          '  ',
+          process.command,
+        ].join(''),
+      ),
+    ),
+  ])
+}
+
+/**
+ * `kill`.
+ *
+ * It refuses the machine's own processes in the machine's own words, and it does not ask for
+ * confirmation on anything else. What killing a given process costs is the case's decision and
+ * is applied by the reducer; all this does is name the one that died.
+ */
+function end(
+  state: InvestigationState,
+  content: CaseContent,
+  arg: string | undefined,
+): ShellResult {
+  const cfg = content.terminal
+  if (!arg) return say([err(cfg.killUsage)])
+  const pid = Number.parseInt(arg, 10)
+  if (!Number.isFinite(pid)) return say([err(cfg.killUsage)])
+
+  const process = processTable(state, content).find((row) => row.pid === pid)
+  if (!process) return say([err(cfg.killNoSuch.replace('{{pid}}', String(pid)))])
+  if (process.system) {
+    return say([err(cfg.killProtected.replace('{{pid}}', String(pid)))])
+  }
+  // Silent on success, the way it is silent on a real machine. What happens next is content.
+  return say([], { killed: pid })
 }
 
 /** Where a path points, for the file manager's own breadcrumb. */

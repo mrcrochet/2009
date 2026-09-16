@@ -167,6 +167,23 @@ const STEPS: readonly MigrationStep[] = [
       }
     },
   },
+  {
+    from: 17,
+    to: 18,
+    describe: 'gives the machine a process table the player can act on',
+    /**
+     * `ps` was four lines of text in the case file, so there was nothing in a save about what
+     * was running. There still is not: the table is derived, and what is kept is only which
+     * processes the player ended and when — which is also what lets one of them come back later
+     * under a different number.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const machine = asRecord(snapshot.machine) ?? { cwd: '/Users/investigator' }
+      return { ...row, snapshot: { ...snapshot, machine: { ...machine, killed: [] } } }
+    },
+  },
 ]
 
 function asRecord(value: unknown): AnyRecord | null {

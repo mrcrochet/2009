@@ -294,6 +294,45 @@ const TerminalLineSchema = z.object({
   tone: z.enum(['prompt', 'out', 'ok', 'err', 'dim']),
 })
 
+/**
+ * A process this machine is running.
+ *
+ * The case decides what is on the table, including the one thing on it the case never explains.
+ * `system` is the machine refusing on its own behalf; `onKill` is the case deciding what it
+ * costs when the player does not take no for an answer.
+ */
+export const MachineProcessSchema = z.object({
+  pid: z.number().int().positive(),
+  command: z.string().min(1),
+  user: z.string().min(1),
+  cpu: z.number().min(0).max(100).default(0),
+  /** Megabytes resident. */
+  mem: z.number().int().nonnegative().default(0),
+  /** `kill` refuses, in the machine's own words. */
+  system: z.boolean().default(false),
+  /** Not on the table until the route has been opened. */
+  needsRelay: z.boolean().default(false),
+  /** What killing it does. `null` for something that simply dies. */
+  onKill: z
+    .object({
+      lines: z.array(TerminalLineSchema).default([]),
+      setsFlag: z.string().nullable().default(null),
+      beat: z.string().nullable().default(null),
+      /** Killing something that was watching is itself a thing that was noticed. */
+      exposure: z.number().int().default(0),
+    })
+    .nullable()
+    .default(null),
+  /**
+   * Minutes after which it is running again, and the number it is running under.
+   *
+   * Nothing announces the return. A player who killed it and looked again an hour later is the
+   * only person who finds out, which is the correct audience for that particular fact.
+   */
+  respawnAfter: z.number().int().positive().nullable().default(null),
+  respawnPid: z.number().int().positive().nullable().default(null),
+})
+
 export const TerminalConfigSchema = z.object({
   prompt: z.string().min(1),
   banner: TerminalLineSchema,
@@ -301,6 +340,12 @@ export const TerminalConfigSchema = z.object({
   dateTemplate: z.string(),
   /** What `cat` says about a file that is not text. The shell resolves the path itself. */
   catBinary: z.string(),
+  /** What this machine is running. `ps` reads this; `kill` changes it. */
+  processes: z.array(MachineProcessSchema).default([]),
+  /** The machine's own refusals, so `kill` speaks in the case's voice. */
+  killProtected: z.string().default('kill: {{pid}}: operation not permitted'),
+  killNoSuch: z.string().default('kill: {{pid}}: no such process'),
+  killUsage: z.string().default('usage: kill <pid>'),
   whoami: z.array(TerminalLineSchema),
   /** The machine only contradicts itself once the player can see the contradiction. */
   whoamiAfterEvidence: z.object({ evidenceId: id, lines: z.array(TerminalLineSchema) }),
@@ -321,6 +366,17 @@ export const TerminalConfigSchema = z.object({
       granted: z.array(TerminalLineSchema),
       /** Run again, once it is known. */
       opened: z.array(TerminalLineSchema),
+      /**
+       * The process that *is* the route.
+       *
+       * A capability with nothing running behind it is a capability nobody can take away. With
+       * this, the relay is an application backed by a daemon: end the daemon and the route is
+       * gone for the session, because that is what ending it means. A case that names none keeps
+       * the old behaviour exactly.
+       */
+      daemonPid: z.number().int().positive().nullable().default(null),
+      /** What the command says once the player has closed their own route. */
+      killed: z.array(TerminalLineSchema).default([]),
     })
     .nullable()
     .default(null),
@@ -798,6 +854,7 @@ export type Photo = z.infer<typeof PhotoSchema>
 export type Catalogue = z.infer<typeof CatalogueSchema>
 export type CaseArt = Catalogue['art']
 export type DocumentKind = z.infer<typeof DocumentKindSchema>
+export type MachineProcess = z.infer<typeof MachineProcessSchema>
 export type AudioDoc = z.infer<typeof AudioDocSchema>
 export type AudioCue = z.infer<typeof AudioCueSchema>
 export type Contact = z.infer<typeof ContactSchema>

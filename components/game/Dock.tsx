@@ -2,6 +2,7 @@
 
 import { RELAY_APP } from '@/engine/reducer'
 import type { AppId, DockId } from '@/engine/types'
+import { relayRunning } from '@/engine/machine/processes'
 import { DockGlyph } from './icons'
 import { useContent, useDispatch, useInvestigation } from './GameContext'
 
@@ -10,7 +11,7 @@ export function Dock() {
   const dispatch = useDispatch()
   const openApps = useInvestigation((s) => s.windows.map((w) => w.app).join(','))
   const phoneOpen = useInvestigation((s) => s.phone.open)
-  const relayFound = useInvestigation((s) => s.relay.unlocked)
+  const relayFound = useInvestigation((s) => relayRunning(s, content))
 
   const open = new Set(openApps ? openApps.split(',') : [])
 
@@ -20,11 +21,13 @@ export function Dock() {
         // A case that supplies no phone does not put one in the dock.
         .filter((id) => id !== 'phone' || content.phone !== null)
         /*
-         * The relay is a process the investigator has to find running.
+         * The relay is a process the investigator has to find running — and the word is meant
+         * literally.
          *
          * A dock icon for it from the first minute would answer, before anybody has asked, the
          * one question the case makes them work for. It appears when the machine admits the
-         * process exists, and from then on it is an application like any other.
+         * process exists, and it goes when the process does, because an icon for an application
+         * that refuses to open says the machine is broken rather than that the player broke it.
          */
         .filter((id) => id !== RELAY_APP || relayFound)
         .map((id) => {

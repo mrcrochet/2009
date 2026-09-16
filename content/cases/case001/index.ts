@@ -662,25 +662,76 @@ export const case001: z.input<typeof CaseContentSchema> = {
     statics: {
       help: [
         { text: 'pwd · cd · ls [-l] · cat · stat · file · find · open · mount', tone: 'out' },
-        { text: 'date · whoami · ps · decrypt <file> --key <word> · relay', tone: 'out' },
-      ],
-      /*
-       * The process table, and the one line in it nothing in the case explains.
-       *
-       * Nothing announces it and nothing reacts to it. The relay is reachable from here by
-       * somebody who wonders what a session mirror is and goes looking — which is the whole
-       * mechanic: the machine never points at the thing.
-       */
-      ps: [
-        { text: '  PID  COMMAND', tone: 'dim' },
-        { text: '  118  nova-session --case 24-118', tone: 'out' },
-        { text: '  241  index --watch /volumes/case', tone: 'out' },
-        { text: '  377  relay --idle', tone: 'out' },
-        { text: '  412  smirror --peer 10.24.0.1 --quiet', tone: 'out' },
+        { text: 'ps [aux] · top · kill <pid> · date · whoami', tone: 'out' },
+        { text: 'decrypt <file> --key <word> · relay', tone: 'out' },
       ],
     },
     dateTemplate: 'Wed 17 Jun 2026 {{clock}} PDT',
     catBinary: 'cat: not a text file',
+
+    /*
+     * The process table, and the one line in it nothing in the case explains.
+     *
+     * Nothing announces `smirror` and nothing points at it. The relay is reachable from here by
+     * somebody who wonders what a session mirror is and goes looking, and the mirror itself can
+     * be ended by somebody who decides they do not want to be watched while they work.
+     *
+     * Ending it costs. The peer on the other end of it notices the line go quiet, which is what
+     * the exposure is: not a punishment for curiosity, a consequence of acting on it. And forty
+     * minutes later it is running again under a number nobody has seen before, which no part of
+     * this machine will mention to anybody who does not look twice.
+     */
+    processes: [
+      {
+        pid: 118,
+        command: 'nova-session --case 24-118',
+        user: 'investigator',
+        cpu: 2.1,
+        mem: 184,
+        system: true,
+      },
+      { pid: 241, command: 'index --watch /Volumes', user: 'system', cpu: 0.4, mem: 96, system: true },
+      { pid: 377, command: 'relay --idle', user: 'system', cpu: 0, mem: 22, system: true },
+      {
+        pid: 412,
+        command: 'smirror --peer 10.24.0.1 --quiet',
+        user: 'system',
+        cpu: 0.1,
+        mem: 14,
+        system: false,
+        onKill: {
+          lines: [
+            { text: 'smirror: peer 10.24.0.1 closed the session.', tone: 'dim' },
+            { text: 'smirror: 41 minutes mirrored before close.', tone: 'dim' },
+          ],
+          setsFlag: 'mirrorKilled',
+          beat: null,
+          exposure: 5,
+        },
+        respawnAfter: 40,
+        respawnPid: 561,
+      },
+      {
+        pid: 604,
+        command: 'relayd --route open --metered',
+        user: 'investigator',
+        cpu: 0.6,
+        mem: 41,
+        system: false,
+        needsRelay: true,
+        onKill: {
+          lines: [{ text: 'relayd: route closed. no outbound on this session.', tone: 'err' }],
+          setsFlag: 'relayKilled',
+          beat: null,
+          exposure: 0,
+        },
+        respawnAfter: null,
+        respawnPid: null,
+      },
+    ],
+    killProtected: 'kill: {{pid}}: operation not permitted',
+    killNoSuch: 'kill: {{pid}}: no such process',
+    killUsage: 'usage: kill <pid>',
     whoami: [
       { text: 'investigator · session 24-118 · read-only on all attached sources', tone: 'out' },
     ],
@@ -706,6 +757,11 @@ export const case001: z.input<typeof CaseContentSchema> = {
         { text: 'relay: everything you pull is captured and kept as read.', tone: 'dim' },
       ],
       opened: [{ text: 'relay: attached.', tone: 'ok' }],
+      daemonPid: 604,
+      killed: [
+        { text: 'relay: relayd is not running on this session.', tone: 'err' },
+        { text: 'relay: you closed it. it does not come back from here.', tone: 'dim' },
+      ],
     },
     decrypt: {
       key: 'reyes',
@@ -997,6 +1053,14 @@ export const case001: z.input<typeof CaseContentSchema> = {
         {
           whenFlag: 'phoneOpen',
           text: 'You got into the handset. The client gave you permission. Daniel did not.',
+        },
+        {
+          whenFlag: 'mirrorKilled',
+          text: 'You ended the session mirror. Whoever was on 10.24.0.1 has known since 22:04 that you found it.',
+        },
+        {
+          whenFlag: 'relayKilled',
+          text: 'You closed your own outbound route. Nothing you pulled before that is any less kept.',
         },
       ],
     },

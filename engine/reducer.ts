@@ -10,6 +10,7 @@ import {
   searchIndex,
 } from './rules'
 import { isShellCommand, promptFor, runShellCommand } from './machine/shell'
+import { processFor, relayRunning } from './machine/processes'
 import { buildFileSystem, nodeAt, normalise } from './machine/vfs'
 import { findPage } from './pages'
 import { normalizeUrl } from './url'
@@ -43,6 +44,7 @@ import {
  */
 export const LIMITS = {
   terminalLines: 512,
+  killed: 64,
   claimLog: 128,
   notes: 20_000,
   discovered: 4096,
@@ -311,7 +313,9 @@ function apply(
     case 'APP_OPENED':
       // Nothing opens the relay until the machine has admitted the process exists. The dock
       // hides it; this is what makes hiding it a rule rather than a decoration.
-      if (event.app === RELAY_APP && !state.relay.unlocked) return state
+      // The route is an application backed by a daemon. Without the daemon there is no route,
+      // whatever the session once knew — and a save cannot be edited past a process table.
+      if (event.app === RELAY_APP && !relayRunning(state, content)) return state
       return openWindow(state, content, event.app, event.viewport)
 
     case 'APP_CLOSED': {
@@ -655,6 +659,37 @@ function apply(
         files: { ...state.files, openId: event.fileId },
       }
       return withBeat(opened, doc.beat as BeatId | null)
+    }
+
+    /**
+     * Something stops running.
+     *
+     * The table is derived, so all that is recorded is the number and the minute — which is also
+     * what lets a process come back later under a different one without anybody being told.
+     */
+    case 'PROCESS_KILLED': {
+      const process = processFor(state, content, event.pid)
+      if (!process || process.system) return state
+      // Killing the route's daemon takes the window with it. Nothing else on the desk changes.
+      const daemon = content.terminal.relay?.daemonPid
+      const killed: InvestigationState = {
+        ...state,
+        windows:
+          daemon && process.pid === daemon
+            ? state.windows.filter((w) => w.app !== RELAY_APP)
+            : state.windows,
+        machine: {
+          ...state.machine,
+          killed: [...state.machine.killed, { pid: process.pid, at: event.at }].slice(
+            -LIMITS.killed,
+          ),
+        },
+        exposure: state.exposure + (process.onKill?.exposure ?? 0),
+        flags: process.onKill?.setsFlag
+          ? { ...state.flags, [process.onKill.setsFlag]: true }
+          : state.flags,
+      }
+      return withBeat(killed, (process.onKill?.beat ?? null) as BeatId | null)
     }
 
     /**
@@ -1026,7 +1061,7 @@ function runTerminal(
     const argv = command.split(/\s+/)
     const result = runShellCommand(
       buildFileSystem(state, content),
-      state.machine.cwd,
+      state,
       [verb, ...argv.slice(1)],
       content,
     )
@@ -1045,6 +1080,15 @@ function runTerminal(
         { type: 'PHOTO_SELECTED', photoId: result.openedPhoto, at },
         content,
       )
+    }
+    if (result.killed !== null) {
+      nextState = reduce(nextState, { type: 'PROCESS_KILLED', pid: result.killed, at }, content)
+      // The consequence speaks after the command, the way a machine reports a thing it noticed
+      // rather than a thing it did.
+      const process = content.terminal.processes.find(
+        (row) => row.pid === result.killed || row.respawnPid === result.killed,
+      )
+      if (process?.onKill) out.push(...process.onKill.lines)
     }
     return {
       ...nextState,
@@ -1070,7 +1114,11 @@ function runTerminal(
     })
   } else if (cfg.relay && verb === cfg.relay.command) {
     const relay = cfg.relay
-    if (state.relay.unlocked) {
+    // A route whose daemon the player ended does not reopen by asking again. The command says
+    // so rather than quietly starting it: what they did was deliberate, and it stands.
+    if (state.relay.unlocked && !relayRunning(state, content)) {
+      out.push(...relay.killed)
+    } else if (state.relay.unlocked) {
       out.push(...relay.opened)
       nextState = openWindow(nextState, content, RELAY_APP)
     } else if (lower.includes(relay.unlockPhrase.toLowerCase())) {

@@ -131,7 +131,7 @@ export function createInvestigation(
       decryptAttempts: {},
       cwd: `${HOME}/Desktop`,
     },
-    machine: { cwd: HOME },
+    machine: { cwd: HOME, killed: [] },
     media: { openPhotoId: content.photos[0]?.id ?? '' },
     terminal: { lines: [content.terminal.banner], input: '' },
 

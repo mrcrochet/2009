@@ -7,7 +7,7 @@
  * everything that is merely the surface of the machine lives in another.
  */
 
-export const SCHEMA_VERSION = 17
+export const SCHEMA_VERSION = 18
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -420,6 +420,14 @@ export interface InvestigationState {
   readonly machine: {
     /** Where the shell is standing. */
     readonly cwd: string
+    /**
+     * What the player has killed, and when.
+     *
+     * The minute is kept because some of it comes back: a process that respawns is timed against
+     * the session clock rather than a timer, so a replay of the same log rebuilds the same table
+     * at the same minute.
+     */
+    readonly killed: readonly { readonly pid: number; readonly at: number }[]
   }
   /** Which frame the viewer is on. Playback position is not here: a transport is not state. */
   readonly media: { readonly openPhotoId: string }
@@ -523,6 +531,8 @@ export type GameEvent =
   | (Base & { type: 'FILE_OPENED'; fileId: string })
   /** The file manager moved to a directory. The shell has its own working directory. */
   | (Base & { type: 'FILES_NAVIGATED'; path: string })
+  /** Something the machine was running is no longer running. */
+  | (Base & { type: 'PROCESS_KILLED'; pid: number })
   | (Base & { type: 'PHOTO_SELECTED'; photoId: string })
   /**
    * Held up to the light without opening anything.

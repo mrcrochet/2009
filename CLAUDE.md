@@ -192,6 +192,19 @@ manager enforces. Files walks the tree and the shell answers `pwd`, `cd`, `ls`, 
 be authored as a static that contradicts the volume the case mounted. Reading a document at the
 prompt *is* reading it: it lands in the reader and the world graph records it.
 
+**Things are running.** `engine/machine/processes.ts` is the process table, derived like the
+filesystem, and `ps`, `top` and `kill` read and change it. A case authors what is on it,
+including the one line it never explains; `system: true` is the machine refusing on its own
+behalf, and `onKill` is the case deciding what it costs when the player does not take no for an
+answer. Respawns are timed against the **session clock, never a timer**, so a replay rebuilds the
+same table at the same minute — and nothing announces a return.
+
+**A capability is backed by something running.** The relay is not a permission the session was
+granted; it is an application with a daemon (`terminal.relay.daemonPid`). End the daemon and the
+window closes, the dock entry goes and the command says so rather than quietly restarting it. A
+dock icon for an application that refuses to open tells the player the machine is broken rather
+than that they broke it, so the dock asks the same question the reducer does.
+
 **One world.** `content/world/` is the corpus the cases happen inside — entities, artifacts,
 relations, facts — and `content/index.ts` projects every authored case into it, so a player who
 searches a name reaches the mail they actually read rather than a second copy of that person.
@@ -315,9 +328,11 @@ Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mob
 
 ## 23. Testing
 
-`tests/unit/machine.test.ts` holds the claim the machine rests on: Files and the shell are two
-windows onto one filesystem. A locked volume is locked in both, a document behind a recovery is
-in neither, and a path means the same thing wherever it is typed.
+`tests/unit/machine.test.ts` holds the two claims the machine rests on. Files and the shell are
+two windows onto one filesystem: a locked volume is locked in both, a document behind a recovery
+is in neither, and a path means the same thing wherever it is typed. And the process table is
+state: the machine refuses its own, what it lets you end really ends, what comes back is not what
+left, and the reducer refuses a kill the shell would have refused.
 
 Unit: evidence pinning idempotency, the service gate, claim requirement logic, device unlocking,
 page variants, the report gate, save migration, engine purity, and the reading of a document —

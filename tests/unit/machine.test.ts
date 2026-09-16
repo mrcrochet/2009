@@ -9,7 +9,10 @@ import {
   resolvePath,
   walk,
 } from '@/engine/machine/vfs'
+import { processTable } from '@/engine/machine/processes'
 import { selectFileSystem, selectFiles, selectPlaces } from '@/engine/selectors'
+import { reduce } from '@/engine/reducer'
+import { stamp } from '@/engine/events'
 import { content, dispatch, fresh, run } from './helpers'
 
 /**
@@ -22,6 +25,9 @@ import { content, dispatch, fresh, run } from './helpers'
 
 const text = (state: ReturnType<typeof fresh>) =>
   state.terminal.lines.map((line) => line.text).join('\n')
+/** What is on the table right now, rather than everything the log has ever printed. */
+const commands = (state: ReturnType<typeof fresh>) =>
+  processTable(state, content).map((process) => process.command)
 const shell = (commands: readonly string[]) =>
   run(
     fresh(),
@@ -243,5 +249,150 @@ describe('the file manager stands in the same tree', () => {
     const state = shell(['cd /'])
     expect(state.machine.cwd).toBe('/')
     expect(state.files.cwd).toBe(`${HOME}/Desktop`)
+  })
+})
+
+/**
+ * The process table.
+ *
+ * It was four lines of text in the case file, which made `ps` a poster of a process table: the
+ * same four lines forever, and the one suspicious entry among them could be read and never
+ * touched. What is being held here is that it is state — that killing something changes the
+ * machine, that the machine refuses where it should, and that what comes back is not what left.
+ */
+describe('what is running', () => {
+  it('lists what the case is running, and not the daemon for a route nobody has opened', () => {
+    const state = shell(['ps'])
+    expect(text(state)).toContain('smirror --peer 10.24.0.1 --quiet')
+    expect(text(state)).toContain('nova-session --case 24-118')
+    expect(text(state)).not.toContain('relayd')
+  })
+
+  it('the route’s own daemon appears once the route is open', () => {
+    const state = run(fresh(), [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'relay open the line' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'ps' },
+    ])
+    expect(state.relay.unlocked).toBe(true)
+    expect(text(state)).toContain('relayd --route open --metered')
+  })
+
+  it('ps aux adds the columns a long form adds, out of the same table', () => {
+    const state = shell(['ps aux'])
+    expect(text(state)).toContain('%CPU')
+    expect(text(state)).toContain('184M')
+  })
+
+  it('top is the same processes, heaviest first', () => {
+    const state = shell(['top'])
+    const printed = text(state)
+    expect(printed).toContain('4 processes')
+    // The session is the heaviest thing on this machine, and the mirror is the lightest.
+    expect(printed.indexOf('nova-session')).toBeLessThan(printed.indexOf('index --watch'))
+    expect(printed.indexOf('index --watch')).toBeLessThan(printed.indexOf('smirror'))
+  })
+
+  it('refuses the machine’s own processes, in the machine’s own words', () => {
+    const state = shell(['kill 118'])
+    expect(text(state)).toContain('kill: 118: operation not permitted')
+    expect(state.machine.killed).toHaveLength(0)
+  })
+
+  it('says nothing about a number that was never running', () => {
+    const state = shell(['kill 999'])
+    expect(text(state)).toContain('kill: 999: no such process')
+  })
+
+  /** The whole reason the table is state: acting on it costs, and the cost is authored. */
+  it('ending the mirror takes it off the table, and is noticed', () => {
+    const before = fresh()
+    const after = dispatch(before, { type: 'TERMINAL_COMMAND_RUN', command: 'kill 412' })
+    expect(after.flags.mirrorKilled).toBe(true)
+    expect(after.exposure).toBe(before.exposure + 5)
+    expect(text(after)).toContain('peer 10.24.0.1 closed the session')
+    expect(commands(after)).not.toContain('smirror --peer 10.24.0.1 --quiet')
+  })
+
+  /**
+   * Nothing announces the return. A player who killed it and looked again an hour later is the
+   * only person who finds out, which is the correct audience for that fact.
+   */
+  it('and forty minutes later it is running again, under a number nobody has seen', () => {
+    const killed = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'kill 412' })
+    const at = killed.machine.killed[0]!.at
+
+    // The clock, not a timer: the same log replayed reaches the same table at the same minute.
+    const later = (minutes: number) => ({ ...killed, minute: at + minutes })
+    expect(processTable(later(39), content).some((p) => p.command.startsWith('smirror'))).toBe(
+      false,
+    )
+
+    const back = processTable(later(40), content).find((p) => p.command.startsWith('smirror'))
+    expect(back).toBeTruthy()
+    expect(back?.pid).toBe(561)
+    expect(back?.pid).not.toBe(412)
+  })
+
+  it('what came back can be ended again, and the clock starts from the second time', () => {
+    const killed = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'kill 412' })
+    const at = killed.machine.killed[0]!.at
+    const hourLater = { ...killed, minute: at + 60 }
+
+    const again = reduce(hourLater, stamp(hourLater, { type: 'PROCESS_KILLED', pid: 561 }), content)
+    expect(again.machine.killed).toHaveLength(2)
+
+    // Twenty minutes after the second kill is not forty, so it is still gone.
+    const twenty = { ...again, minute: again.machine.killed[1]!.at + 20 }
+    expect(processTable(twenty, content).some((p) => p.command.startsWith('smirror'))).toBe(false)
+    const forty = { ...again, minute: again.machine.killed[1]!.at + 40 }
+    expect(processTable(forty, content).some((p) => p.command.startsWith('smirror'))).toBe(true)
+  })
+
+  /**
+   * The mechanic the process table exists for.
+   *
+   * The relay is not a permission the session was granted; it is an application with something
+   * running behind it. A player who ends the daemon has closed their own route, the window goes
+   * with it, and asking again does not quietly start it back up.
+   */
+  it('ending the route’s daemon ends the route', () => {
+    const open = run(fresh(), [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'relay open the line' },
+    ])
+    expect(open.windows.some((w) => w.app === 'relay')).toBe(true)
+
+    const state = dispatch(open, { type: 'TERMINAL_COMMAND_RUN', command: 'kill 604' })
+    expect(state.flags.relayKilled).toBe(true)
+    expect(text(state)).toContain('route closed')
+    expect(commands(state)).not.toContain('relayd --route open --metered')
+    // The window went with the daemon, and the desk behind it is untouched.
+    expect(state.windows.some((w) => w.app === 'relay')).toBe(false)
+    expect(state.windows.some((w) => w.app === 'term')).toBe(open.windows.some((w) => w.app === 'term'))
+
+    // It cannot be reopened from the dock, and it does not restart from the command.
+    expect(dispatch(state, { type: 'APP_OPENED', app: 'relay' }).windows).toBe(state.windows)
+    const asked = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'relay open the line' })
+    expect(text(asked)).toContain('it does not come back from here')
+    expect(asked.windows.some((w) => w.app === 'relay')).toBe(false)
+  })
+
+  it('a case that names no daemon is not affected by any of this', () => {
+    const noDaemon = {
+      ...content,
+      terminal: { ...content.terminal, relay: { ...content.terminal.relay!, daemonPid: null } },
+    }
+    const open = reduce(
+      fresh(),
+      stamp(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'relay open the line' }),
+      noDaemon,
+    )
+    expect(open.windows.some((w) => w.app === 'relay')).toBe(true)
+  })
+
+  /** A save cannot be edited into having killed something the machine refuses to kill. */
+  it('the reducer refuses a kill the shell would have refused', () => {
+    const forced = dispatch(fresh(), { type: 'PROCESS_KILLED', pid: 118 })
+    expect(forced.machine.killed).toHaveLength(0)
+    expect(dispatch(fresh(), { type: 'PROCESS_KILLED', pid: 999 }).machine.killed).toHaveLength(0)
   })
 })
