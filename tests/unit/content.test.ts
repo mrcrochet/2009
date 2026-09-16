@@ -111,6 +111,14 @@ describe('case 001 content', () => {
     }
     // A case that ships a phone has to put one in the dock, and one that does not, must not.
     expect(kase.dock.includes('phone')).toBe(kase.phone !== null)
+    /*
+     * The relay is an application now, so a case with a line out has to declare one. Without
+     * this, the terminal command that reveals the process would throw on a case that authored
+     * the copy and forgot the window.
+     */
+    expect(declared.has('relay'), 'a case with a relay must declare the application').toBe(
+      kase.relay !== null,
+    )
   })
 
   it.each(Object.entries(BY_CASE))('case %s can actually be finished', (_id, kase) => {

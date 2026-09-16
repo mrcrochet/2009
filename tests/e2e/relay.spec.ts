@@ -48,11 +48,12 @@ test.describe('the relay', () => {
     await run(page, 'relay open the line')
     await expect(log).toContainText('route opened. metered.')
 
-    const console_ = page.getByRole('dialog', { name: 'relay — attached' })
+    // A window, not a mode: the dock now carries it, and the desk behind it is still there.
+    const console_ = page.locator('[data-app="relay"]')
     await expect(console_).toBeVisible()
-    // Focus moves into the console, on the one field it has.
+    await expect(page.locator('.nova-dockitem[data-dock="relay"]')).toBeVisible()
     await expect(page.getByLabel('ask:')).toBeFocused()
-    await expect(console_).toContainText('lookups 24 of 24')
+    await expect(console_).toContainText('lookups 40 of 40')
 
     await page.getByLabel('ask:').fill('marlow foundation 2013 filing')
     await console_.getByRole('button', { name: 'SEND' }).click()
@@ -63,12 +64,15 @@ test.describe('the relay', () => {
     await expect(console_).toContainText('There is no index on this side of the route')
     await expect(console_).not.toContainText('the relay has no index on this side')
     // Nothing on the screen could have spent the case's signal.
-    await expect(console_).toContainText('lookups 24 of 24')
+    await expect(console_).toContainText('lookups 40 of 40')
 
-    // Escape leaves the mode and hands the command line back — which is the only place in this
-    // application a player can type.
-    await page.keyboard.press('Escape')
-    await expect(console_).toBeHidden()
-    await expect(page.getByLabel('Terminal command')).toBeFocused()
+    // Nothing has come back through the route, and the captures list says so in the case's words.
+    await console_.getByRole('button', { name: /brought back/ }).click()
+    await expect(console_).toContainText('Nothing has come back through this route yet')
+
+    // It closes like a window, and the desk it was sitting on is still underneath.
+    await console_.getByLabel('Close Relay').click()
+    await expect(console_).toHaveCount(0)
+    await expect(page.locator('[data-app="term"]')).toBeVisible()
   })
 })

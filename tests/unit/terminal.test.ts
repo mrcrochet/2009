@@ -153,7 +153,7 @@ describe('the lockout locks', () => {
 
     const cold = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: relay.command })
     expect(cold.relay.unlocked).toBe(false)
-    expect(cold.ui.relayOpen).toBe(false)
+    expect(cold.windows.some((w) => w.app === 'relay')).toBe(false)
     expect(cold.terminal.lines.map((l) => l.text).join('\n')).toContain('no outbound route')
 
     // A near miss is still a miss.
@@ -168,14 +168,15 @@ describe('the lockout locks', () => {
       command: `${relay.command} ${relay.unlockPhrase.toUpperCase()}`,
     })
     expect(open.relay.unlocked).toBe(true)
-    expect(open.ui.relayOpen).toBe(true)
+    // Finding the process opens its window, the way any other application opens.
+    expect(open.windows.some((w) => w.app === 'relay')).toBe(true)
 
-    // And once it is known, running it just opens it.
+    // And once it is known, running it just opens it again.
     const again = dispatch(
-      { ...open, ui: { ...open.ui, relayOpen: false } },
+      { ...open, windows: open.windows.filter((w) => w.app !== 'relay') },
       { type: 'TERMINAL_COMMAND_RUN', command: relay.command },
     )
-    expect(again.ui.relayOpen).toBe(true)
+    expect(again.windows.some((w) => w.app === 'relay')).toBe(true)
   })
 
   it('the relay is a case’s decision, not a build-time one', () => {

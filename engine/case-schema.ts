@@ -397,7 +397,12 @@ export const RelayConfigSchema = z.object({
    * a missing label should cost that case a label, not the whole content module.
    */
   /** The accessible name of the control that leaves the console. The glyph is not a word. */
-  closeLabel: z.string().default(''),
+  /** The tab that lists everything this investigation has brought back. */
+  capturesLabel: z.string().default(''),
+  /** What the captures list says before anything has been brought back. */
+  capturesEmpty: z.string().default(''),
+  /** One row of the captures list. `{{when}}` and `{{cost}}`. */
+  captureTemplate: z.string().default(''),
   /** Getting back to what came back, from inside a captured page. */
   backLabel: z.string().default(''),
   /** The heading over the rows the far end returned. */

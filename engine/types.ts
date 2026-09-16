@@ -7,7 +7,7 @@
  * everything that is merely the surface of the machine lives in another.
  */
 
-export const SCHEMA_VERSION = 14
+export const SCHEMA_VERSION = 15
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -92,13 +92,7 @@ export interface PhoneState {
 // ---------------------------------------------------------------------------
 
 export type EvidenceSourceKind =
-  | 'mail'
-  | 'files'
-  | 'browser'
-  | 'phone'
-  | 'terminal'
-  | 'messenger'
-  | 'device'
+  'mail' | 'files' | 'browser' | 'phone' | 'terminal' | 'messenger' | 'device'
 
 export type Reliability = 'documentary' | 'testimonial' | 'circumstantial'
 
@@ -218,6 +212,27 @@ export interface KeptExcerpt {
   readonly capturedAt: number
 }
 
+/**
+ * A page this investigation brought back through the relay.
+ *
+ * The id alone was enough to answer "has this been opened before, and is reopening it free".
+ * It is not enough to show an investigator what they have spent their signal on — for that the
+ * record has to carry where the page came from, and carry it on the event rather than in the
+ * snapshot cache, which is server-side and which a replay may not have.
+ *
+ * `url` and `title` are nullable because a save written before the relay kept them has the ids
+ * and nothing else. An empty provenance is the honest shape for "this build did not record it".
+ */
+export interface RelayCapture {
+  readonly snapshotId: string
+  readonly url: string | null
+  readonly title: string | null
+  /** What the look cost in signal. */
+  readonly cost: number
+  /** The minute of the session it was brought back at. */
+  readonly at: number
+}
+
 export type Stage = 'intake' | 'boot' | 'playing' | 'report'
 
 export interface Viewport {
@@ -302,7 +317,8 @@ export interface InvestigationState {
      * makes it a case's decision rather than a build's.
      */
     readonly unlocked: boolean
-    readonly observed: readonly string[]
+    /** Everything brought back, newest last, with what it cost and where it came from. */
+    readonly captures: readonly RelayCapture[]
     readonly kept: readonly KeptExcerpt[]
     /** Community puzzles this investigation has opened. */
     readonly mysteries: readonly string[]
@@ -354,8 +370,6 @@ export interface InvestigationState {
     readonly boardOpen: boolean
     readonly watched: boolean
     readonly reportCard: boolean
-    /** The relay console, which takes the screen the way the board does. */
-    readonly relayOpen: boolean
     /** Space, on whatever the player has their hands on. `null` when nothing is held up. */
     readonly quickLook: QuickLookRef | null
   }
@@ -455,7 +469,6 @@ export type GameEvent =
   | (Base & { type: 'REPORT_CARD_SHOWN' })
   | (Base & { type: 'INVESTIGATION_CLAIMED'; ownerId: string })
   | (Base & { type: 'RELAY_UNLOCKED'; via: string })
-  | (Base & { type: 'RELAY_TOGGLED'; open?: boolean })
   /**
    * Asking costs signal even when nothing useful comes back, which is what makes the player
    * think before they ask. The query itself is never carried: freeform player text does not
@@ -467,7 +480,20 @@ export type GameEvent =
    * immutable snapshot the player saw, so a replay shows the bytes they read rather than
    * whatever the site says today.
    */
-  | (Base & { type: 'RELAY_SNAPSHOT_OBSERVED'; snapshotId: string; signalCost: number })
+  | (Base & {
+      type: 'RELAY_SNAPSHOT_OBSERVED'
+      snapshotId: string
+      signalCost: number
+      /**
+       * Where the page came from, carried on the event.
+       *
+       * The state holds snapshot *ids*; the snapshots themselves live in a cache the engine
+       * cannot see and a replay may not have. Without this the captures list could say how much
+       * signal was spent and never what it was spent on.
+       */
+      url: string
+      title: string
+    })
   | (Base & {
       type: 'RELAY_EXCERPT_KEPT'
       id: string

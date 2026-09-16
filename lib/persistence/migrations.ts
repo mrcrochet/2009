@@ -52,6 +52,52 @@ const STEPS: readonly MigrationStep[] = [
       }
     },
   },
+  {
+    from: 14,
+    to: 15,
+    describe: 'makes the relay an application and gives every capture its provenance',
+    /**
+     * Three changes, and only one of them can lose anything.
+     *
+     * `relay.observed` was a list of snapshot ids. `relay.captures` is the same list with where
+     * each page came from and what the look cost — which a v14 save never recorded, so those
+     * fields come across as `null` and `0`. That is the honest shape for "this build did not
+     * keep it": the ids still make reopening free, and the list says so rather than inventing an
+     * address.
+     *
+     * `ui.relayOpen` is gone because the console is a window now, and `RELAY_TOGGLED` with it.
+     * The event has to be dropped from the log rather than left in: the log is validated against
+     * a closed vocabulary, and a save carrying a type this build has retired would be refused
+     * at the door.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const relay = asRecord(snapshot.relay) ?? {}
+      const ui = asRecord(snapshot.ui) ?? {}
+      const { relayOpen: _relayOpen, ...restUi } = ui
+      const observed = Array.isArray(relay.observed) ? relay.observed : []
+      const { observed: _observed, ...restRelay } = relay
+      const events = Array.isArray(row.events) ? row.events : []
+
+      return {
+        ...row,
+        events: events.filter((event) => !(asRecord(event)?.type === 'RELAY_TOGGLED')),
+        snapshot: {
+          ...snapshot,
+          ui: restUi,
+          relay: {
+            ...restRelay,
+            captures: Array.isArray(relay.captures)
+              ? relay.captures
+              : observed
+                  .filter((id): id is string => typeof id === 'string')
+                  .map((id) => ({ snapshotId: id, url: null, title: null, cost: 0, at: 0 })),
+          },
+        },
+      }
+    },
+  },
 ]
 
 function asRecord(value: unknown): AnyRecord | null {

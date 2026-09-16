@@ -168,7 +168,17 @@ export const InvestigationStateSchema = z.object({
 
   relay: z.object({
     unlocked: z.boolean(),
-    observed: z.array(z.string().max(128)).max(512),
+    captures: z
+      .array(
+        z.object({
+          snapshotId: z.string().max(128),
+          url: z.string().max(2048).nullable(),
+          title: z.string().max(300).nullable(),
+          cost: z.number().int().min(0).max(1000),
+          at: minute,
+        }),
+      )
+      .max(512),
     kept: z
       .array(
         z.object({
@@ -189,7 +199,6 @@ export const InvestigationStateSchema = z.object({
   ui: z.object({
     trayOpen: z.boolean(),
     boardOpen: z.boolean(),
-    relayOpen: z.boolean().default(false),
     watched: z.boolean(),
     reportCard: z.boolean(),
     quickLook: z

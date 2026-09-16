@@ -72,8 +72,21 @@ export const case001: z.input<typeof CaseContentSchema> = {
     { id: 'notes', title: 'Notes', mono: 'N', width: 352, height: 300 },
     { id: 'term', title: 'Console', mono: '>', width: 568, height: 328 },
     { id: 'directory', title: 'Directory', mono: 'I', width: 640, height: 420 },
+    { id: 'relay', title: 'Relay', mono: 'R', width: 560, height: 470 },
   ],
-  dock: ['mail', 'msg', 'web', 'files', 'photos', 'devices', 'notes', 'term', 'directory', 'phone'],
+  dock: [
+    'mail',
+    'msg',
+    'web',
+    'files',
+    'photos',
+    'devices',
+    'notes',
+    'term',
+    'directory',
+    'relay',
+    'phone',
+  ],
 
   devices: [
     {
@@ -680,7 +693,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
   },
 
   relay: {
-    signalBudget: 24,
+    signalBudget: 40,
     availableAtStart: false,
     searchCost: 1,
     openCost: 2,
@@ -720,7 +733,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       'These are not evidence. A filed claim rests on the case file, and a line pulled off the open web is context — it is how you knew where to look, not what you can show. You know it anyway.',
     pinLabel: 'KEEP THIS LINE',
     pinnedLabel: 'kept',
-    closeLabel: 'detach the relay',
+    capturesLabel: 'brought back',
+    captureTemplate: '{{when}} · cost {{cost}}',
+    capturesEmpty:
+      'Nothing has come back through this route yet. What does will be held here exactly as it arrived, and it will not change afterwards.',
     backLabel: 'back to what came back',
     resultsLabel: 'came back:',
     linksLabel: 'this document names further addresses:',

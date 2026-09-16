@@ -70,7 +70,7 @@ export function createInvestigation(
 
     relay: {
       unlocked: content.relay?.availableAtStart ?? false,
-      observed: [],
+      captures: [],
       kept: [],
       mysteries: [],
       signalSpent: 0,
@@ -119,7 +119,6 @@ export function createInvestigation(
       boardOpen: false,
       watched: false,
       reportCard: false,
-      relayOpen: false,
       quickLook: null,
     },
 

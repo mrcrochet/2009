@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GameProvider } from '@/components/game/GameContext'
-import { RelayOverlay } from '@/components/game/RelayOverlay'
+import { RelayApp } from '@/components/game/apps/RelayApp'
 import { createGameStore, type GameStoreApi } from '@/state/store'
 import type { EventInput } from '@/engine/events'
 import type { RelaySnapshot } from '@/lib/relay/types'
@@ -92,18 +92,15 @@ function stubFetch(answers: Answers) {
   return mock
 }
 
-/** The console as the terminal leaves it: the process admitted, the screen taken. */
-const ATTACHED: EventInput[] = [
-  { type: 'RELAY_UNLOCKED', via: 'terminal' },
-  { type: 'RELAY_TOGGLED', open: true },
-]
+/** The console as the terminal leaves it: the process admitted, the window open. */
+const ATTACHED: EventInput[] = [{ type: 'RELAY_UNLOCKED', via: 'terminal' }]
 
 function mount(seed: readonly EventInput[] = ATTACHED) {
   const api: GameStoreApi = createGameStore({ content, investigation: fresh() })
   for (const input of seed) api.getState().dispatch(input)
   const utils = render(
     <GameProvider value={api}>
-      <RelayOverlay />
+      <RelayApp />
     </GameProvider>,
   )
   return { api, ...utils }
@@ -244,7 +241,9 @@ describe('the budget', () => {
       ),
     ).toBeInTheDocument()
 
-    expect(api.getState().investigation.relay.observed).toEqual([SNAPSHOT.id])
+    expect(api.getState().investigation.relay.captures.map((c) => c.snapshotId)).toEqual([
+      SNAPSHOT.id,
+    ])
     // Asking cost too. The question is charged on the answer, the page on the opening.
     expect(api.getState().investigation.relay.signalSpent).toBe(cfg.searchCost + cfg.openCost)
     expect(observations(api)).toHaveLength(1)
@@ -276,7 +275,13 @@ describe('the budget', () => {
     const fetchMock = stubFetch({ search: reply(200, { query: 'x', results: [], provider: 'f' }) })
     const { api } = mount([
       ...ATTACHED,
-      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_spent', signalCost: cfg.signalBudget },
+      {
+        type: 'RELAY_SNAPSHOT_OBSERVED',
+        snapshotId: 'wu_spent',
+        signalCost: cfg.signalBudget,
+        url: 'https://example.test/wu_spent',
+        title: 'wu_spent',
+      },
     ])
 
     const button = screen.getByRole('button', { name: cfg.submitLabel })
@@ -309,8 +314,10 @@ describe('the budget', () => {
       api.getState().dispatch({
         type: 'RELAY_SNAPSHOT_OBSERVED',
         snapshotId: 'wu_elsewhere',
-        // Everything the day had left after the question that produced these rows.
+        // Everything the case had left after the question that produced these rows.
         signalCost: cfg.signalBudget - cfg.searchCost,
+        url: 'https://example.test/elsewhere',
+        title: 'elsewhere',
       })
     })
 
@@ -341,7 +348,9 @@ describe('the budget', () => {
     // The same field, given an address whole.
     await transmit(user, 'example.test/filings/aion')
     await screen.findByRole('button', { name: cfg.backLabel })
-    expect(api.getState().investigation.relay.observed).toEqual([SNAPSHOT.id])
+    expect(api.getState().investigation.relay.captures.map((c) => c.snapshotId)).toEqual([
+      SNAPSHOT.id,
+    ])
     // It cost an opening, not a question.
     expect(api.getState().investigation.relay.signalSpent).toBe(cfg.openCost)
 
@@ -495,36 +504,31 @@ describe('keeping a line', () => {
   })
 })
 
-// --------------------------------------------------------------- the mode
+// -------------------------------------------------------- the application
 
-describe('the console as a mode', () => {
+describe('the relay as an application', () => {
   /**
-   * The board's contract, copied exactly: focus moves in, Escape leaves, and whatever opened the
-   * console gets the focus back — which on the real path is the terminal's command line, and a
-   * player who loses it has lost the only place they can type.
+   * It is a window now, and a window is a region, not a dialog.
+   *
+   * The console used to take the whole screen and trap focus, which made a thing the
+   * investigator works *alongside* into something they had to leave the desk for — the address
+   * they wanted to send was usually in a window behind it. Nothing here may claim a dialog's
+   * contract, because the window frame does not back one.
    */
-  it('takes focus on open and hands it back on Escape', async () => {
-    const user = userEvent.setup()
-    const opener = document.createElement('button')
-    document.body.append(opener)
-    opener.focus()
-
-    const { api } = mount()
-    expect(screen.getByLabelText(cfg.queryLabel)).toHaveFocus()
-
-    await user.keyboard('{Escape}')
-
-    expect(api.getState().investigation.ui.relayOpen).toBe(false)
-    await waitFor(() => expect(opener).toHaveFocus())
-    opener.remove()
+  it('claims no modal contract it cannot keep', () => {
+    const { container } = mount()
+    expect(container.querySelector('[aria-modal]')).toBeNull()
+    expect(container.querySelector('[role="dialog"]')).toBeNull()
   })
 
-  it('leaves by its own control too', async () => {
-    const user = userEvent.setup()
-    const { api } = mount()
+  it('cannot be opened until the process has been found', () => {
+    const api = createGameStore({ content, investigation: fresh() })
+    api.getState().dispatch({ type: 'APP_OPENED', app: 'relay' })
+    expect(api.getState().investigation.windows.some((w) => w.app === 'relay')).toBe(false)
 
-    await user.click(screen.getByRole('button', { name: cfg.closeLabel }))
-    expect(api.getState().investigation.ui.relayOpen).toBe(false)
+    api.getState().dispatch({ type: 'RELAY_UNLOCKED', via: 'test' })
+    api.getState().dispatch({ type: 'APP_OPENED', app: 'relay' })
+    expect(api.getState().investigation.windows.some((w) => w.app === 'relay')).toBe(true)
   })
 
   it('is not on the machine until the process has been found', () => {

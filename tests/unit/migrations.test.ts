@@ -67,6 +67,41 @@ describe('save migration', () => {
     expect(back.notes).toBe(current.snapshot.notes)
   })
 
+  /**
+   * A v14 save has the relay's snapshot ids and nothing else about them. The captures list says
+   * so — `null` provenance — rather than inventing an address it never recorded.
+   */
+  it('carries a save written while the relay was still a mode', () => {
+    const current = toStored(fresh())
+    const snapshot = current.snapshot as unknown as Record<string, unknown>
+    const relay = snapshot.relay as Record<string, unknown>
+    const ui = snapshot.ui as Record<string, unknown>
+    const { captures: _captures, ...restRelay } = relay
+    const old = {
+      ...current,
+      schemaVersion: 14,
+      snapshot: {
+        ...snapshot,
+        schemaVersion: 14,
+        relay: { ...restRelay, observed: ['snap_one', 'snap_two'] },
+        ui: { ...ui, relayOpen: true },
+      },
+      events: [
+        { type: 'RELAY_UNLOCKED', at: 3, via: 'terminal' },
+        { type: 'RELAY_TOGGLED', at: 4, open: true },
+      ],
+    }
+
+    const back = fromStored(migrateStored(old))
+    expect(back.relay.captures.map((c) => c.snapshotId)).toEqual(['snap_one', 'snap_two'])
+    expect(back.relay.captures[0]?.url).toBeNull()
+    expect(back.relay.captures[0]?.title).toBeNull()
+    expect('relayOpen' in back.ui).toBe(false)
+    // The retired event is dropped from the log, not left in it — the vocabulary is closed, and
+    // a save carrying a type this build no longer knows would be refused at the door.
+    expect(back.eventLog.map((e) => e.type)).toEqual(['RELAY_UNLOCKED'])
+  })
+
   it('has a contiguous migration chain up to the current version', () => {
     const steps = migrationSteps()
     let version = steps[0]?.from ?? SCHEMA_VERSION

@@ -44,7 +44,7 @@ export const LIMITS = {
   claimLog: 128,
   notes: 20_000,
   discovered: 4096,
-  relayObserved: 512,
+  relayCaptures: 512,
   kept: 256,
 } as const
 
@@ -70,7 +70,11 @@ const TICK: Partial<Record<GameEvent['type'], number>> = {
  * happens because a React tree rendered is not in the event log, so a replay would produce a
  * different world from the one that was played.
  */
-function revealed(next: InvestigationState, event: GameEvent, content: CaseContent): readonly string[] {
+function revealed(
+  next: InvestigationState,
+  event: GameEvent,
+  content: CaseContent,
+): readonly string[] {
   const kase = content.id
   switch (event.type) {
     case 'MAIL_OPENED':
@@ -131,7 +135,9 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
           .map((photo) => projectedId.photo(kase, photo.id))
       if (next.phone.tab === 'sms')
         // Only as far down the thread as the player has actually scrolled.
-        return phone.sms.slice(0, next.phone.smsStep + 1).map((sms) => projectedId.sms(kase, sms.time))
+        return phone.sms
+          .slice(0, next.phone.smsStep + 1)
+          .map((sms) => projectedId.sms(kase, sms.time))
       return []
     }
 
@@ -140,7 +146,11 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
   }
 }
 
-export function reduce(state: InvestigationState, event: GameEvent, content: CaseContent): InvestigationState {
+export function reduce(
+  state: InvestigationState,
+  event: GameEvent,
+  content: CaseContent,
+): InvestigationState {
   const next = apply(state, event, content)
   if (next === state) return state
 
@@ -184,6 +194,33 @@ function appDef(content: CaseContent, app: AppId) {
   const def = content.apps.find((a) => a.id === app)
   if (!def) throw new Error(`reducer: unknown app "${app}"`)
   return def
+}
+
+/**
+ * The application id the relay's window is registered under.
+ *
+ * The console used to be a focused mode with a boolean on `ui`. It is a window now, so the
+ * terminal command that reveals it opens a window like anything else — and a case that ships a
+ * relay has to declare the application, which `tests/unit/content.test.ts` enforces.
+ */
+export const RELAY_APP = 'relay'
+
+function openWindow(
+  state: InvestigationState,
+  content: CaseContent,
+  app: AppId,
+  viewport?: Viewport,
+): InvestigationState {
+  const def = appDef(content, app)
+  if (state.windows.some((w) => w.app === app)) return focusWindows(state, app)
+  const measured: Viewport = viewport ?? DEFAULT_VIEWPORT
+  const { x, y } = cascadePosition(state.windows.length, def.width, def.height, measured)
+  const z = state.nextZ + 1
+  return {
+    ...state,
+    nextZ: z,
+    windows: [...state.windows, { app, x, y, z, minimized: false, zoomed: false }],
+  }
 }
 
 function focusWindows(state: InvestigationState, app: AppId): InvestigationState {
@@ -239,7 +276,11 @@ function pinEvidence(
 
 // ---------------------------------------------------------------------------
 
-function apply(state: InvestigationState, event: GameEvent, content: CaseContent): InvestigationState {
+function apply(
+  state: InvestigationState,
+  event: GameEvent,
+  content: CaseContent,
+): InvestigationState {
   switch (event.type) {
     // --- stage -------------------------------------------------------------
     case 'CASE_OPENED':
@@ -260,18 +301,11 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return { ...state, desktopIcons: [...state.desktopIcons, event.iconId] }
 
     // --- windows -----------------------------------------------------------
-    case 'APP_OPENED': {
-      const def = appDef(content, event.app)
-      if (state.windows.some((w) => w.app === event.app)) return focusWindows(state, event.app)
-      const viewport: Viewport = event.viewport ?? DEFAULT_VIEWPORT
-      const { x, y } = cascadePosition(state.windows.length, def.width, def.height, viewport)
-      const z = state.nextZ + 1
-      return {
-        ...state,
-        nextZ: z,
-        windows: [...state.windows, { app: event.app, x, y, z, minimized: false, zoomed: false }],
-      }
-    }
+    case 'APP_OPENED':
+      // Nothing opens the relay until the machine has admitted the process exists. The dock
+      // hides it; this is what makes hiding it a rule rather than a decoration.
+      if (event.app === RELAY_APP && !state.relay.unlocked) return state
+      return openWindow(state, content, event.app, event.viewport)
 
     case 'APP_CLOSED': {
       if (!state.windows.some((w) => w.app === event.app)) return state
@@ -358,7 +392,11 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
 
     case 'MAIL_UNKNOWN_ARRIVED':
       if (state.mail.unknownArrived) return state
-      return { ...state, mail: { ...state.mail, unknownArrived: true }, exposure: state.exposure + 5 }
+      return {
+        ...state,
+        mail: { ...state.mail, unknownArrived: true },
+        exposure: state.exposure + 5,
+      }
 
     // --- messenger ---------------------------------------------------------
     case 'THREAD_SELECTED':
@@ -527,7 +565,10 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     case 'FILE_OPENED': {
       const doc = content.files.find((f) => f.id === event.fileId)
       if (!doc) return state
-      const opened: InvestigationState = { ...state, files: { ...state.files, openId: event.fileId } }
+      const opened: InvestigationState = {
+        ...state,
+        files: { ...state.files, openId: event.fileId },
+      }
       return withBeat(opened, doc.beat as BeatId | null)
     }
 
@@ -708,7 +749,6 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
           boardOpen: false,
           watched: true,
           reportCard: false,
-          relayOpen: false,
           quickLook: null,
         },
         mail: { ...state.mail, unknownArrived: true, openId: content.unknownMail.id },
@@ -725,14 +765,6 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return { ...state, relay: { ...state.relay, unlocked: true } }
     }
 
-    case 'RELAY_TOGGLED': {
-      // Nothing to open until the machine has admitted the process exists.
-      if (!state.relay.unlocked) return state
-      const open = event.open ?? !state.ui.relayOpen
-      if (open === state.ui.relayOpen) return state
-      return { ...state, ui: { ...state.ui, relayOpen: open } }
-    }
-
     /**
      * The network happened outside the engine. What lands here is the id of an immutable
      * snapshot and what the look cost, so a replay shows the bytes the player read rather than
@@ -740,7 +772,7 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
      */
     case 'RELAY_SNAPSHOT_OBSERVED': {
       if (!state.relay.unlocked) return state
-      const seen = state.relay.observed.includes(event.snapshotId)
+      const seen = state.relay.captures.some((c) => c.snapshotId === event.snapshotId)
       // The budget is the mechanic. Without this the cost is a number the console prints and
       // the player can ignore, and a metered look at the future is not metered at all.
       const budget = content.relay?.signalBudget ?? 0
@@ -749,9 +781,18 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
         ...state,
         relay: {
           ...state.relay,
-          observed: seen
-            ? state.relay.observed
-            : [...state.relay.observed, event.snapshotId].slice(-LIMITS.relayObserved),
+          captures: seen
+            ? state.relay.captures
+            : [
+                ...state.relay.captures,
+                {
+                  snapshotId: event.snapshotId,
+                  url: event.url,
+                  title: event.title,
+                  cost: event.signalCost,
+                  at: event.at,
+                },
+              ].slice(-LIMITS.relayCaptures),
           // A page already read costs nothing to read again. The cost is in reaching for it.
           signalSpent: seen ? state.relay.signalSpent : state.relay.signalSpent + event.signalCost,
         },
@@ -770,7 +811,7 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     }
 
     case 'RELAY_EXCERPT_KEPT': {
-      if (!state.relay.observed.includes(event.snapshotId)) return state
+      if (!state.relay.captures.some((c) => c.snapshotId === event.snapshotId)) return state
       if (state.relay.kept.some((e) => e.excerptHash === event.excerptHash)) return state
       /*
        * Keeping a line is not free, and it is not free in the currency signal is.
@@ -891,16 +932,16 @@ function runTerminal(
     const relay = cfg.relay
     if (state.relay.unlocked) {
       out.push(...relay.opened)
-      nextState = { ...nextState, ui: { ...nextState.ui, relayOpen: true } }
+      nextState = openWindow(nextState, content, RELAY_APP)
     } else if (lower.includes(relay.unlockPhrase.toLowerCase())) {
       // The player worked out the argument from three pages that never mention each other.
       // Nothing announces it; the machine simply stops refusing.
       out.push(...relay.granted)
-      nextState = {
-        ...nextState,
-        relay: { ...nextState.relay, unlocked: true },
-        ui: { ...nextState.ui, relayOpen: true },
-      }
+      nextState = openWindow(
+        { ...nextState, relay: { ...nextState.relay, unlocked: true } },
+        content,
+        RELAY_APP,
+      )
     } else {
       out.push(...relay.locked)
     }

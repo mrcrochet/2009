@@ -52,7 +52,11 @@ loud.
 - One search reaches every surface at once, and its counts say the world is larger than the
   question. It is a Find window, not a command palette.
 - The Directory holds only what this machine has learned. It is never a cast list.
-- The relay console is a focused in-world mode, like the board, and never a browser tab.
+- **The relay is an application on this workstation, and the only route out.** Metered, and
+  everything it brings back is captured: an immutable snapshot, held with where it came from and
+  what the look cost, so a replay shows the bytes the player read. It is never a tab inside the
+  fictional browser, and it is not on the machine until the process has been found — the dock
+  hides it and the reducer refuses to open it.
 - Consequences are experienced through changing world content, not through a meter.
 - Guest can begin immediately with no account.
 - Save/account prompt happens only after the case has earned it.
@@ -74,8 +78,8 @@ loud.
   window is a present-day operating system, a 22px card floating in a blur is a dashboard.
 - Emoji as shipping icons.
 - AI chat replacing authored narrative.
-- External live web search inside the fictional Browser. (The relay is the only route out, it is
-  metered, and what it returns is an immutable snapshot.)
+- External live web search inside the fictional Browser. The relay is the only route out; a case's
+  own web and the corpus are one closed internet.
 - Hardcoded story logic inside React components.
 - Client-side subscription or entitlement checks as the source of truth.
 - A price, a card field, or a purchase completed inside the fiction. Recovery is offered in-world

@@ -1,5 +1,6 @@
 'use client'
 
+import { RELAY_APP } from '@/engine/reducer'
 import type { AppId, DockId } from '@/engine/types'
 import { DockGlyph } from './icons'
 import { useContent, useDispatch, useInvestigation } from './GameContext'
@@ -9,6 +10,7 @@ export function Dock() {
   const dispatch = useDispatch()
   const openApps = useInvestigation((s) => s.windows.map((w) => w.app).join(','))
   const phoneOpen = useInvestigation((s) => s.phone.open)
+  const relayFound = useInvestigation((s) => s.relay.unlocked)
 
   const open = new Set(openApps ? openApps.split(',') : [])
 
@@ -17,6 +19,14 @@ export function Dock() {
       {(content.dock as DockId[])
         // A case that supplies no phone does not put one in the dock.
         .filter((id) => id !== 'phone' || content.phone !== null)
+        /*
+         * The relay is a process the investigator has to find running.
+         *
+         * A dock icon for it from the first minute would answer, before anybody has asked, the
+         * one question the case makes them work for. It appears when the machine admits the
+         * process exists, and from then on it is an application like any other.
+         */
+        .filter((id) => id !== RELAY_APP || relayFound)
         .map((id) => {
           const isPhone = id === 'phone'
           const def = content.apps.find((a) => a.id === id)

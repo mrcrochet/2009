@@ -2078,35 +2078,28 @@
   color: #7e8b95;
 }
 
-/* ------------------------------------------------------ the relay console */
+/* ------------------------------------------------------------- the relay */
 
 /*
- * A process, not a browser. Everything below is the terminal's palette and the terminal's
- * column: hard edges, one monospace measure, and no affordance that had not been invented yet.
+ * A process, not a browser, and an application rather than a mode.
+ *
+ * It used to take the whole screen, which made a thing the investigator works *alongside* into
+ * something they had to leave the desk for. It is a window now: the terminal's palette and the
+ * terminal's column, inside NOVA's own frame.
  */
 
 .nova-relay {
-  position: absolute;
-  inset: var(--menubar-height) 0 0 0;
-  z-index: var(--z-board);
-  background: rgba(4, 6, 8, 0.94);
+  flex: 1;
+  min-width: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  /* The dock floats above this layer, as it does above the board. The extra room at the foot is
-     so the last line of a captured page is not read through a row of icons. */
-  padding: 26px 26px 82px;
-  animation: fadein 0.2s both;
 }
 
 .nova-relay__panel {
-  width: min(760px, 100%);
-  max-height: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #0d1013;
-  border: 1px solid #2b333a;
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.72);
+  background: #0b0e11;
   font-family: var(--font-terminal);
   font-size: 11.5px;
   line-height: 1.7;
@@ -2136,15 +2129,32 @@
   white-space: nowrap;
 }
 
-.nova-relay__close {
+/* The one tab on this window: everything the route has brought back, and what it cost. */
+.nova-relay__tab {
   appearance: none;
-  background: none;
-  border: none;
-  color: var(--overlay-ink-dim);
-  font-size: 15px;
-  line-height: 1;
-  padding: 0 2px;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 5px;
+  color: var(--overlay-ink);
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
   cursor: pointer;
+}
+
+.nova-relay__tab:hover,
+.nova-relay__tab[data-active='true'] {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ink-bright);
+}
+
+.nova-relay__tab span {
+  color: #6f9ab5;
 }
 
 .nova-relay__send {
