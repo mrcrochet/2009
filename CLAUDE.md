@@ -180,6 +180,18 @@ looks like the session. See `docs/AUTHORING.md`.
 files, and a picture off a source nobody has unlocked is on neither. The same rule gives a
 locked handset a lock screen instead of the thread it is hiding.
 
+**One machine.** `engine/machine/` is the workstation itself, and every application that talks
+about a file reads it. The filesystem is **derived, never stored** — from the case's own
+documents, from which sources are attached and open, and from which recoveries have been granted
+— so a save carries only where each window was standing. A document declares its `dir`, its
+`bytes` and its dates; a device declares its `volume`, and mounts under `/Volumes` when it is
+attached. **A source nobody has opened has no contents in the tree at all**: not hidden from the
+listing, not there to be reached, so the shell cannot be used to walk around the lock the file
+manager enforces. Files walks the tree and the shell answers `pwd`, `cd`, `ls`, `cat`, `stat`,
+`file`, `find`, `open` and `mount` out of the same nodes, which is why a shell command may never
+be authored as a static that contradicts the volume the case mounted. Reading a document at the
+prompt *is* reading it: it lands in the reader and the world graph records it.
+
 **One world.** `content/world/` is the corpus the cases happen inside — entities, artifacts,
 relations, facts — and `content/index.ts` projects every authored case into it, so a player who
 searches a name reaches the mail they actually read rather than a second copy of that person.
@@ -302,6 +314,10 @@ Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mob
   menu bar, and the choice persists.
 
 ## 23. Testing
+
+`tests/unit/machine.test.ts` holds the claim the machine rests on: Files and the shell are two
+windows onto one filesystem. A locked volume is locked in both, a document behind a recovery is
+in neither, and a path means the same thing wherever it is typed.
 
 Unit: evidence pinning idempotency, the service gate, claim requirement logic, device unlocking,
 page variants, the report gate, save migration, engine purity, and the reading of a document —
