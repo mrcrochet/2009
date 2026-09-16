@@ -10,6 +10,4 @@ export function getStripe(): Stripe | null {
   return client
 }
 
-export function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-}
+export { siteUrl } from '@/lib/site'

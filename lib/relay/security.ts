@@ -1,4 +1,5 @@
 import { lookup } from 'node:dns/promises'
+import { siteUrl } from '@/lib/site'
 import { RelayRefused } from './types'
 
 /**
@@ -255,10 +256,8 @@ export function isBlockedAddress(address: Address): boolean {
 // -------------------------------------------------------------------- URLs
 
 function ownHost(): string | null {
-  const site = process.env.NEXT_PUBLIC_SITE_URL
-  if (!site) return null
   try {
-    return new URL(site).hostname.toLowerCase()
+    return new URL(siteUrl()).hostname.toLowerCase()
   } catch {
     return null
   }

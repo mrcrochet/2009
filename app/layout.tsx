@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist_Mono, Inter } from 'next/font/google'
 import { AnalyticsBoot } from '@/components/AnalyticsBoot'
+import { siteOrigin } from '@/lib/site'
 import '@/styles/tokens.css'
 
 /*
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
   title: 'Unlisted',
   description:
     'A man has been missing eight days and the police are not looking. You get a laptop image, a locked handset, and one evening at the workstation. Case 001 is free and needs no account.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  metadataBase: siteOrigin(),
   openGraph: {
     title: 'UNLISTED — Case 001',
     description: 'He never came home. The police are not looking. Where do you look first?',
