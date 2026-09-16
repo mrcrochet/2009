@@ -103,10 +103,26 @@ test.describe('Case 001', () => {
     await openApp(page, 'NOVA M12')
     const phone = page.getByTestId('phone-overlay')
     await expect(phone).toBeVisible()
-    await phone.getByRole('tab', { name: 'Photos' }).click()
+    // It opens on its home screen, and it is worked the way a handset is worked: an app, an
+    // item inside it, back, home, the next app. There is no tab strip anywhere on it.
+    await expect(phone.getByRole('tab')).toHaveCount(0)
+    await phone.locator('[data-mobile-app="photos"]').click()
+    await phone.getByRole('button', { name: 'IMG_2214.HEIC' }).click()
     await expect(phone).toContainText('IMG_2214.HEIC')
     await phone.locator('[data-evidence="e6"]').click()
-    await phone.getByRole('tab', { name: 'SMS' }).click()
+
+    await phone.getByLabel('Back').click()
+    await phone.getByLabel('Home screen').click()
+
+    // The missed call is on the home screen as a notification, and reading it takes the player
+    // into the call itself rather than into a list.
+    await phone.getByRole('button', { name: /Missed call/ }).click()
+    await expect(phone).toContainText('09 Jun 21:58')
+    await expect(phone).toContainText('no answer')
+    await phone.getByLabel('Home screen').click()
+    await expect(phone.getByRole('button', { name: /Missed call/ })).toHaveCount(0)
+
+    await phone.locator('[data-mobile-app="messages"]').click()
     // The thread is read backwards, one message at a time, and the line that matters is four
     // messages down.
     await phone.getByRole('button', { name: 'Scroll further back' }).click()
@@ -114,6 +130,12 @@ test.describe('Case 001', () => {
       await phone.getByRole('button', { name: 'Keep reading' }).click()
     }
     await phone.locator('[data-evidence="e5"]').click()
+
+    // What the phone knows about itself: the network it joined in a car park, and when.
+    await phone.getByLabel('Home screen').click()
+    await phone.locator('[data-mobile-app="settings"]').click()
+    await expect(phone).toContainText('FREMONT-LOT-PUBLIC')
+
     await phone.getByLabel('Put the phone down').click()
     await expect(phone).toHaveCount(0)
 

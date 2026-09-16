@@ -1556,9 +1556,11 @@
 .nova-phone__screen {
   flex: 1;
   min-height: 0;
-  background: #e9eaec;
-  border-radius: 3px;
-  border: 1px solid #000;
+  /* The screen is the device's own surface, so it follows the chrome, not the paper. A phone
+     whose lock screen is light grey reads as a PDA from a decade nobody is investigating. */
+  background: linear-gradient(190deg, #191d22, #0d1013 60%);
+  color-scheme: dark;
+  border-radius: 14px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1566,39 +1568,14 @@
 
 .nova-phone__status {
   flex: none;
-  height: 19px;
-  background: linear-gradient(180deg, #4d5b68, #334150);
-  color: #dfe6ec;
+  height: 22px;
+  color: var(--shell-ink);
+  font-family: var(--font-terminal);
   font-size: 9.5px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 7px;
-}
-
-.nova-phone__tabs {
-  flex: none;
-  display: flex;
-  border-bottom: 1px solid #b9bcc0;
-  background: #dcdee1;
-}
-
-.nova-phone__tab {
-  appearance: none;
-  flex: 1;
-  border: none;
-  border-right: 1px solid #b9bcc0;
-  padding: 6px 0;
-  font-size: 9.5px;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  background: transparent;
-  color: #767c83;
-}
-
-.nova-phone__tab[aria-selected='true'] {
-  background: #e9eaec;
-  color: var(--body-ink);
+  padding: 0 11px;
 }
 
 .nova-phone__view {
@@ -1612,125 +1589,85 @@
 }
 
 .nova-phone__sms {
-  padding: 9px 9px 0;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
 .nova-phone__smswho {
-  font-size: 8.5px;
-  color: #8b9098;
-  letter-spacing: 0.06em;
-  margin-bottom: 2px;
+  font-family: var(--font-terminal);
+  font-size: 9px;
+  color: var(--shell-ink-dim);
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
 }
 
 .nova-phone__smsbubble {
-  max-width: 90%;
-  background: #fff;
-  border: 1px solid #c6c9cd;
-  border-radius: 2px;
-  padding: 6px 8px;
-  font-size: 10.5px;
+  max-width: 88%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 13px 13px 13px 4px;
+  padding: 7px 10px;
+  font-size: 11px;
   line-height: 1.5;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-phone__smsactions {
-  padding: 8px 9px;
+  margin-top: 4px;
   display: flex;
   flex-direction: column;
   gap: 5px;
-  border-top: 1px solid #c6c9cd;
 }
 
 .nova-phone__choice {
   appearance: none;
   text-align: left;
-  border: 1px solid #a9adb3;
-  border-radius: 2px;
-  background: #f6f7f8;
-  padding: 6px 8px;
-  font-size: 10.5px;
-  color: var(--body-ink);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 13px;
+  background: none;
+  padding: 7px 10px;
+  font-size: 11px;
+  color: var(--ink-bright);
   cursor: pointer;
 }
 
 .nova-phone__choice:hover {
-  background: #fff;
-  border-color: var(--control-focus);
-}
-
-.nova-phone__photos {
-  padding: 9px;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.nova-phone__photo {
-  border: 1px solid #b9bcc0;
-  background: #fff;
-}
-
-.nova-phone__thumb {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  background: #c9ced4;
-  overflow: hidden;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 /* The camera burned the filename into the corner, the way they did. A scrim keeps it
    legible over a bright frame without lighting up a dark one. */
-.nova-phone__thumb::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 20px;
-  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.45));
-  pointer-events: none;
-}
-
-.nova-phone__stamp {
-  position: absolute;
-  right: 5px;
-  bottom: 4px;
-  font-size: 8px;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.82);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
-  z-index: 1;
-}
-
 .nova-phone__photometa {
-  padding: 6px 7px;
+  font-family: var(--font-terminal);
   font-size: 9.5px;
-  color: #5f676e;
-  line-height: 1.5;
+  color: var(--shell-ink-dim);
+  line-height: 1.6;
 }
 
 .nova-phone__photopin {
-  padding: 0 7px 7px;
+  padding-top: 2px;
 }
 
 .nova-phone__contacts {
-  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .nova-phone__contact {
-  padding: 7px 10px;
-  border-bottom: 1px solid #d6d9dd;
-  font-size: 11px;
-  color: var(--body-ink);
+  padding: 8px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11.5px;
+  color: var(--shell-ink);
   display: flex;
   justify-content: space-between;
   gap: 8px;
 }
 
 .nova-phone__contact span:last-child {
-  color: #8b9098;
+  color: var(--shell-ink-dim);
+  font-family: var(--font-terminal);
   font-size: 10px;
 }
 
@@ -3995,7 +3932,7 @@ h5.nova-relay__h {
 .nova-photos__thumb {
   display: block;
   aspect-ratio: 4 / 3;
-  background: #c9ced4;
+  background: #12161a;
   overflow: hidden;
 }
 
@@ -4242,55 +4179,516 @@ h5.nova-relay__h {
   }
 }
 
-/* -------------------------------------------------- the handset, locked */
+
+/* ---------------------------------------------------------- NOVA Mobile */
 
 /*
- * What a phone nobody has opened shows.
+ * The handset, as a device rather than a panel with tabs.
  *
- * The overlay used to show the thread, the roll and the contacts whatever the device said,
- * which made the passcode the case hides — and the beat that turns on finding it — decoration.
- * The keypad is not repeated here: one surface owns the verb, and this one points at it.
+ * Every value here exists to make one thing true: it should behave the way a phone behaves. A
+ * lock screen that takes a passcode, a home screen to come back to, a back gesture, alerts that
+ * are gone once they have been read. Nothing on this screen is trying to be impressive — a phone
+ * that looks impressive and does not behave like a phone is a picture of a phone.
  */
-.nova-phone__locked {
+
+/*
+ * The meter is drawn, and the number is printed beside it. The number is not decoration: the
+ * level is evidence in this case, and a player reading a bar off a 18px cell is guessing.
+ */
+.nova-phone__battery {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.nova-phone__cell {
+  position: relative;
+  width: 18px;
+  height: 9px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+/* the terminal on the end of the cell */
+.nova-phone__cell::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 2px;
+  bottom: 2px;
+  width: 1.5px;
+  background: currentColor;
+  border-radius: 0 1px 1px 0;
+}
+
+.nova-phone__cell i {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  left: 1px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+/* --- lock screen ---------------------------------------------------------- */
+
+/*
+ * The keypad is fixed and the notifications scroll behind it, which is the one layout decision
+ * that keeps a six-digit pad on a 552px handset without the bottom row falling off the glass.
+ */
+.nova-lock {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px 8px;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.nova-lock__clock {
+  flex: none;
+  text-align: center;
+}
+
+.nova-lock__time {
+  font-size: 40px;
+  font-weight: 200;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.nova-lock__date {
+  font-size: 11.5px;
+  color: var(--shell-ink-dim);
+}
+
+.nova-lock__alerts {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* The alerts are on the glass, unreadable past their first line — which is how they arrive. */
+.nova-lock__alert,
+.nova-home__alert {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nova-lock__alerthead,
+.nova-home__alerthead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--shell-ink);
+}
+
+.nova-lock__alerthead span,
+.nova-home__alerthead span {
+  font-family: var(--font-terminal);
+  font-size: 9.5px;
+  font-weight: 400;
+  color: var(--shell-ink-dim);
+}
+
+.nova-lock__alertbody,
+.nova-home__alertbody {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--shell-ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The cut edge of the notification list reads as "more below" rather than as a bug. */
+.nova-lock__pad {
+  position: relative;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 9px;
-  padding: 24px 20px;
-  text-align: center;
-  color: #6d757c;
+  gap: 7px;
 }
 
-.nova-phone__lockedline {
-  margin: 0;
-  font-size: 12px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #4d555c;
+.nova-lock__pad::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  bottom: 100%;
+  height: 20px;
+  background: linear-gradient(180deg, rgba(13, 16, 19, 0), #0d1013);
+  pointer-events: none;
 }
 
-.nova-phone__lockedhint {
-  margin: 0;
+.nova-lock__label {
+  font-size: 11px;
+  color: var(--shell-ink-dim);
+}
+
+.nova-lock__dots {
+  display: flex;
+  gap: 11px;
+}
+
+.nova-lock__dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.nova-lock__dots i[data-filled='true'] {
+  background: #fff;
+  border-color: #fff;
+}
+
+/* Never red, and never the only carrier of the message — it says what is wrong in words. */
+.nova-lock__wrong {
   font-size: 10.5px;
-  line-height: 1.65;
-  color: #868d94;
+  color: #d8a58f;
 }
 
-.nova-phone__lockedcta {
-  margin-top: 6px;
-  padding: 6px 11px;
-  border: 1px solid var(--control-border);
-  border-radius: 3px;
-  background: var(--control-face);
-  font-size: 9.5px;
-  letter-spacing: 0.1em;
-  color: #4d555c;
+.nova-lock__keys {
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  gap: 7px 14px;
+}
+
+/* Round, because a 58×44 key is an ellipse and an ellipse is nobody's phone. */
+.nova-lock__keys button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink-bright);
+  font-family: var(--font-terminal);
+  font-size: 18px;
   cursor: pointer;
 }
 
-.nova-phone__lockedcta:focus-visible {
-  outline: 2px solid var(--control-focus);
-  outline-offset: 1px;
+.nova-lock__keys button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nova-lock__blank {
+  visibility: hidden;
+}
+
+.nova-lock__del {
+  font-size: 14px !important;
+  border: none !important;
+  background: none !important;
+}
+
+/* --- home screen ---------------------------------------------------------- */
+
+.nova-home {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px 12px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nova-home__alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nova-home__alert {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.nova-home__alert:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.nova-home__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 8px;
+}
+
+.nova-home__app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nova-home__icon {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--ink-bright);
+}
+
+.nova-home__icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.nova-home__app:hover .nova-home__icon {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* The one badge on this screen, and it is a count of something real. */
+.nova-home__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #c2513f;
+  color: #fff;
+  font-family: var(--font-terminal);
+  font-size: 9px;
+  display: grid;
+  place-items: center;
+}
+
+.nova-home__name {
+  font-size: 9.5px;
+  color: var(--shell-ink-dim);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- the bar at the foot of the screen ------------------------------------ */
+
+.nova-phone__nav {
+  flex: none;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 4px 10px 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.nova-phone__nav button {
+  background: none;
+  border: none;
+  color: var(--shell-ink-dim);
+  font-size: 17px;
+  line-height: 1;
+  padding: 2px 6px;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.nova-phone__nav button[aria-disabled='true'] {
+  opacity: 0.22;
+  cursor: default;
+}
+
+.nova-phone__navhome {
+  justify-self: center !important;
+  width: 34px;
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.35) !important;
+  padding: 0 !important;
+}
+
+/* --- an application on the handset ---------------------------------------- */
+
+.nova-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 12px 4px;
+}
+
+.nova-mobile__title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--ink-bright);
+}
+
+.nova-mobile__section {
+  margin-top: 6px;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--shell-ink-dim);
+}
+
+.nova-mobile__big {
+  font-family: var(--font-terminal);
+  font-size: 13px;
+  color: var(--shell-ink);
+}
+
+.nova-mobile__empty,
+.nova-mobile__note {
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: var(--shell-ink-dim);
+  margin: 0;
+}
+
+.nova-mobile__rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.nova-mobile__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 2px;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: none;
+  cursor: pointer;
+}
+
+button.nova-mobile__row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nova-mobile__rowtop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--shell-ink);
+}
+
+/* A missed call is marked by weight as well as by colour — never colour alone. */
+.nova-mobile__rowtop span[data-missed='true'] {
+  color: #d8a58f;
+  font-weight: 500;
+}
+
+.nova-mobile__rowwhen {
+  font-family: var(--font-terminal);
+  font-size: 10px;
+  color: var(--shell-ink-dim);
+}
+
+.nova-mobile__rowsub {
+  font-size: 10.5px;
+  color: var(--shell-ink-dim);
+}
+
+.nova-mobile__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+}
+
+.nova-mobile__facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+}
+
+.nova-mobile__facts dt {
+  color: var(--shell-ink-dim);
+}
+
+.nova-mobile__facts dd {
+  margin: 0;
+  color: var(--shell-ink);
+  font-family: var(--font-terminal);
+  font-size: 11px;
+}
+
+/* The battery history: a clock nobody thinks to wipe. */
+.nova-mobile__bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nova-mobile__bar {
+  display: grid;
+  grid-template-columns: 38px 1fr 34px;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-terminal);
+  font-size: 9.5px;
+  color: var(--shell-ink-dim);
+}
+
+.nova-mobile__bartrack {
+  height: 7px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.nova-mobile__bartrack i {
+  display: block;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.nova-mobile__barlevel {
+  text-align: right;
+  color: var(--shell-ink);
+}
+
+/* --- the camera roll ------------------------------------------------------ */
+
+.nova-phone__roll {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}
+
+.nova-phone__tile {
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  background: #12161a;
+  cursor: pointer;
+}
+
+.nova-phone__full {
+  aspect-ratio: 4 / 3;
+  background: #0a0c0f;
+  overflow: hidden;
+  margin: 0 -12px;
 }

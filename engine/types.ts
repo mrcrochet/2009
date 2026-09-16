@@ -7,7 +7,7 @@
  * everything that is merely the surface of the machine lives in another.
  */
 
-export const SCHEMA_VERSION = 15
+export const SCHEMA_VERSION = 16
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -66,7 +66,50 @@ export interface DeviceState {
   readonly unlocked: boolean
 }
 
-export type PhoneTab = 'sms' | 'photos' | 'contacts'
+/**
+ * An application on the handset, named by the case.
+ *
+ * Open like the workstation's `AppId`, and for the same reason: a case that hands over a phone
+ * with a banking app and no camera is a content decision. Which of these the build can draw is
+ * the registry's business; a case naming one this build does not have gets a screen saying so.
+ */
+export type MobileAppId = string
+
+/**
+ * Where the handset is, as a stack.
+ *
+ * A phone is not a set of tabs — it is a place you go into and come back out of, and the back
+ * gesture is most of what makes it feel like a device rather than a panel. The stack is the
+ * whole of that: home is an empty stack, an app pushes, an item inside the app pushes again.
+ */
+export interface MobileRoute {
+  readonly app: MobileAppId
+  /** The thing being looked at inside the app: a conversation, a photograph, a call. */
+  readonly item: string | null
+}
+
+/**
+ * The state of a handset on the desk.
+ *
+ * It is a device runtime rather than a view model. A notification that is still there after it
+ * has been read, an app that forgets which conversation was open, a passcode that is only
+ * checked by the workstation and never by the phone itself — each of those is a small moment
+ * where the player stops believing they are holding a thing.
+ */
+export interface PhoneState {
+  /** On the desk, picked up. Not the same as powered. */
+  readonly open: boolean
+  readonly x: number | null
+  readonly y: number | null
+  /** Empty is the home screen. */
+  readonly route: readonly MobileRoute[]
+  /** Notifications the player has opened. They do not come back. */
+  readonly readNotifications: readonly string[]
+  /** The lock screen's own attempt counter, separate from the workstation's. */
+  readonly passcodeAttempts: number
+  /** How far down the thread the player has read. */
+  readonly smsStep: number
+}
 
 /**
  * What Quick Look is holding up.
@@ -77,14 +120,6 @@ export type PhoneTab = 'sms' | 'photos' | 'contacts'
 export interface QuickLookRef {
   readonly kind: 'file' | 'photo'
   readonly id: string
-}
-
-export interface PhoneState {
-  readonly open: boolean
-  readonly tab: PhoneTab
-  readonly x: number | null
-  readonly y: number | null
-  readonly smsStep: number
 }
 
 // ---------------------------------------------------------------------------
@@ -415,7 +450,24 @@ export type GameEvent =
   | (Base & { type: 'DEVICE_CONNECTED'; deviceId: string })
   | (Base & { type: 'DEVICE_UNLOCK_ATTEMPTED'; deviceId: string; key: string })
   | (Base & { type: 'PHONE_TOGGLED' })
-  | (Base & { type: 'PHONE_TAB_CHANGED'; tab: PhoneTab })
+  /** Into an application on the handset, or into a thing inside one. */
+  | (Base & { type: 'MOBILE_OPENED'; app: MobileAppId; item?: string | null })
+  | (Base & { type: 'MOBILE_BACK' })
+  | (Base & { type: 'MOBILE_HOME' })
+  /**
+   * A notification, read.
+   *
+   * It carries where it goes, because a notification is a shortcut into an application and the
+   * engine should not have to know which. Reading it is what removes it — an alert that survives
+   * being opened is the clearest sign a phone is a picture of a phone.
+   */
+  | (Base & {
+      type: 'MOBILE_NOTIFICATION_OPENED'
+      notificationId: string
+      app: MobileAppId
+      item?: string | null
+    })
+  | (Base & { type: 'PHONE_PASSCODE_ATTEMPTED'; deviceId: string; key: string })
   | (Base & { type: 'PHONE_MOVED'; x: number; y: number })
   | (Base & { type: 'SMS_ADVANCED' })
   | (Base & { type: 'MAIL_OPENED'; mailId: string })

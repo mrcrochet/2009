@@ -91,9 +91,13 @@ export const InvestigationStateSchema = z.object({
   ),
   phone: z.object({
     open: z.boolean(),
-    tab: z.enum(['sms', 'photos', 'contacts']),
     x: z.number().finite().nullable(),
     y: z.number().finite().nullable(),
+    route: z
+      .array(z.object({ app: z.string().max(64), item: z.string().max(128).nullable() }))
+      .max(8),
+    readNotifications: z.array(z.string().max(64)).max(64),
+    passcodeAttempts: z.number().int().min(0).max(999),
     smsStep: z.number().int().min(0).max(64),
   }),
 

@@ -106,7 +106,7 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
 
     if (hit.surface === 'phone') {
       if (!phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
-      dispatch({ type: 'PHONE_TAB_CHANGED', tab: 'sms' })
+      dispatch({ type: 'MOBILE_OPENED', app: 'messages' })
       return
     }
 

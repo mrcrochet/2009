@@ -98,6 +98,48 @@ const STEPS: readonly MigrationStep[] = [
       }
     },
   },
+  {
+    from: 15,
+    to: 16,
+    describe: 'turns the handset from three tabs into a device with a route stack',
+    /**
+     * `phone.tab` was one of three panels. A handset is a place you go into and come back out
+     * of, so it carries a stack now — and a save written mid-tab becomes a save with that
+     * application open, which is what the player was in fact looking at.
+     *
+     * `PHONE_TAB_CHANGED` leaves the log for the same reason `RELAY_TOGGLED` did: the vocabulary
+     * is closed, and a retired type would be refused at the door rather than migrated.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const phone = asRecord(snapshot.phone) ?? {}
+      const { tab, ...rest } = phone
+      const app = tab === 'photos' ? 'photos' : tab === 'contacts' ? 'contacts' : 'messages'
+      const events = Array.isArray(row.events) ? row.events : []
+
+      return {
+        ...row,
+        events: events.filter((event) => asRecord(event)?.type !== 'PHONE_TAB_CHANGED'),
+        snapshot: {
+          ...snapshot,
+          phone: {
+            ...rest,
+            route: Array.isArray(phone.route)
+              ? phone.route
+              : phone.open
+                ? [{ app, item: null }]
+                : [],
+            readNotifications: Array.isArray(phone.readNotifications)
+              ? phone.readNotifications
+              : [],
+            passcodeAttempts:
+              typeof phone.passcodeAttempts === 'number' ? phone.passcodeAttempts : 0,
+          },
+        },
+      }
+    },
+  },
 ]
 
 function asRecord(value: unknown): AnyRecord | null {

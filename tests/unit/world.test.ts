@@ -396,8 +396,8 @@ describe('reading something is finding it', () => {
       // The handset has to be opened before anything on it has been read.
       { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
       { type: 'PHONE_TOGGLED' },
-      { type: 'PHONE_TAB_CHANGED', tab: 'photos' },
-      { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
+      { type: 'MOBILE_OPENED', app: 'photos' },
+      { type: 'MOBILE_OPENED', app: 'messages' },
       { type: 'BROWSER_NAVIGATED', url: content.browser.pages[0]!.url },
     ])
 
@@ -416,8 +416,8 @@ describe('reading something is finding it', () => {
   it('reveals nothing off a handset nobody has opened', () => {
     const state = run(fresh(), [
       { type: 'PHONE_TOGGLED' },
-      { type: 'PHONE_TAB_CHANGED', tab: 'photos' },
-      { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
+      { type: 'MOBILE_OPENED', app: 'photos' },
+      { type: 'MOBILE_OPENED', app: 'messages' },
     ])
     expect(state.discovered.filter((id) => id.startsWith(`${content.id}.sms.`))).toHaveLength(0)
     expect(state.discovered.filter((id) => id.startsWith(`${content.id}.photo.`))).toHaveLength(0)
@@ -430,7 +430,7 @@ describe('reading something is finding it', () => {
     let state = run(fresh(), [
       { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
       { type: 'PHONE_TOGGLED' },
-      { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
+      { type: 'MOBILE_OPENED', app: 'messages' },
     ])
     expect(sms(state)).toHaveLength(1)
 

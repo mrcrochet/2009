@@ -749,6 +749,152 @@ export const case001: z.input<typeof CaseContentSchema> = {
   phone: {
     device: 'NOVA M12',
     carrier: 'Cascade Mobile',
+    os: 'NOVA Mobile 18.4',
+    lockDate: 'Tuesday 9 June',
+    lockTime: '22:51',
+    battery: 68,
+    wrongPasscode: 'Wrong passcode',
+
+    /*
+     * What the handset was showing when it stopped.
+     *
+     * Reading one clears it, which is the cheapest honest thing a phone does: the machine
+     * changes because somebody touched it. The last of these is the one that matters, and it is
+     * the one a player is least likely to open first.
+     */
+    notifications: [
+      {
+        id: 'n1',
+        app: 'messages',
+        title: 'Claire',
+        body: 'call me when you get in',
+        time: '18:22',
+        item: null,
+      },
+      {
+        id: 'n2',
+        app: 'calls',
+        title: 'Missed call',
+        body: 'R. Vale · 21:58',
+        time: '21:58',
+        item: 'c2',
+      },
+      {
+        id: 'n3',
+        app: 'settings',
+        title: 'Cascade Mobile',
+        body: 'No service',
+        time: '22:51',
+        item: null,
+      },
+    ],
+
+    /*
+     * The applications this handset has. A case with a different phone lists different ones and
+     * the build draws whatever it knows how to draw.
+     */
+    apps: [
+      { id: 'messages', name: 'Messages', glyph: 'messages', badge: 1 },
+      { id: 'calls', name: 'Phone', glyph: 'calls', badge: 1 },
+      { id: 'contacts', name: 'Contacts', glyph: 'contacts', badge: 0 },
+      { id: 'photos', name: 'Photos', glyph: 'photos', badge: 0 },
+      { id: 'settings', name: 'Settings', glyph: 'settings', badge: 0 },
+    ],
+
+    /*
+     * Thirty days of call metadata, which is what the handset itself keeps. Anything older is
+     * the forensic service's to recover, and the note below says so in the device's own words.
+     */
+    callsNote: 'This device keeps 30 days. Records before 18 May are not on the handset.',
+    calls: [
+      /*
+       * The handset's own log says a call happened. It is not the record of it.
+       *
+       * e8 is the carrier's reconstruction, which is what the archive recovery sells and what
+       * goes on the file; a row in a phone's recents is not a document. So this row carries no
+       * evidence of its own, and a player who wants the call on the record still has to go and
+       * get it.
+       */
+      {
+        id: 'c1',
+        who: 'R. Vale',
+        number: '(503) 555-0197',
+        direction: 'out',
+        when: '09 Jun 22:51',
+        duration: 41,
+        evidenceId: null,
+      },
+      {
+        id: 'c2',
+        who: 'R. Vale',
+        number: '(503) 555-0197',
+        direction: 'missed',
+        when: '09 Jun 21:58',
+        duration: 0,
+        evidenceId: null,
+      },
+      {
+        id: 'c3',
+        who: 'Claire',
+        number: '(503) 555-0142',
+        direction: 'in',
+        when: '09 Jun 18:20',
+        duration: 96,
+        evidenceId: null,
+      },
+      {
+        id: 'c4',
+        who: 'R. Vale',
+        number: '(503) 555-0197',
+        direction: 'out',
+        when: '07 Jun 09:12',
+        duration: 412,
+        evidenceId: null,
+      },
+      {
+        id: 'c5',
+        who: 'N. Okafor',
+        number: '(503) 555-0163',
+        direction: 'in',
+        when: '05 Jun 12:40',
+        duration: 233,
+        evidenceId: null,
+      },
+      {
+        id: 'c6',
+        who: 'Ridgeline (office)',
+        number: '(503) 555-0100',
+        direction: 'out',
+        when: '02 Jun 08:58',
+        duration: 61,
+        evidenceId: null,
+      },
+    ],
+
+    /*
+     * The quietly damning surface. Nobody thinks about this list, and it says where the device
+     * physically was — including a network nothing else in the case mentions.
+     */
+    networks: [
+      { ssid: 'Mercer 2214', lastJoined: '09 Jun 18:04', evidenceId: null },
+      { ssid: 'Ridgeline Guest', lastJoined: '05 Jun 09:31', evidenceId: null },
+      { ssid: 'FREMONT-LOT-PUBLIC', lastJoined: '09 Jun 21:44', evidenceId: null },
+      { ssid: 'PDX Free Wi-Fi', lastJoined: '21 May 16:12', evidenceId: null },
+    ],
+
+    /*
+     * The battery is a clock nobody thinks to wipe. It keeps draining after 22:51, which is the
+     * minute the handset stopped syncing — so whatever stopped, it was not the phone.
+     */
+    batteryHistory: [
+      { hour: '18:00', level: 84 },
+      { hour: '19:00', level: 81 },
+      { hour: '20:00', level: 78 },
+      { hour: '21:00', level: 74 },
+      { hour: '22:00', level: 71 },
+      { hour: '23:00', level: 69 },
+      { hour: '00:00', level: 68 },
+    ],
     /*
      * The thread is read backwards, one message at a time.
      *

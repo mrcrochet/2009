@@ -81,7 +81,15 @@ export function createInvestigation(
     windows: [],
     nextZ: 20,
     desktopIcons: [],
-    phone: { open: false, tab: 'sms', x: null, y: null, smsStep: 0 },
+    phone: {
+      open: false,
+      x: null,
+      y: null,
+      route: [],
+      readNotifications: [],
+      passcodeAttempts: 0,
+      smsStep: 0,
+    },
 
     selectedEvidenceIds: [],
     selectedClaimId: null,

@@ -122,7 +122,8 @@ function revealed(
     }
 
     case 'PHONE_TOGGLED':
-    case 'PHONE_TAB_CHANGED':
+    case 'MOBILE_OPENED':
+    case 'MOBILE_NOTIFICATION_OPENED':
     case 'SMS_ADVANCED': {
       // A case may supply no phone at all, and then there is nothing to have looked at.
       const phone = content.phone
@@ -130,12 +131,13 @@ function revealed(
       // A handset nobody has opened shows a lock screen, and a lock screen is not a document.
       const handset = phoneDeviceId(content)
       if (handset && !next.devices[handset]?.unlocked) return []
-      if (next.phone.tab === 'photos')
+      const here = next.phone.route.at(-1)?.app
+      if (here === 'photos')
         // The roll on this handset, not every picture the case holds.
         return content.photos
           .filter((photo) => photo.sourceId !== null && photoAvailable(photo, next.devices))
           .map((photo) => projectedId.photo(kase, photo.id))
-      if (next.phone.tab === 'sms')
+      if (here === 'messages')
         // Only as far down the thread as the player has actually scrolled.
         return phone.sms
           .slice(0, next.phone.smsStep + 1)
@@ -356,9 +358,83 @@ function apply(
     case 'PHONE_TOGGLED':
       return { ...state, phone: { ...state.phone, open: !state.phone.open } }
 
-    case 'PHONE_TAB_CHANGED':
-      if (state.phone.tab === event.tab) return state
-      return { ...state, phone: { ...state.phone, tab: event.tab } }
+    /**
+     * Into an application, or into something inside one.
+     *
+     * The route is a stack rather than a current tab, because coming back out is most of what
+     * makes a handset feel like a device. Opening the application you are already in is not a
+     * second copy of it; opening a thing inside it pushes.
+     */
+    case 'MOBILE_OPENED': {
+      if (!content.phone?.apps.some((a) => a.id === event.app)) return state
+      const item = event.item ?? null
+      const top = state.phone.route.at(-1)
+      if (top?.app === event.app && top.item === item) return state
+      const route =
+        top?.app === event.app && item !== null
+          ? [...state.phone.route, { app: event.app, item }]
+          : [...state.phone.route.filter((r) => r.app !== event.app), { app: event.app, item }]
+      return { ...state, phone: { ...state.phone, route: route.slice(-8) } }
+    }
+
+    case 'MOBILE_BACK': {
+      if (state.phone.route.length === 0) return state
+      return { ...state, phone: { ...state.phone, route: state.phone.route.slice(0, -1) } }
+    }
+
+    case 'MOBILE_HOME':
+      if (state.phone.route.length === 0) return state
+      return { ...state, phone: { ...state.phone, route: [] } }
+
+    /**
+     * An alert, read.
+     *
+     * Reading it is what removes it. A notification that survives being opened is the clearest
+     * sign that a phone is a picture of a phone.
+     */
+    case 'MOBILE_NOTIFICATION_OPENED': {
+      const alert = content.phone?.notifications.find((n) => n.id === event.notificationId)
+      if (!alert) return state
+      if (state.phone.readNotifications.includes(event.notificationId)) return state
+      return {
+        ...state,
+        phone: {
+          ...state.phone,
+          readNotifications: [...state.phone.readNotifications, event.notificationId],
+          route: [{ app: event.app, item: event.item ?? null }],
+        },
+      }
+    }
+
+    /**
+     * The passcode, entered on the handset itself.
+     *
+     * It unlocks the same device the workstation's Devices application unlocks, because it is the
+     * same device — a phone that opens on the desk and stays shut in the forensic tool is two
+     * phones. The attempt counter is the handset's own: the case's copy talks about the device
+     * not saying how many tries are left, and that only works if the device is counting.
+     */
+    case 'PHONE_PASSCODE_ATTEMPTED': {
+      const device = content.devices.find((d) => d.id === event.deviceId)
+      const live = state.devices[event.deviceId]
+      if (!device || !live || live.unlocked || !live.connected) return state
+      const right =
+        device.unlockKey.length > 0 &&
+        event.key.trim().toLowerCase() === device.unlockKey.trim().toLowerCase()
+      if (!right) {
+        return {
+          ...state,
+          phone: { ...state.phone, passcodeAttempts: state.phone.passcodeAttempts + 1 },
+        }
+      }
+      const opened: InvestigationState = {
+        ...state,
+        phone: { ...state.phone, passcodeAttempts: 0 },
+        devices: { ...state.devices, [event.deviceId]: { ...live, unlocked: true } },
+        flags: device.setsFlag ? { ...state.flags, [device.setsFlag]: true } : state.flags,
+      }
+      return withBeat(opened, device.beat as BeatId | null)
+    }
 
     case 'PHONE_MOVED': {
       if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return state
