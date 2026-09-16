@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = '2009 — you wake up in 2009. You remember everything.'
+export const alt = 'UNLISTED — he never came home. The police are not looking.'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -8,6 +8,9 @@ export const contentType = 'image/png'
  * The share card is the landing, cropped. Deliberately no font fetch: a build that cannot reach
  * Google Fonts should still produce a card, and the composition — the void, the two-tone
  * headline, the mono kicker — carries the identity without the exact typeface.
+ *
+ * This is the one surface of the product that reaches people who have not opened it, which is
+ * why it mattered that it was still advertising the game this repository used to be.
  */
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -35,41 +38,45 @@ export default function OpengraphImage() {
           textTransform: 'uppercase',
         }}
       >
-        <span>2009</span>
-        <span>An interactive record</span>
+        <span>Unlisted</span>
+        <span>Case 001</span>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 34 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 26 }}>
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
-            fontSize: 92,
+            fontSize: 74,
             fontWeight: 800,
-            lineHeight: 0.96,
+            lineHeight: 1.02,
             letterSpacing: '-0.03em',
             color: '#eceef0',
           }}
         >
-          <span>YOU WAKE UP IN 2009.</span>
-          <span style={{ color: '#6f7880' }}>YOU REMEMBER EVERYTHING.</span>
+          {/* Broken where the landing breaks it. At one line per sentence the second one is
+                wider than the card. */}
+          <span>HE NEVER</span>
+          <span>CAME HOME.</span>
+          <span style={{ color: '#6f7880' }}>THE POLICE</span>
+          <span style={{ color: '#6f7880' }}>ARE NOT LOOKING.</span>
         </div>
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
-            fontSize: 24,
+            fontSize: 22,
             color: '#8b949c',
           }}
         >
-          <span>$437.82 in an account that is not yours.</span>
-          <span>30 days.</span>
+          <span>A laptop image, a locked handset, and a sister who does not believe them.</span>
+          <span>One evening at the workstation.</span>
         </div>
       </div>
 
       <div style={{ fontSize: 19, letterSpacing: '0.12em', color: '#454c53' }}>
-        15 JAN 2009 · 07:32 · PORTLAND, OR
+        CASE 24-118 · 17 JUN 2026 · PORTLAND, OR
       </div>
     </div>,
     size,

@@ -45,17 +45,35 @@ export const case001: z.input<typeof CaseContentSchema> = {
   desktopIconFileId: 'f1',
   chatReplyDelayMs: 1400,
 
+  /*
+   * The shop window. The frame is the one the case already owns: IMG_2214 is a parking structure
+   * at 22:47 on the ninth, and the receipt from the same lot says he was there until 22:47. The
+   * key art is that, drawn — not a stock photograph of somewhere else.
+   */
+  catalogue: {
+    art: 'lot',
+    hook: 'A laptop image, a locked handset, and a sister who does not believe the police.',
+    kind: 'Missing person',
+    difficulty: 'Moderate',
+    estimate: '2 to 4 hours',
+    surfaces: ['Open web', 'Mail', 'Files', 'Photographs', 'Console', 'The relay'],
+    provided: 'A read-only laptop image, a locked handset, a name, and a date',
+    access: 'free',
+    series: { name: 'The Marlow Files', position: 1 },
+  },
+
   apps: [
     { id: 'mail', title: 'Relay Mail', mono: 'M', width: 640, height: 410 },
     { id: 'msg', title: 'Dispatch', mono: 'D', width: 318, height: 392 },
     { id: 'web', title: 'Orbit', mono: 'O', width: 720, height: 472 },
-    { id: 'files', title: 'Files', mono: 'F', width: 600, height: 352 },
+    { id: 'files', title: 'Files', mono: 'F', width: 792, height: 468 },
+    { id: 'photos', title: 'Photos', mono: 'P', width: 668, height: 472 },
     { id: 'devices', title: 'Devices', mono: 'V', width: 520, height: 380 },
     { id: 'notes', title: 'Notes', mono: 'N', width: 352, height: 300 },
     { id: 'term', title: 'Console', mono: '>', width: 568, height: 328 },
     { id: 'directory', title: 'Directory', mono: 'I', width: 640, height: 420 },
   ],
-  dock: ['mail', 'msg', 'web', 'files', 'devices', 'notes', 'term', 'directory', 'phone'],
+  dock: ['mail', 'msg', 'web', 'files', 'photos', 'devices', 'notes', 'term', 'directory', 'phone'],
 
   devices: [
     {
@@ -173,7 +191,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     },
     {
       id: 'e10',
-      source: 'FILES — voicemail-0610.txt',
+      source: 'FILES — voicemail-0610.m4a',
       sourceKind: 'files',
       text: 'Voicemail transcript, 10 June 08:14, from R. Vale: "Call me back. I am not going to keep doing this by message."',
       tags: ['vale', 'timeline'],
@@ -421,7 +439,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f1',
       name: 'CASE_24-118.txt',
-      icon: 'document',
+      kind: 'note',
       meta: 'Plain text · 1 KB · intake',
       metaWhenDecrypted: null,
       body: 'CASE 24-118 — MERCER, DANIEL\n\nSubject: Daniel James Mercer, 34. 2214 NE Alberta St, Portland OR.\nLast seen: 09 Jun 2026, approx 21:20, leaving the above address on foot.\nClient: Mercer, Claire (sister).\n\nSOURCES ATTACHED\n  1. Daniel-MBP.img — read-only image, 512 GB, taken 12 Jun.\n  2. NOVA M12 handset — locked. Six-digit passcode. Client has tried 0412 (birthday)\n     and 1955 (the dog). Client mentions a card in his wallet with a number on the back;\n     the wallet was not recovered, but the number was copied into his own notes.\n\nNOTE: Portland Police are not treating the disappearance as suspicious.',
@@ -434,7 +452,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f2',
       name: 'draft-statement-v3.doc',
-      icon: 'document',
+      kind: 'letter',
       meta: 'Document · 4 KB · modified 08 Jun 23:41',
       metaWhenDecrypted: null,
       body: 'DRAFT — NOT SENT\nTo: Oregon Department of Justice, Charitable Activities Section\n\nI am employed as an analyst at Ridgeline Partners. Since February I have been asked to sign off on grant disbursements to the Marlow Foundation that I cannot trace past 2013.\n\nThe 2013 records are described internally as lost in migration. I have been told this four times by three people. On each occasion the person telling me had no reason to know.\n\nI am aware of what this letter does to my position. I have a copy of the 2013 filing and I am prepared to explain how I obtained it.\n\n[unsigned]',
@@ -447,7 +465,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f3',
       name: 'receipt-fremont-0609.pdf',
-      icon: 'image',
+      kind: 'scan',
       meta: 'Scan · 212 KB · from client',
       metaWhenDecrypted: null,
       body: 'FREMONT STREET PARKING\n1140 NE FREMONT ST\n\nENTRY   09 JUN 2026  21:44\nEXIT    09 JUN 2026  22:47\nLANE    3\nCARD    **** 4471\n\nTHANK YOU — RETAIN FOR YOUR RECORDS',
@@ -460,7 +478,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f4',
       name: 'passcodes.txt',
-      icon: 'document',
+      kind: 'note',
       meta: 'Plain text · 312 bytes · recovered from Daniel-MBP.img',
       metaWhenDecrypted: null,
       body: "Daniel's own notes file. Recovered from the desktop of the image.\n\n  gym locker      — 44\n  bike lock       — 8812\n  storage unit    — 0906\n  phone           — 190455\n  work laptop     — (fingerprint)\n\nHe wrote them down. Everybody writes them down.",
@@ -473,7 +491,9 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f5',
       name: 'marlow-2013.enc',
-      icon: 'encrypted',
+      kind: 'encrypted',
+      // Six pages off a flatbed. What comes out of it is a scan, not a text file.
+      kindWhenDecrypted: 'scan',
       meta: 'Encrypted · 88 KB · cannot be previewed',
       metaWhenDecrypted: 'Decrypted · 88 KB · scanned filing, 6 pages',
       body: 'This file is encrypted.\n\nThe console on this workstation can open it if you know what key to give it.\n\n  decrypt marlow-2013.enc --key <word>\n\nThree attempts are logged before the file reports itself.',
@@ -487,7 +507,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f7',
       name: 'grant-disbursements-2013.csv',
-      icon: 'document',
+      kind: 'sheet',
       meta: 'Spreadsheet · 11 rows · modified 02 Jun 21:07',
       metaWhenDecrypted: null,
       body: 'date,recipient,amount,counterparty_on_file\n2013-03-14,Marlow Foundation,412000,no\n2013-04-02,Marlow Foundation,388400,no\n2013-05-21,Marlow Foundation,401900,no\n2013-06-18,Marlow Foundation,376200,no\n2013-07-09,Marlow Foundation,395800,no\n2013-08-13,Marlow Foundation,362700,no\n2013-09-05,Marlow Foundation,408100,no\n2013-10-22,Marlow Foundation,371500,no\n2013-11-19,Marlow Foundation,399904,no\n2013-12-03,Marlow Foundation,384600,no\n2013-12-27,Marlow Foundation,417104,no\n\nTOTAL 4118204\n\n[cell comment, D1] asked three people. same answer four times. nobody had a reason to know.',
@@ -499,11 +519,25 @@ export const case001: z.input<typeof CaseContentSchema> = {
     },
     {
       id: 'f8',
-      name: 'voicemail-0610.txt',
-      icon: 'document',
-      meta: 'Transcript · 1 KB · from client',
+      name: 'voicemail-0610.m4a',
+      kind: 'audio',
+      meta: 'Recording · 9 s · from client',
       metaWhenDecrypted: null,
-      body: 'Voicemail, 10 June 2026, 08:14. Transcribed by the handset.\n\n  "It\u2019s me. Call me back. I am not going to keep doing this by message."\n\n  Caller: R. Vale\n  Duration: 9 seconds\n\nClient note: I played this to the officer. He wrote down the date and that was all.',
+      /*
+       * Nine seconds, and the last two of them are him not hanging up. A transcript would have
+       * thrown that away, which is the argument for the recording being a recording.
+       */
+      audio: {
+        durationSec: 9,
+        channel: 'Voicemail · 10 Jun 2026 08:14 · (503) 555-0197',
+        cues: [
+          { at: 0.4, who: 'R. Vale', text: 'It\u2019s me.' },
+          { at: 1.8, who: 'R. Vale', text: 'Call me back.' },
+          { at: 3.4, who: 'R. Vale', text: 'I am not going to keep doing this by message.' },
+          { at: 7.1, who: '', text: '[line stays open]' },
+        ],
+      },
+      body: 'Client note: I played this to the officer. He wrote down the date and that was all.',
       bodyWhenDecrypted: null,
       evidenceId: 'e10',
       disputedClaim: null,
@@ -513,7 +547,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
     {
       id: 'f6',
       name: 'call-archive-recovered.csv',
-      icon: 'document',
+      kind: 'sheet',
       meta: 'Recovered · 143 records · 18 Feb – 18 May',
       metaWhenDecrypted: null,
       body: 'timestamp,direction,duration,contact\n2026-06-09 22:51,out,41,R. Vale\n2026-06-09 21:58,in,0,R. Vale (message)\n2026-06-07 09:12,out,412,R. Vale\n2026-05-28 18:03,out,77,C. Mercer\n… 139 further records',
@@ -522,6 +556,55 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+    },
+  ],
+
+  /*
+   * The pictures, filed under the source they came off rather than under the window that shows
+   * them. The handset's roll and the workstation's viewer are the same three files: one carries
+   * the line a phone would print under a thumbnail, the other carries what the extraction found.
+   */
+  photos: [
+    {
+      id: 'p1',
+      label: 'IMG_2214.HEIC',
+      meta: 'Taken 09 Jun 2026 22:47 · NOVA M12 · no embedded location',
+      subject: 'parking-structure',
+      sourceId: 'dev-phone',
+      detail: [
+        'Extracted from NOVA M12 · DCIM/100NOVA/IMG_2214.HEIC',
+        'Capture 09 Jun 2026 22:47:03 · ISO 2500 · 1/15 s · f/1.8',
+        'No GPS block. Location was switched off for the camera on this handset, and was off for every frame on it.',
+        'No edit history. This is the file the camera wrote.',
+      ],
+      evidenceId: 'e6',
+    },
+    {
+      id: 'p2',
+      label: 'IMG_2201.HEIC',
+      meta: 'Taken 08 Jun 2026 23:39 · NOVA M12 · 2214 NE Alberta St',
+      subject: 'scanned-page',
+      sourceId: 'dev-phone',
+      detail: [
+        'Extracted from NOVA M12 · DCIM/100NOVA/IMG_2201.HEIC',
+        'Capture 08 Jun 2026 23:39:41 · ISO 800 · 1/30 s · f/1.8',
+        'Subject is a printed page held flat under a desk lamp. Photographed, not scanned.',
+        'Taken forty minutes before draft-statement-v3.doc was last modified.',
+      ],
+      evidenceId: null,
+    },
+    {
+      id: 'p3',
+      label: 'IMG_2180.HEIC',
+      meta: 'Taken 02 Jun 2026 19:04 · NOVA M12 · 2214 NE Alberta St',
+      subject: 'interior-night',
+      sourceId: 'dev-phone',
+      detail: [
+        'Extracted from NOVA M12 · DCIM/100NOVA/IMG_2180.HEIC',
+        'Capture 02 Jun 2026 19:04:22 · ISO 3200 · 1/8 s · f/1.8',
+        'Underexposed by four stops. Nothing in the frame resolves, and enhancement will not make it.',
+      ],
+      evidenceId: null,
     },
   ],
 
@@ -691,29 +774,6 @@ export const case001: z.input<typeof CaseContentSchema> = {
         text: 'im already here',
         time: '09 Jun 22:02',
         choices: [],
-        evidenceId: null,
-      },
-    ],
-    photos: [
-      {
-        id: 'p1',
-        label: 'IMG_2214.HEIC',
-        meta: 'Taken 09 Jun 2026 22:47 · NOVA M12 · no embedded location',
-        subject: 'parking-structure',
-        evidenceId: 'e6',
-      },
-      {
-        id: 'p2',
-        label: 'IMG_2201.HEIC',
-        meta: 'Taken 08 Jun 2026 23:39 · NOVA M12 · 2214 NE Alberta St',
-        subject: 'scanned-page',
-        evidenceId: null,
-      },
-      {
-        id: 'p3',
-        label: 'IMG_2180.HEIC',
-        meta: 'Taken 02 Jun 2026 19:04 · NOVA M12 · 2214 NE Alberta St',
-        subject: 'interior-night',
         evidenceId: null,
       },
     ],

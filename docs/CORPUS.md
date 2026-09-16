@@ -1,17 +1,13 @@
 # Authoring the world
 
-> **Reading this after the pivot.** Where this document says *day*, read **case**. The corpus
-> rules are unchanged — one fact many surfaces, every page an address, the density targets — and
-> `tests/unit/content.test.ts` still enforces them.
-
-`docs/AUTHORING.md` covers a **day**: the thirty hours the player spends in front of the machine,
-the mail that arrives, the claim they can assert. This covers the **world** those hours happen
-inside — the corpus in `content/world/`, which is everything the machine can find that no day put
+`docs/AUTHORING.md` covers a **case**: the evening the player spends in front of the machine, the
+mail that arrives, the claim they can assert. This covers the **world** that evening happens
+inside — the corpus in `content/world/`, which is everything the machine can find that no case put
 there on purpose.
 
-The two are one graph. `content/index.ts` projects every authored day into the corpus so that a
-player searching "Marc" reaches the mail they actually read, not a second Marc who exists only in
-a database. There is exactly one world, and days are events in it.
+The two are one graph. `content/index.ts` projects every authored case into the corpus so that a
+player searching a name reaches the mail they actually read, not a second person who exists only
+in a database. There is exactly one world, and cases are events in it.
 
 ## The rule everything else follows
 

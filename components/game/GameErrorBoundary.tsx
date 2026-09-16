@@ -30,7 +30,9 @@ export class GameErrorBoundary extends Component<Props, State> {
       <div className="nova-boot" role="alert">
         <div className="nova-boot__line">NOVA 3.2 — unexpected fault</div>
         <div className="nova-boot__line">&nbsp;</div>
-        <div className="nova-boot__line">The session stopped. Your timeline is saved locally.</div>
+        <div className="nova-boot__line">
+          The session stopped. Your investigation is saved locally.
+        </div>
         <div className="nova-boot__line">&nbsp;</div>
         <button
           type="button"

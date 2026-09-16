@@ -6,6 +6,9 @@ import { PinButton } from '../PinButton'
 
 export function MailApp() {
   const content = useContent()
+  // What this case calls its mail client. The build used to print a brand of its own over every
+  // case's inbox — one belonging to a product that no longer exists.
+  const client = content.apps.find((a) => a.id === 'mail')?.title ?? 'Mail'
   const dispatch = useDispatch()
   const list = useInvestigation((s) => selectMail(s, content))
   const open = useInvestigation((s) => selectOpenMail(s, content))
@@ -13,7 +16,7 @@ export function MailApp() {
   return (
     <>
       <div className="nova-mail__list" role="listbox" aria-label="Inbox">
-        <div className="nova-mail__listhead">INBOX — CORVID MAIL</div>
+        <div className="nova-mail__listhead">INBOX — {client.toUpperCase()}</div>
         {list.map((m) => (
           <button
             key={m.id}

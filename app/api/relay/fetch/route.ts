@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message, refusal: error.refusal }, { status })
     }
     // The URL is the player's own input, so it stays out of the report for the same reason their
-    // Recall queries do.
+    // A player's own words never do.
     reportError(error, { scope: 'relay.fetch' })
     return NextResponse.json({ error: 'the other side did not answer' }, { status: 502 })
   } finally {

@@ -4,7 +4,7 @@ import { createAdminClient } from './admin'
 import { createServerSupabase } from './server'
 
 /**
- * Persistence for the Way Up Machine.
+ * Persistence for the relay.
  *
  * Two clients, on purpose. Snapshots and visits are written with the service role because the
  * relay route is the only thing that has actually fetched a page — a client-writable cache
@@ -12,7 +12,7 @@ import { createServerSupabase } from './server'
  * Everything a player legitimately authors themselves (pinning an excerpt, recording an unlock)
  * goes through their own session, where RLS does the checking.
  *
- * Nothing here throws and nothing assumes Supabase is configured: a guest keeps their Way Up
+ * Nothing here throws and nothing assumes Supabase is configured: a guest keeps their relay
  * history in IndexedDB and never touches any of this.
  */
 
@@ -48,7 +48,7 @@ function rowToSnapshot(row: SnapshotRow): RelaySnapshot {
 
 export type Result<T> = { ok: true; value: T } | { ok: false; error: string }
 
-const NOT_CONFIGURED = 'the Way Up relay is not configured'
+const NOT_CONFIGURED = 'the relay is not configured'
 
 // --------------------------------------------------------------- snapshots
 
@@ -89,7 +89,7 @@ export async function recordSnapshot(
 
 /**
  * Reads a snapshot the player has actually visited. RLS does the enforcing — an id alone is not
- * enough, so this returns null for anything their timelines never opened.
+ * enough, so this returns null for anything their investigations never opened.
  */
 export async function loadVisitedSnapshot(snapshotId: string): Promise<RelaySnapshot | null> {
   const supabase = await createServerSupabase()
@@ -124,7 +124,7 @@ export async function findCachedSnapshot(canonicalUrl: string): Promise<RelaySna
 // ------------------------------------------------------------------ visits
 
 export interface VisitInput {
-  readonly timelineId: string
+  readonly investigationId: string
   readonly snapshotId: string
   readonly openedGameDay: number
   readonly openedGameMinute: number
@@ -132,7 +132,7 @@ export interface VisitInput {
 }
 
 /**
- * Records that a timeline opened a page. Service-role only, and not an oversight: a visit row is
+ * Records that an investigation opened a page. Service-role only, and not an oversight: a visit row is
  * what grants read access to a snapshot, so a client able to forge one could read any snapshot
  * id it could guess.
  */
@@ -140,14 +140,14 @@ export async function recordVisit(visit: VisitInput): Promise<Result<null>> {
   const admin = createAdminClient()
   if (!admin) return { ok: false, error: NOT_CONFIGURED }
   const { error } = await admin.from('investigation_relay_visits').insert({
-    investigation_id: visit.timelineId,
+    investigation_id: visit.investigationId,
     snapshot_id: visit.snapshotId,
     opened_game_day: visit.openedGameDay,
     opened_game_minute: visit.openedGameMinute,
     signal_cost: visit.signalCost,
   })
   if (error) {
-    reportError(error, { scope: 'relay.visit.record', timelineId: visit.timelineId })
+    reportError(error, { scope: 'relay.visit.record', investigationId: visit.investigationId })
     return { ok: false, error: error.message }
   }
   return { ok: true, value: null }
@@ -193,7 +193,7 @@ interface FutureEvidenceRow {
 }
 
 export interface PinInput {
-  readonly timelineId: string
+  readonly investigationId: string
   readonly snapshotId: string
   readonly excerpt: string
   readonly excerptHash: string
@@ -205,7 +205,7 @@ export async function pinFutureEvidence(pin: PinInput): Promise<Result<null>> {
   const supabase = await createServerSupabase()
   if (!supabase) return { ok: false, error: NOT_CONFIGURED }
   const { error } = await supabase.from('kept_lines').insert({
-    investigation_id: pin.timelineId,
+    investigation_id: pin.investigationId,
     snapshot_id: pin.snapshotId,
     excerpt: pin.excerpt,
     excerpt_hash: pin.excerptHash,
@@ -216,7 +216,7 @@ export async function pinFutureEvidence(pin: PinInput): Promise<Result<null>> {
   return { ok: true, value: null }
 }
 
-export async function listFutureEvidence(timelineId: string): Promise<FutureEvidence[]> {
+export async function listFutureEvidence(investigationId: string): Promise<FutureEvidence[]> {
   const supabase = await createServerSupabase()
   if (!supabase) return []
   const { data, error } = await supabase
@@ -224,7 +224,7 @@ export async function listFutureEvidence(timelineId: string): Promise<FutureEvid
     .select(
       'id, snapshot_id, excerpt, excerpt_hash, captured_game_day, captured_game_minute, pinned_at, relay_snapshots(canonical_url, remote_fetched_at, content_hash, title)',
     )
-    .eq('investigation_id', timelineId)
+    .eq('investigation_id', investigationId)
     .order('pinned_at', { ascending: false })
     .limit(256)
 
@@ -261,7 +261,7 @@ export interface MysteryUnlock {
 }
 
 export async function unlockMystery(
-  timelineId: string,
+  investigationId: string,
   mysteryId: string,
   sourceEvent: string,
 ): Promise<Result<null>> {
@@ -270,20 +270,20 @@ export async function unlockMystery(
   const { error } = await supabase
     .from('mystery_unlocks')
     .upsert(
-      { investigation_id: timelineId, mystery_id: mysteryId, source_event: sourceEvent },
+      { investigation_id: investigationId, mystery_id: mysteryId, source_event: sourceEvent },
       { onConflict: 'investigation_id,mystery_id', ignoreDuplicates: true },
     )
   if (error) return { ok: false, error: error.message }
   return { ok: true, value: null }
 }
 
-export async function listMysteryUnlocks(timelineId: string): Promise<MysteryUnlock[]> {
+export async function listMysteryUnlocks(investigationId: string): Promise<MysteryUnlock[]> {
   const supabase = await createServerSupabase()
   if (!supabase) return []
   const { data, error } = await supabase
     .from('mystery_unlocks')
     .select('mystery_id, source_event, unlocked_at')
-    .eq('investigation_id', timelineId)
+    .eq('investigation_id', investigationId)
     .limit(256)
   if (error || !data) return []
   return (data as { mystery_id: string; source_event: string; unlocked_at: string }[]).map(
@@ -337,7 +337,7 @@ export async function contributeFragment(
   mysteryId: string,
   fragmentId: string,
   userId: string,
-  timelineId: string | null,
+  investigationId: string | null,
 ): Promise<Result<GlobalMystery | null>> {
   const admin = createAdminClient()
   if (!admin) return { ok: false, error: NOT_CONFIGURED }
@@ -347,7 +347,7 @@ export async function contributeFragment(
       mystery_id: mysteryId,
       fragment_id: fragmentId,
       user_id: userId,
-      investigation_id: timelineId,
+      investigation_id: investigationId,
     },
     { onConflict: 'mystery_id,user_id', ignoreDuplicates: true },
   )

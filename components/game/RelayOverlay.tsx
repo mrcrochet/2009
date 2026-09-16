@@ -9,7 +9,7 @@ import { useFocusTrap } from './useFocusTrap'
 import { pace, useReducedMotion } from './useReducedMotion'
 
 /**
- * The relay console — a process on a beige machine in 2009 reaching somewhere it has no words
+ * The relay console — a process on the workstation reaching somewhere it has no words
  * for.
  *
  * It is built like the investigation board and not like a browser: a focused in-world mode that
@@ -29,7 +29,7 @@ const MAX_EXCERPT = 600
 /**
  * The pause between the far end answering and the console admitting it.
  *
- * A 2009 machine reaching this far does not repaint instantly, and the beat is where the strain
+ * A machine reaching this far does not repaint instantly, and the beat is where the strain
  * lives. It is a scripted delay like the boot ticker and the typing pause, so it goes through
  * `pace()` and collapses for a player who asked for less motion. The beat still happens; the
  * waiting does not.
@@ -73,7 +73,7 @@ async function relay<T>(path: string, body: unknown, signal: AbortSignal): Promi
   } catch (error) {
     if (signal.aborted) return { status: 'aborted' }
     // What the player typed is in the request body and stays there. What is reported is that the
-    // line went down — never the query, for the same reason a Recall query is never reported.
+    // line went down — never the query. Freeform player text does not enter the log.
     reportError(error, { scope: 'relay.console' })
     return { status: 'refused', refusal: 'network' }
   }
@@ -314,7 +314,7 @@ export function RelayOverlay() {
    * A question needs an index and there may not be one on this side of the line. An address
    * needs nothing but the address — which is what the day's own copy says: "only the address,
    * and an address is not a conversation." So a dial still works when asking does not, and on a
-   * deployment with no index it is the whole of what the relay can do. A command line in 2009
+   * deployment with no index it is the whole of what the relay can do. A command line
    * would have made exactly this distinction, and made it silently.
    */
   const looksLikeAddress = (text: string): boolean =>
@@ -358,7 +358,7 @@ export function RelayOverlay() {
     setScreen('results')
   }
 
-  /** Free to open again: this address already produced a snapshot this timeline has observed. */
+  /** Free to open again: this address already produced a snapshot this investigation has observed. */
   const alreadyObserved = (url: string): boolean => {
     const known = snapshotByUrl.get(url)
     return known !== undefined && observed.includes(known)
@@ -457,7 +457,7 @@ export function RelayOverlay() {
       snapshotId: snapshot.id,
       excerpt,
       excerptHash,
-      // Carried on the event, because the timeline holds ids and the snapshot cache is not
+      // Carried on the event, because the investigation holds ids and the snapshot cache is not
       // something a replay on an offline machine can reach.
       sourceUrl: snapshot.canonicalUrl,
       sourceTitle: snapshot.title,

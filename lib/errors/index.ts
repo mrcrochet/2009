@@ -5,7 +5,7 @@
 
 export interface ErrorContext {
   readonly scope: string
-  readonly timelineId?: string
+  readonly investigationId?: string
   readonly [key: string]: unknown
 }
 
@@ -13,7 +13,7 @@ type Reporter = (error: unknown, context: ErrorContext) => void
 
 let reporter: Reporter = (error, context) => {
   if (process.env.NODE_ENV === 'test') return
-  console.error(`[2009:${context.scope}]`, error, context)
+  console.error(`[unlisted:${context.scope}]`, error, context)
 }
 
 export function setErrorReporter(next: Reporter): void {

@@ -4,7 +4,7 @@ import { useCallback, type KeyboardEvent } from 'react'
 
 /**
  * A real tab widget: roving tabindex, arrow keys, Home/End, and the id wiring that lets a screen
- * reader connect a tab to the panel it controls. Used by Ember Messenger and the phone, which
+ * reader connect a tab to the panel it controls. Used by the messenger and the phone, which
  * both looked like tabs but behaved like a row of buttons.
  */
 export function useTabList<T extends string>(

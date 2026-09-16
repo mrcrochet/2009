@@ -21,17 +21,24 @@ export default async function BillingSuccess({
   return (
     <main className={styles.root}>
       <div className={styles.inner}>
-        <div className={styles.eyebrow}>2009 · billing</div>
-        <h1 className={styles.title}>{entitlement.active ? 'Day 02 is open.' : 'Almost there.'}</h1>
+        <div className={styles.eyebrow}>unlisted · billing</div>
+        <h1 className={styles.title}>
+          {entitlement.active ? 'Full access is on.' : 'Almost there.'}
+        </h1>
         <p className={styles.body}>
           {entitlement.active
-            ? 'Your subscription is active. The 16th of January 2009 is waiting.'
+            ? 'Your subscription is active. The case you were working is where you left it, and the next one opens the moment it is written.'
             : 'Stripe has taken the payment; the confirmation is still landing. Refresh in a moment.'}
         </p>
         <div className={styles.row}>
+          {/*
+            A case is selected by name, and there is no second case to send anybody to yet. This
+            carried a season position the router stopped understanding at the pivot: it would have
+            reopened Case 001 and called it the second one.
+          */}
           {entitlement.active && claim ? (
-            <Link className="nova-cta" href={`/play/${claim}?day=2`}>
-              CONTINUE YOUR TIMELINE
+            <Link className="nova-cta" href={`/play/${claim}`}>
+              BACK TO YOUR INVESTIGATION
             </Link>
           ) : null}
           <Link className="nova-cta nova-cta--ghost" href="/account">

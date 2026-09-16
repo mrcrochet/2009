@@ -1,8 +1,21 @@
 /*
  * NOVA 3.2 — the fictional OS surface.
  * Loaded only by the game shell, so the marketing landing never ships it.
- * Every value here is taken from design/2009.dc.html.
  */
+
+/*
+ * The document surfaces are light, and the browser has to be told so.
+ *
+ * `color-scheme: dark` on the root is right for the machine, but it also reaches every unstyled
+ * control and scrollbar inside a page that is supposed to be paper — a search field on a white
+ * web page came out black. Paper declares its own scheme.
+ */
+.nova-web,
+.nova-mail__read,
+.nova-doc,
+.nova-ql__body {
+  color-scheme: light;
+}
 
 /* Visible only to assistive technology. Used where the period visual carries meaning that
    would otherwise be lost — the surveillance beat, table headers. */
@@ -222,7 +235,9 @@
 }
 
 .nova-icon {
-  width: 78px;
+  width: 92px;
+  border-radius: 8px;
+  padding: 8px 4px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -232,7 +247,12 @@
   appearance: none;
   background: none;
   border: none;
-  padding: 0;
+  transition: background 0.12s;
+}
+
+.nova-icon:hover,
+.nova-icon:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nova-icon__art {
@@ -246,12 +266,16 @@
   filter: drop-shadow(0 3px 7px rgba(0, 0, 0, 0.5)) brightness(1.08);
 }
 
+/* A filename is machine output, and it must not break mid-token on a desk icon. */
 .nova-icon__label {
   font-size: 10.5px;
-  color: #e6ebee;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+  font-family: var(--font-terminal);
+  color: #dde4e9;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   text-align: center;
-  line-height: 1.25;
+  line-height: 1.3;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 /* --------------------------------------------------------------- windows */
@@ -273,7 +297,7 @@
   height: 100%;
   background: var(--win-bg);
   border: 1px solid var(--win-border);
-  border-radius: 5px 5px 3px 3px;
+  border-radius: var(--radius-win);
   box-shadow: var(--win-shadow);
   overflow: hidden;
 }
@@ -284,10 +308,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 9px;
+  padding: 0 11px;
   background: var(--titlebar-back);
   border-bottom: 1px solid var(--titlebar-rule);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
   cursor: default;
   user-select: none;
   touch-action: none;
@@ -297,6 +320,13 @@
   background: var(--titlebar-front);
 }
 
+/*
+ * Window controls.
+ *
+ * Two monochrome affordances, not a traffic light. Red and amber on every window meant the only
+ * saturated colour on screen was the chrome — which is exactly backwards for a machine whose one
+ * accent is supposed to mean "this matters". They take their colour on hover and nowhere else.
+ */
 .nova-window__light {
   width: 11px;
   height: 11px;
@@ -304,25 +334,37 @@
   padding: 0;
   cursor: pointer;
   flex: none;
+  border: none;
+  background: rgba(255, 255, 255, 0.16);
+  transition:
+    background 0.12s,
+    transform 0.12s;
 }
 
-.nova-window__light--close {
-  background: radial-gradient(circle at 35% 30%, #ff9c92, #c0392b);
-  border: 1px solid #8e2b20;
+.nova-window--front .nova-window__light {
+  background: rgba(255, 255, 255, 0.26);
 }
 
-.nova-window__light--min {
-  background: radial-gradient(circle at 35% 30%, #d6d6d0, #a9a9a2);
-  border: 1px solid #8a8a83;
+.nova-window__light--close:hover {
+  background: #d8574a;
+}
+
+.nova-window__light--min:hover {
+  background: #d4a548;
+}
+
+.nova-window__light:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 2px;
 }
 
 .nova-window__title {
   flex: 1;
   text-align: center;
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--titlebar-back-ink);
-  letter-spacing: 0.02em;
+  letter-spacing: -0.005em;
   padding-right: 22px;
   white-space: nowrap;
   overflow: hidden;
@@ -399,8 +441,8 @@
 .nova-mail__list {
   width: 214px;
   flex: none;
-  border-right: 1px solid var(--hairline);
-  background: var(--panel);
+  border-right: 1px solid var(--shell-line);
+  background: var(--shell);
   overflow: auto;
 }
 
@@ -408,8 +450,8 @@
   padding: 6px 9px;
   font-size: 9.5px;
   letter-spacing: 0.12em;
-  color: var(--label);
-  border-bottom: 1px solid #dcdcd6;
+  color: var(--shell-ink-dim);
+  border-bottom: 1px solid var(--shell-line);
 }
 
 .nova-mail__row {
@@ -418,14 +460,14 @@
   text-align: left;
   appearance: none;
   border: none;
-  border-bottom: 1px solid var(--hairline-soft);
+  border-bottom: 1px solid var(--shell-line);
   padding: 8px 9px;
   cursor: pointer;
   background: transparent;
 }
 
 .nova-mail__row[aria-selected='true'] {
-  background: var(--selected);
+  background: var(--shell-selected);
 }
 
 .nova-mail__rowtop {
@@ -436,7 +478,7 @@
 
 .nova-mail__from {
   font-size: 11.5px;
-  color: var(--titlebar-front-ink);
+  color: var(--shell-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -449,30 +491,32 @@
 
 .nova-mail__time {
   font-size: 10px;
-  color: var(--label);
+  color: var(--shell-ink-dim);
   flex: none;
 }
 
 .nova-mail__subj {
   font-size: 11px;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
   margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/* A message is a document somebody wrote, so it is paper. The list beside it is the machine. */
 .nova-mail__read {
   flex: 1;
   min-width: 0;
   background: var(--paper);
   overflow: auto;
-  padding: 16px 20px;
+  padding: 20px 24px;
 }
 
 .nova-mail__readsubj {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
+  letter-spacing: -0.015em;
   color: #15181c;
   margin-bottom: 3px;
 }
@@ -486,9 +530,9 @@
 }
 
 .nova-mail__p {
-  margin: 0 0 11px;
-  font-size: 12.5px;
-  line-height: 1.62;
+  margin: 0 0 12px;
+  font-size: 13px;
+  line-height: 1.68;
   color: var(--body-ink);
   white-space: pre-wrap;
 }
@@ -500,13 +544,13 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--panel-alt);
+  background: var(--shell-alt);
 }
 
 .nova-msg__tabs {
   display: flex;
-  border-bottom: 1px solid var(--hairline);
-  background: linear-gradient(180deg, #e9e9e4, #dadad4);
+  border-bottom: 1px solid var(--shell-line);
+  background: var(--shell);
   flex: none;
 }
 
@@ -514,18 +558,18 @@
   appearance: none;
   flex: 1;
   border: none;
-  border-right: 1px solid var(--hairline);
+  border-right: 1px solid var(--shell-line);
   padding: 7px 0;
   font-size: 11px;
   cursor: pointer;
   background: transparent;
-  color: #767c83;
+  color: var(--shell-ink-dim);
   font-weight: 400;
 }
 
 .nova-msg__tab[aria-selected='true'] {
-  background: var(--panel-alt);
-  color: var(--titlebar-front-ink);
+  background: var(--shell-alt);
+  color: var(--shell-ink);
   font-weight: 600;
 }
 
@@ -563,32 +607,37 @@
 
 .nova-msg__who {
   font-size: 9.5px;
-  color: #9a9a92;
+  color: var(--shell-ink-dim);
   letter-spacing: 0.06em;
 }
 
+/*
+ * A conversation is not paper, so it is not white. Theirs recedes into the shell; yours takes
+ * the accent, which is the one place on this machine allowed to say "this is you".
+ */
 .nova-msg__bubble {
   max-width: 88%;
-  padding: 7px 10px;
-  border-radius: 3px;
-  font-size: 11.5px;
+  padding: 8px 11px;
+  border-radius: 10px 10px 10px 3px;
+  font-size: 12px;
   line-height: 1.55;
-  background: var(--paper);
-  border: 1px solid #d6d6d0;
-  color: var(--body-ink);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: var(--shell-ink);
 }
 
 .nova-msg__line--mine .nova-msg__bubble {
-  background: #dbe7f1;
-  border: 1px solid #b9cddd;
-  color: #1d2932;
+  border-radius: 10px 10px 3px 10px;
+  background: rgba(91, 141, 184, 0.24);
+  border: 1px solid rgba(91, 141, 184, 0.34);
+  color: #e6eef5;
 }
 
 .nova-msg__composer {
   flex: none;
-  border-top: 1px solid var(--hairline);
+  border-top: 1px solid var(--shell-line);
   padding: 9px 11px;
-  background: #efefeb;
+  background: var(--shell);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -597,27 +646,38 @@
 .nova-msg__choice {
   appearance: none;
   text-align: left;
-  border: 1px solid var(--control-border);
-  border-radius: 3px;
-  background: linear-gradient(180deg, #fff, #ececeb);
-  padding: 7px 10px;
-  font-size: 11.5px;
-  color: #20252b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 11px;
+  font-size: 12px;
+  color: var(--shell-ink);
   cursor: pointer;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
 }
 
 .nova-msg__choice:hover {
-  border-color: var(--control-focus);
-  background: #fff;
+  border-color: rgba(91, 141, 184, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .nova-msg__typing {
   font-size: 10.5px;
-  color: #9a9a92;
+  color: var(--shell-ink-dim);
   font-style: italic;
 }
 
-/* ------------------------------------------------------------- browser */
+/*
+ * ------------------------------------------------------------- browser
+ *
+ * The one place the two-tone rule is load-bearing: the browser's chrome is the machine, and the
+ * page inside it is somebody else's document. A dark toolbar over a white page is what every
+ * browser on a dark desktop looks like, and it stops the fictional web from reading as part of
+ * the application that is showing it.
+ */
 
 .nova-web {
   flex: 1;
@@ -632,20 +692,20 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 7px 9px;
-  background: linear-gradient(180deg, #e4e4de, #cfcfc9);
-  border-bottom: 1px solid #a9a9a2;
+  padding: 8px 10px;
+  background: var(--shell-alt);
+  border-bottom: 1px solid var(--shell-line);
 }
 
 .nova-web__nav {
   appearance: none;
-  width: 23px;
-  height: 20px;
-  border: 1px solid #93938c;
-  border-radius: 3px;
-  background: linear-gradient(180deg, #fbfbf9, #deded8);
+  width: 24px;
+  height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
   cursor: pointer;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
   font-size: 11px;
   line-height: 1;
   flex: none;
@@ -656,8 +716,8 @@
 }
 
 .nova-web__nav:hover:not(:disabled) {
-  border-color: #6f7680;
-  background: linear-gradient(180deg, #fff, #e6e6e0);
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--ink-bright);
 }
 
 .nova-web__nav:disabled {
@@ -670,9 +730,9 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  padding: 4px 9px 5px;
-  background: linear-gradient(180deg, #eeeee8, #e2e2dc);
-  border-bottom: 1px solid #b9b9b2;
+  padding: 5px 10px 6px;
+  background: var(--shell);
+  border-bottom: 1px solid var(--shell-line);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -685,7 +745,7 @@
   flex: none;
   font-size: 9.5px;
   letter-spacing: 0.1em;
-  color: #8a8a84;
+  color: var(--shell-ink-dim);
   margin-right: 4px;
   text-transform: uppercase;
 }
@@ -697,33 +757,42 @@
   background: none;
   padding: 2px 6px;
   font-family: var(--font-web);
-  font-size: 10.5px;
-  color: #1f4e79;
+  font-size: 11px;
+  color: #8fb6d4;
   cursor: pointer;
-  border-radius: 2px;
+  border-radius: 5px;
   white-space: nowrap;
 }
 
 .nova-web__bookmark:hover {
-  border-color: #a9a9a2;
-  background: #fbfbf9;
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.07);
+  color: #cfe2f0;
 }
 
 .nova-web__url {
   flex: 1;
   min-width: 0;
-  height: 21px;
-  border: 1px solid #93938c;
-  border-radius: 3px;
-  padding: 0 7px;
+  height: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 6px;
+  padding: 0 9px;
+  font-family: var(--font-terminal);
   font-size: 11.5px;
-  background: var(--paper);
-  color: var(--titlebar-front-ink);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--shell-ink);
+}
+
+.nova-web__url:focus {
+  outline: none;
+  border-color: rgba(91, 141, 184, 0.6);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .nova-web__engine {
+  font-family: var(--font-terminal);
   font-size: 10px;
-  color: #6f7680;
+  color: var(--shell-ink-dim);
   letter-spacing: 0.06em;
   flex: none;
 }
@@ -756,21 +825,35 @@
 }
 
 .nova-web__q {
-  width: 300px;
+  width: 320px;
   max-width: 52vw;
-  height: 24px;
-  border: 1px solid #7f7f7f;
-  padding: 0 7px;
-  font-size: 12px;
+  height: 30px;
+  border: 1px solid #c8ccd0;
+  border-radius: 6px;
+  padding: 0 10px;
+  font-size: 12.5px;
+  background: #fff;
+  color: var(--body-ink);
+}
+
+.nova-web__q:focus {
+  outline: none;
+  border-color: var(--control-focus);
 }
 
 .nova-web__go {
-  height: 24px;
-  border: 1px solid #7f7f7f;
-  background: linear-gradient(180deg, #f2f2f2, #dcdcdc);
-  font-size: 11px;
-  padding: 0 12px;
+  height: 30px;
+  border: 1px solid #c8ccd0;
+  border-radius: 6px;
+  background: #f4f5f6;
+  color: var(--body-ink);
+  font-size: 11.5px;
+  padding: 0 14px;
   cursor: pointer;
+}
+
+.nova-web__go:hover {
+  background: #eceef0;
 }
 
 .nova-web__homefoot {
@@ -1008,31 +1091,31 @@
 /* --------------------------------------------------------------- files */
 
 .nova-files__places {
-  width: 140px;
+  width: 150px;
   flex: none;
-  background: linear-gradient(180deg, #e2e6ea, #d3d8dd);
-  border-right: 1px solid var(--control-border);
-  padding: 9px 0;
-  font-size: 11.5px;
-  color: #2a3138;
+  background: var(--shell-alt);
+  border-right: 1px solid var(--shell-line);
+  padding: 10px 8px;
+  font-size: 12px;
+  color: var(--shell-ink);
 }
 
 .nova-files__placeshead {
-  padding: 3px 12px;
+  padding: 3px 6px 6px;
   font-size: 9.5px;
   letter-spacing: 0.12em;
-  color: #87909a;
+  color: var(--shell-ink-dim);
 }
 
 .nova-files__place {
-  padding: 4px 12px;
-  opacity: 0.6;
+  padding: 5px 8px;
+  border-radius: 6px;
+  color: var(--shell-ink-dim);
 }
 
 .nova-files__place--active {
-  background: #8fa8bd;
-  color: #fff;
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ink-bright);
 }
 
 .nova-files__place--off {
@@ -1042,16 +1125,17 @@
 .nova-files__list {
   width: 210px;
   flex: none;
-  border-right: 1px solid var(--hairline);
-  background: var(--paper);
+  border-right: 1px solid var(--shell-line);
+  background: var(--shell);
   overflow: auto;
 }
 
 .nova-files__row {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
   width: 100%;
-  justify-content: space-between;
-  gap: 8px;
   padding: 7px 10px;
   border: none;
   border-bottom: 1px solid #eee;
@@ -1061,7 +1145,7 @@
 }
 
 .nova-files__row[aria-selected='true'] {
-  background: var(--selected);
+  background: var(--shell-selected);
 }
 
 .nova-files__label {
@@ -1078,34 +1162,62 @@
 
 .nova-files__name {
   font-size: 11.5px;
-  color: var(--titlebar-front-ink);
+  color: var(--shell-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+/*
+ * Under the name, not beside it.
+ *
+ * Side by side in a 210px column, a meta line of "Spreadsheet · 11 rows · modified 02 Jun 21:07"
+ * took the whole row and left the file called "grant-disbursements-2013.csv" showing as "gra…".
+ * The name is the thing the player is looking for.
+ */
 .nova-files__meta {
+  padding-left: 25px;
   font-size: 10px;
+  line-height: 1.4;
   color: #9a9a92;
-  flex: none;
-  align-self: center;
 }
 
 .nova-files__body {
   flex: 1;
   min-width: 0;
-  background: var(--paper-warm);
+  background: var(--shell-alt);
   overflow: auto;
-  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
 }
 
-.nova-files__text {
-  font-family: var(--font-terminal);
+/* What is open, named above it. The list says it too, but the list scrolls away. */
+.nova-files__docbar {
+  flex: none;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 12px;
+  background: var(--shell-alt);
+  border-bottom: 1px solid var(--shell-line);
+}
+
+.nova-files__docname {
   font-size: 11.5px;
-  line-height: 1.8;
-  color: var(--body-ink);
-  white-space: pre-wrap;
-  margin: 0;
+  color: var(--shell-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nova-files__docmeta {
+  font-size: 10px;
+  color: #9a9a92;
+  white-space: nowrap;
 }
 
 /* ------------------------------------------------------------- devices */
@@ -1123,7 +1235,7 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--panel);
+  background: var(--shell);
   overflow: auto;
 }
 
@@ -1131,20 +1243,20 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  background: var(--hairline-soft);
-  border-bottom: 1px solid var(--hairline);
+  background: var(--shell-line);
+  border-bottom: 1px solid var(--shell-line);
 }
 
 .nova-devices__empty {
   margin: 0;
   padding: 18px 16px;
   font-size: 12px;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
   line-height: 1.6;
 }
 
 .nova-device {
-  background: var(--paper);
+  background: var(--shell);
   padding: 12px 14px;
 }
 
@@ -1158,14 +1270,14 @@
 .nova-device__label {
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-device__state {
   font-family: var(--font-mono);
   font-size: 9.5px;
   letter-spacing: 0.1em;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 /* Locked is a fact about the case, not a fault, so it is stated rather than alarmed. */
@@ -1176,20 +1288,20 @@
 .nova-device__meta {
   margin-top: 3px;
   font-size: 11px;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
 }
 
 .nova-device__lock {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid var(--hairline-soft);
+  border-top: 1px solid var(--shell-line);
 }
 
 .nova-device__hint {
   margin: 0 0 9px;
   font-size: 11.5px;
   line-height: 1.55;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
 }
 
 .nova-device__lock form {
@@ -1209,7 +1321,7 @@
   font-size: 9.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 .nova-device__field input {
@@ -1218,9 +1330,9 @@
   font-family: var(--font-mono);
   font-size: 12.5px;
   letter-spacing: 0.18em;
-  color: var(--body-ink);
-  background: var(--paper);
-  border: 1px solid var(--control-border);
+  color: var(--shell-ink);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: var(--radius-sm);
 }
 
@@ -1250,16 +1362,16 @@
 }
 
 .nova-devices__service {
-  border: 1px solid var(--hairline);
+  border: 1px solid var(--shell-line);
   border-left: 3px solid var(--platform-accent);
-  background: var(--panel-alt);
+  background: var(--shell-alt);
   padding: 12px 14px;
 }
 
 .nova-devices__servicetitle {
   font-size: 12px;
   font-weight: 600;
-  color: var(--body-ink);
+  color: var(--shell-ink);
   margin-bottom: 6px;
 }
 
@@ -1268,7 +1380,7 @@
   margin: 0 0 7px;
   font-size: 11.5px;
   line-height: 1.55;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
 }
 
 .nova-devices__servicedone {
@@ -1280,7 +1392,7 @@
   margin: 0 0 11px;
   font-size: 11px;
   line-height: 1.5;
-  color: var(--body-ink);
+  color: var(--shell-ink);
   font-weight: 600;
 }
 
@@ -1289,13 +1401,13 @@
   font-size: 10.5px;
   letter-spacing: 0.08em;
   border-color: var(--control-border);
-  color: var(--body-ink);
+  color: var(--shell-ink);
   background: var(--control-face);
 }
 
 .nova-devices__service .nova-cta:hover {
-  background: var(--paper);
-  color: var(--body-ink);
+  background: var(--shell);
+  color: var(--shell-ink);
 }
 
 /* --------------------------------------------------------------- notes */
@@ -1563,15 +1675,9 @@
 
 .nova-phone__thumb {
   position: relative;
-  height: 78px;
+  aspect-ratio: 4 / 3;
   background: #c9ced4;
   overflow: hidden;
-}
-
-.nova-phone__frame {
-  display: block;
-  width: 100%;
-  height: 78px;
 }
 
 /* The camera burned the filename into the corner, the way they did. A scrim keeps it
@@ -2362,21 +2468,22 @@ h5.nova-relay__h {
 
 .nova-dock {
   position: absolute;
-  bottom: 0;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   z-index: var(--z-dock);
   display: flex;
-  align-items: flex-end;
-  gap: 7px;
-  padding: 8px 13px 9px;
-  background: linear-gradient(180deg, rgba(28, 33, 38, 0.82), rgba(12, 15, 18, 0.92));
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-bottom: none;
-  border-radius: 9px 9px 0 0;
-  box-shadow: 0 -6px 22px rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(10px);
-  max-width: 100vw;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 8px;
+  background: rgba(16, 19, 23, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow:
+    0 20px 40px -16px rgba(0, 0, 0, 0.9),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px) saturate(1.2);
+  max-width: calc(100vw - 32px);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -2389,9 +2496,9 @@ h5.nova-relay__h {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   cursor: pointer;
-  width: 42px;
+  width: 40px;
   flex: none;
   appearance: none;
   background: none;
@@ -2400,26 +2507,34 @@ h5.nova-relay__h {
 }
 
 .nova-dockitem__icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(0, 0, 0, 0.42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -6px 10px rgba(0, 0, 0, 0.22),
-    0 2px 6px rgba(0, 0, 0, 0.5);
-  transition: transform 0.14s ease;
+  color: rgba(255, 255, 255, 0.62);
+  background: transparent;
+  transition:
+    background 0.14s ease,
+    color 0.14s ease;
 }
 
-.nova-dockitem:hover .nova-dockitem__icon,
+.nova-dockitem:hover .nova-dockitem__icon {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.nova-dockitem[data-open='true'] .nova-dockitem__icon {
+  color: #fff;
+}
+
 .nova-dockitem:focus-visible .nova-dockitem__icon {
-  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
+/* The one piece of colour on the dock, and it says which applications are running. */
 .nova-dockitem__dot {
   width: 3px;
   height: 3px;
@@ -2428,7 +2543,7 @@ h5.nova-relay__h {
 }
 
 .nova-dockitem[data-open='true'] .nova-dockitem__dot {
-  background: #9fc6e2;
+  background: var(--platform-accent);
 }
 
 /* --------------------------------------------------------- surveillance */
@@ -2748,8 +2863,8 @@ h5.nova-relay__h {
 
 /*
  * A Find window, not a command palette. It sits in the same chrome as every other window in
- * NOVA — hard edges, a real titlebar, the period greys — because a translucent rounded card
- * floating in a blur is 2020, and this machine is not.
+ * NOVA — a real titlebar, the machine's own greys — rather than floating as a card of its own,
+ * because the thing it is searching is this workstation and it should look like part of it.
  */
 
 .nova-search {
@@ -2794,7 +2909,7 @@ h5.nova-relay__h {
   text-align: center;
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--titlebar-front-ink);
+  color: var(--shell-ink);
   letter-spacing: 0.02em;
   padding-left: 18px;
 }
@@ -2807,10 +2922,15 @@ h5.nova-relay__h {
   padding: 0;
   flex: none;
   cursor: pointer;
-  background: radial-gradient(circle at 35% 30%, #ff9c92, #c0392b);
-  border: 1px solid #8e2b20;
+  background: rgba(255, 255, 255, 0.26);
+  border: none;
   color: transparent;
+  transition: background 0.12s;
   font-size: 0;
+}
+
+.nova-search__close:hover {
+  background: #d8574a;
 }
 
 .nova-search__field {
@@ -2825,7 +2945,7 @@ h5.nova-relay__h {
 
 .nova-search__label {
   font-size: 11.5px;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
   flex: none;
 }
 
@@ -2833,12 +2953,12 @@ h5.nova-relay__h {
   flex: 1;
   min-width: 0;
   height: 21px;
-  border: 1px solid #93938c;
+  border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 3px;
   padding: 0 7px;
   font-size: 11.5px;
-  background: var(--paper);
-  color: var(--titlebar-front-ink);
+  background: var(--shell);
+  color: var(--shell-ink);
 }
 
 .nova-search__only {
@@ -2847,7 +2967,7 @@ h5.nova-relay__h {
   align-items: center;
   gap: 4px;
   font-size: 10.5px;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
   white-space: nowrap;
 }
 
@@ -2861,8 +2981,8 @@ h5.nova-relay__h {
 .nova-search__filters {
   width: 132px;
   flex: none;
-  background: linear-gradient(180deg, #e2e6ea, #d3d8dd);
-  border-right: 1px solid var(--control-border);
+  background: var(--shell-alt);
+  border-right: 1px solid rgba(255, 255, 255, 0.09);
   padding: 6px 0;
   overflow: auto;
 }
@@ -2877,14 +2997,14 @@ h5.nova-relay__h {
   background: transparent;
   padding: 4px 12px;
   font-size: 11.5px;
-  color: #2a3138;
+  color: var(--shell-ink-dim);
   cursor: pointer;
   text-align: left;
 }
 
 .nova-search__filter[aria-pressed='true'] {
-  background: #8fa8bd;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink-bright);
 }
 
 .nova-search__filter:disabled {
@@ -2903,7 +3023,7 @@ h5.nova-relay__h {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--paper);
+  background: var(--shell);
 }
 
 .nova-search__results {
@@ -2915,12 +3035,12 @@ h5.nova-relay__h {
 .nova-search__hit {
   display: block;
   padding: 7px 11px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--shell-line);
   cursor: pointer;
 }
 
 .nova-search__hit[aria-selected='true'] {
-  background: var(--selected);
+  background: var(--shell-selected);
 }
 
 .nova-search__hittop {
@@ -2931,7 +3051,7 @@ h5.nova-relay__h {
 
 .nova-search__hittitle {
   font-size: 11.5px;
-  color: var(--titlebar-front-ink);
+  color: var(--shell-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2942,7 +3062,7 @@ h5.nova-relay__h {
   font-size: 9px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 .nova-search__hitdetail {
@@ -2965,10 +3085,10 @@ h5.nova-relay__h {
   justify-content: space-between;
   gap: 10px;
   padding: 6px 11px;
-  border-top: 1px solid var(--hairline);
-  background: var(--panel);
+  border-top: 1px solid var(--shell-line);
+  background: var(--shell);
   font-size: 10px;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 /* ---------------------------------------------------------------- directory */
@@ -2976,8 +3096,8 @@ h5.nova-relay__h {
 .nova-dir__list {
   width: 190px;
   flex: none;
-  border-right: 1px solid var(--hairline);
-  background: var(--panel);
+  border-right: 1px solid var(--shell-line);
+  background: var(--shell);
   overflow: auto;
 }
 
@@ -2985,7 +3105,7 @@ h5.nova-relay__h {
   padding: 7px 12px 3px;
   font-size: 9.5px;
   letter-spacing: 0.12em;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 .nova-dir__row {
@@ -2994,23 +3114,23 @@ h5.nova-relay__h {
   text-align: left;
   appearance: none;
   border: none;
-  border-bottom: 1px solid var(--hairline-soft);
+  border-bottom: 1px solid var(--shell-line);
   background: transparent;
   padding: 6px 12px;
   font-size: 11.5px;
-  color: var(--titlebar-front-ink);
+  color: var(--shell-ink);
   cursor: pointer;
 }
 
 .nova-dir__row[aria-selected='true'] {
-  background: var(--selected);
+  background: var(--shell-selected);
 }
 
 .nova-dir__page {
   flex: 1;
   min-width: 0;
   overflow: auto;
-  background: var(--paper);
+  background: var(--shell);
   padding: 16px 20px;
 }
 
@@ -3033,7 +3153,7 @@ h5.nova-relay__h {
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--label);
+  color: var(--shell-ink-dim);
   margin-top: 2px;
 }
 
@@ -3045,14 +3165,14 @@ h5.nova-relay__h {
 
 .nova-dir__section {
   margin-top: 18px;
-  border-top: 1px solid var(--hairline-soft);
+  border-top: 1px solid var(--shell-line);
   padding-top: 11px;
 }
 
 .nova-dir__sectionhead {
   font-size: 9.5px;
   letter-spacing: 0.14em;
-  color: var(--label);
+  color: var(--shell-ink-dim);
   margin-bottom: 8px;
 }
 
@@ -3071,14 +3191,14 @@ h5.nova-relay__h {
 
 .nova-dir__count dt {
   font-size: 11.5px;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-dir__count dd {
   margin: 0;
   font-size: 11.5px;
   font-variant-numeric: tabular-nums;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
 }
 
 .nova-dir__gap {
@@ -3099,7 +3219,7 @@ h5.nova-relay__h {
   padding-left: 16px;
   font-size: 11.5px;
   line-height: 1.7;
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
 }
 
 /* Two documents that cannot both be true, set side by side and left there.
@@ -3131,7 +3251,7 @@ h5.nova-relay__h {
 
 .nova-dir__conflicttitle {
   font-size: 11.5px;
-  color: var(--body-ink);
+  color: var(--shell-ink);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3160,7 +3280,7 @@ h5.nova-relay__h {
 .nova-dir__relhead {
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-dir__relnote {
@@ -3175,7 +3295,7 @@ h5.nova-relay__h {
   list-style: none;
   font-size: 11.5px;
   line-height: 1.65;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-dir__rellist li {
@@ -3186,11 +3306,11 @@ h5.nova-relay__h {
 .nova-dir__relmark {
   flex: none;
   width: 9px;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 .nova-dir__rel--inferred .nova-dir__rellist {
-  color: var(--body-ink-soft);
+  color: var(--shell-ink-dim);
 }
 
 .nova-dir__rel--rumoured .nova-dir__relhead {
@@ -3218,12 +3338,12 @@ h5.nova-relay__h {
 .nova-dir__metarow dt {
   width: 120px;
   flex: none;
-  color: var(--label);
+  color: var(--shell-ink-dim);
 }
 
 .nova-dir__metarow dd {
   margin: 0;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 @media (max-width: 860px), (pointer: coarse) and (max-width: 1024px) {
@@ -3263,12 +3383,12 @@ h5.nova-relay__h {
     width: auto;
     max-height: 34%;
     border-right: none;
-    border-bottom: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--shell-line);
   }
 }
 
 /* A corpus page's structured detail — an EXIF block, a parking stub's in and out times.
-   Set as a table because in 2009 that is what it would have been. */
+   Set as a table because that is what it would have been. */
 .nova-web__fields {
   border-collapse: collapse;
   font-size: 11.5px;
@@ -3286,7 +3406,7 @@ h5.nova-relay__h {
 
 .nova-web__fields td {
   padding: 2px 0;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 /* A document that aligned its own columns — a stub, a log, a printout. The web had plenty of
@@ -3297,14 +3417,14 @@ h5.nova-relay__h {
   font-size: 11.5px;
   line-height: 1.5;
   margin: 0 0 10px;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 /* The line at issue, not the file name. Quoted rather than styled, because a quotation mark is
    the only mark that says "somebody wrote this" without saying whether it is true. */
 .nova-dir__conflictquote {
   font-size: 11.5px;
-  color: var(--body-ink);
+  color: var(--shell-ink);
   line-height: 1.35;
 }
 
@@ -3321,7 +3441,7 @@ h5.nova-relay__h {
 .nova-kept__head {
   font-size: 10px;
   letter-spacing: 0.1em;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-kept__note {
@@ -3356,7 +3476,7 @@ h5.nova-relay__h {
 .nova-kept__excerpt {
   font-size: 11.5px;
   line-height: 1.45;
-  color: var(--body-ink);
+  color: var(--shell-ink);
 }
 
 .nova-kept__src {
@@ -3384,4 +3504,783 @@ h5.nova-relay__h {
 .nova-relay__blocks:focus-visible {
   outline: 1px dotted currentColor;
   outline-offset: 3px;
+}
+
+/* --------------------------------------------------------- photographs */
+
+/*
+ * One frame, wherever a photograph is shown: the handset's roll, the viewer's contact sheet,
+ * the stage, Quick Look. The container decides how big it is; the drawing never does.
+ */
+.nova-frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ----------------------------------------------------------- documents */
+
+/*
+ * A document looks like the thing it is.
+ *
+ * Every one of these used to be the same block of monospace text in the same off-white pane, so
+ * a parking receipt and a spreadsheet were distinguishable only by reading them. The shape of a
+ * document is information: a player recognises a receipt before they have read a word of it.
+ */
+.nova-doc {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.nova-doc__sheet {
+  flex: 1;
+  min-width: 0;
+}
+
+.nova-doc__foot {
+  flex: none;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--hairline-soft);
+  background: var(--panel-alt);
+}
+
+/* Plain text: what somebody typed, set the way they typed it. */
+.nova-doc__note {
+  margin: 0;
+  padding: 14px 16px;
+  font-family: var(--font-terminal);
+  font-size: 11.5px;
+  line-height: 1.8;
+  color: var(--body-ink);
+  white-space: pre-wrap;
+}
+
+/* --- a document out of a word processor ---------------------------------- */
+
+.nova-doc[data-kind='letter'] .nova-doc__sheet {
+  background: #d7dade;
+  padding: 16px;
+}
+
+.nova-doc__page {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 34px 40px 46px;
+  background: #fff;
+  border: 1px solid #c4c8cc;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);
+}
+
+.nova-doc__para {
+  margin: 0 0 12px;
+  font-family: var(--font-os);
+  font-size: 12.5px;
+  line-height: 1.78;
+  color: #1d2126;
+}
+
+/* The first line of a document is its heading, because somebody typed it that way. */
+.nova-doc__para:first-child {
+  margin-bottom: 18px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: #4a525a;
+}
+
+/* A bracketed line is the state of the document, not a paragraph in it. */
+.nova-doc__para[data-aside='true'] {
+  margin-top: 22px;
+  color: #8b9098;
+  font-style: italic;
+}
+
+/* --- a spreadsheet ------------------------------------------------------- */
+
+.nova-doc[data-kind='sheet'] .nova-doc__sheet {
+  background: #eceef0;
+  /* A column is as wide as its widest cell. A pane narrower than the sheet scrolls. */
+  overflow-x: auto;
+}
+
+.nova-doc__grid {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px;
+}
+
+.nova-sheet {
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #b6bbc0;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: #1d2126;
+}
+
+.nova-sheet th,
+.nova-sheet td {
+  border: 1px solid #dde1e4;
+  padding: 3px 9px;
+  white-space: nowrap;
+  text-align: left;
+  font-weight: 400;
+}
+
+.nova-sheet thead th {
+  background: linear-gradient(180deg, #edeff1, #dee1e4);
+  border-bottom-color: #b6bbc0;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #5a626a;
+}
+
+/* The row numbers down the side. A spreadsheet has them; a table of data does not. */
+.nova-sheet__rownum {
+  width: 28px;
+  background: linear-gradient(180deg, #edeff1, #dee1e4);
+  color: #8b9098;
+  text-align: right;
+  font-size: 9px;
+}
+
+.nova-sheet [data-align='right'] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.nova-sheet tfoot td {
+  border-top: 3px double #949a9f;
+  background: #f6f7f8;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.nova-sheet__notes {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-width: 240px;
+}
+
+/*
+ * The comment somebody left in a cell.
+ *
+ * It is the most human thing in the file and it was being rendered as one more line of CSV. A
+ * spreadsheet puts it in the margin on a yellow slip, so this does.
+ */
+.nova-sheet__note {
+  padding: 8px 10px;
+  background: #f7f0c8;
+  border: 1px solid #ddd193;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: #4b4630;
+}
+
+.nova-sheet__anchor {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 4px;
+  border: 1px solid #ccbc7c;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  color: #857527;
+}
+
+/* --- paper that went through a scanner ----------------------------------- */
+
+.nova-doc[data-kind='scan'] .nova-doc__sheet {
+  background: #585d62;
+  padding: 20px 18px;
+}
+
+.nova-doc__bed {
+  position: relative;
+  max-width: 470px;
+  margin: 0 auto;
+}
+
+.nova-doc__paper {
+  padding: 28px 32px;
+  background: #faf9f4;
+  border: 1px solid #cdc7b6;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.42);
+  /* Nobody lines a page up square on a flatbed, and nobody ever has. */
+  transform: rotate(-0.7deg);
+}
+
+/* A receipt does not reflow. If the pane is narrower than the paper, the bed scrolls. */
+.nova-doc__scanned {
+  margin: 0;
+  font-family: var(--font-terminal);
+  font-size: 11px;
+  line-height: 1.85;
+  color: #2b2823;
+  white-space: pre;
+}
+
+.nova-doc[data-kind='scan'] .nova-doc__sheet {
+  overflow-x: auto;
+}
+
+/* The banding a cheap scanner leaves, and the shadow off the lid down one edge. */
+.nova-doc__scanstrip {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      104deg,
+      rgba(0, 0, 0, 0.16),
+      transparent 20%,
+      transparent 80%,
+      rgba(0, 0, 0, 0.1)
+    ),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.035) 0 2px, transparent 2px 5px);
+}
+
+/* --- a recording --------------------------------------------------------- */
+
+.nova-doc[data-kind='audio'] .nova-doc__sheet {
+  background: var(--panel-alt);
+}
+
+.nova-doc__recording {
+  padding: 14px 16px;
+}
+
+.nova-doc__filenote {
+  margin: 14px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--hairline-soft);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--body-ink-soft);
+}
+
+.nova-rec {
+  padding: 12px;
+  background: #1b2025;
+  border: 1px solid #0e1216;
+  color: #cfd6dc;
+}
+
+.nova-rec__transport {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.nova-rec__play {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid #3c464f;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #39424a, #252c32);
+  color: #e2e8ed;
+  cursor: pointer;
+}
+
+.nova-rec__play:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 2px;
+}
+
+.nova-rec__wave {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+}
+
+.nova-rec__bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.nova-rec__bar {
+  flex: 1;
+  min-width: 1px;
+  min-height: 2px;
+  background: #3d4750;
+}
+
+.nova-rec__bar[data-played='true'] {
+  background: #8fb6d4;
+}
+
+/*
+ * The scrub sits invisibly over the waveform.
+ *
+ * A real range input rather than a div with a pointer handler: dragging, arrow keys, Home and
+ * End and a value a screen reader can read all come with it, and none of them would have been
+ * written by hand. The focus ring is put back on the waveform, which is what a player sees.
+ */
+.nova-rec__scrub {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.nova-rec__wave:has(.nova-rec__scrub:focus-visible) {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 3px;
+}
+
+.nova-rec__time {
+  flex: none;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: #8d99a3;
+}
+
+.nova-rec__channel {
+  margin-top: 9px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #74818b;
+}
+
+.nova-rec__transcript {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #2a323a;
+}
+
+.nova-rec__cue {
+  position: relative;
+  display: flex;
+  gap: 9px;
+  width: 100%;
+  padding: 7px 4px 7px 13px;
+  border: none;
+  border-bottom: 1px solid #232b32;
+  background: none;
+  text-align: left;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #c2cad1;
+  cursor: pointer;
+}
+
+/* The line being spoken, marked by a rule and by weight — never by colour alone. */
+.nova-rec__cue[data-current='true'] {
+  background: #232c34;
+  color: #eef2f5;
+  font-weight: 500;
+}
+
+.nova-rec__cue[data-current='true']::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  background: #8fb6d4;
+}
+
+.nova-rec__cue:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: -2px;
+}
+
+.nova-rec__at {
+  flex: none;
+  padding-top: 2px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: #6f7c86;
+}
+
+.nova-rec__who {
+  flex: none;
+  font-size: 10.5px;
+  color: #9dbdd6;
+}
+
+.nova-rec__cue[data-silent='true'] .nova-rec__said {
+  color: #7f8a94;
+  font-style: italic;
+}
+
+/* --- sealed -------------------------------------------------------------- */
+
+.nova-doc__sealed {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+  color: #5f6870;
+}
+
+.nova-doc__sealed .nova-doc__note {
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ------------------------------------------------------------- photos app */
+
+/*
+ * The workstation's viewer. Not the handset's roll with a border round it: a contact sheet on
+ * the left and, on the right, what the extraction actually found.
+ */
+.nova-photos__sheet {
+  width: 268px;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  align-content: start;
+  padding: 10px;
+  background: #eceef0;
+  border-right: 1px solid var(--shell-line);
+  overflow: auto;
+}
+
+.nova-photos__tile {
+  display: block;
+  padding: 0;
+  border: 1px solid #c3c7cc;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.nova-photos__tile[aria-selected='true'] {
+  border-color: var(--platform-accent);
+  box-shadow: 0 0 0 2px rgba(91, 141, 184, 0.45);
+}
+
+.nova-photos__tile:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 2px;
+}
+
+.nova-photos__thumb {
+  display: block;
+  aspect-ratio: 4 / 3;
+  background: #c9ced4;
+  overflow: hidden;
+}
+
+.nova-photos__name {
+  display: block;
+  padding: 4px 6px;
+  font-size: 9.5px;
+  color: #5f676e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nova-photos__viewer {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  background: var(--shell-alt);
+  overflow: auto;
+}
+
+.nova-photos__stage {
+  aspect-ratio: 4 / 3;
+  background: #11151a;
+  border: 1px solid #b9bdc2;
+  overflow: hidden;
+}
+
+.nova-photos__caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0 2px;
+}
+
+.nova-photos__label {
+  font-size: 12px;
+  color: var(--shell-ink);
+}
+
+.nova-photos__source {
+  font-size: 10px;
+  color: #8b9098;
+}
+
+/* What the extraction found, as a report rather than as a table of bullets. */
+.nova-photos__exif {
+  margin: 8px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--shell-line);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 10.5px;
+  line-height: 1.62;
+  color: var(--shell-ink-dim);
+}
+
+.nova-photos__exif li:first-child {
+  color: var(--shell-ink);
+}
+
+.nova-photos__pin {
+  padding-top: 13px;
+}
+
+.nova-photos__empty {
+  padding: 22px;
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--shell-ink-dim);
+}
+
+/* -------------------------------------------------------------- quick look */
+
+/*
+ * Space, and the document comes up over the machine.
+ *
+ * Above the dock and the phone, below the menu bar: Quick Look covers what the player is
+ * working on, and the machine they are working on stays visible behind it.
+ */
+.nova-ql {
+  position: absolute;
+  inset: var(--menubar-height) 0 0 0;
+  z-index: var(--z-quicklook);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: rgba(6, 8, 10, 0.72);
+  backdrop-filter: blur(2px);
+  animation: fadein 0.16s both;
+}
+
+.nova-ql__panel {
+  width: min(760px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--win-bg);
+  border: 1px solid #11161a;
+  border-radius: var(--radius-win);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.66);
+}
+
+.nova-ql__head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--titlebar-front);
+  border-bottom: 1px solid var(--titlebar-rule);
+}
+
+.nova-ql__kind {
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 2px;
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  color: #7c848c;
+}
+
+.nova-ql__title {
+  font-size: 12px;
+  color: var(--titlebar-front-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nova-ql__meta {
+  margin-left: auto;
+  font-size: 10px;
+  color: #8b9098;
+  white-space: nowrap;
+}
+
+.nova-ql__close {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--shell-ink-dim);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.nova-ql__close:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 1px;
+}
+
+.nova-ql__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--paper-warm);
+}
+
+.nova-ql__foot {
+  flex: none;
+  padding: 6px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--hairline);
+  font-size: 9px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  color: var(--label);
+  text-align: center;
+}
+
+.nova-ql__photo {
+  padding: 16px;
+}
+
+.nova-ql__frame {
+  aspect-ratio: 4 / 3;
+  background: #11151a;
+  border: 1px solid #b9bdc2;
+  overflow: hidden;
+}
+
+.nova-ql__exif {
+  margin: 13px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 10.5px;
+  line-height: 1.62;
+  color: var(--body-ink-soft);
+}
+
+/* ------------------------------------------- the new surfaces, narrow */
+
+@media (max-width: 860px), (pointer: coarse) and (max-width: 1024px) {
+  /* The contact sheet becomes the top third, the way the mail and file lists do. */
+  .nova-photos__sheet {
+    width: auto;
+    max-height: 38%;
+    border-right: none;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .nova-ql {
+    padding: 0;
+  }
+
+  .nova-ql__panel {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border: none;
+    border-radius: 0;
+  }
+
+  /* A document held up on a phone has no room for a page's margins. */
+  .nova-doc__page {
+    padding: 20px 18px 26px;
+  }
+
+  .nova-doc[data-kind='letter'] .nova-doc__sheet,
+  .nova-doc[data-kind='scan'] .nova-doc__sheet {
+    padding: 10px;
+  }
+
+  .nova-doc__paper {
+    padding: 18px 16px;
+  }
+
+  .nova-sheet__notes {
+    max-width: none;
+  }
+}
+
+/* -------------------------------------------------- the handset, locked */
+
+/*
+ * What a phone nobody has opened shows.
+ *
+ * The overlay used to show the thread, the roll and the contacts whatever the device said,
+ * which made the passcode the case hides — and the beat that turns on finding it — decoration.
+ * The keypad is not repeated here: one surface owns the verb, and this one points at it.
+ */
+.nova-phone__locked {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 24px 20px;
+  text-align: center;
+  color: #6d757c;
+}
+
+.nova-phone__lockedline {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4d555c;
+}
+
+.nova-phone__lockedhint {
+  margin: 0;
+  font-size: 10.5px;
+  line-height: 1.65;
+  color: #868d94;
+}
+
+.nova-phone__lockedcta {
+  margin-top: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--control-border);
+  border-radius: 3px;
+  background: var(--control-face);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  color: #4d555c;
+  cursor: pointer;
+}
+
+.nova-phone__lockedcta:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 1px;
 }

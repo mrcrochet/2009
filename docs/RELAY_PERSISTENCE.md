@@ -1,18 +1,18 @@
-# Way Up — persistence
+# The relay — persistence
 
-> **Reading this after the pivot.** The relay's storage is unchanged. Where this says the signal
-> budget refills overnight, it does not any more: a case is one sitting and the budget is the
-> case's whole allowance.
+The relay lets the player, from inside the fictional workstation, read the real web of today. A
+case pays for a fixed number of lookups, and every one of them is captured.
 
-The Way Up Machine lets the player, inside the game's fictional 2009, read the real web of today.
-`supabase/migrations/20090115000004_wayup.sql` is where that stops being a fetch and becomes
-something a save can replay.
+The storage is defined across two migrations: `20090115000004_wayup.sql` created it under the
+mechanic's old codename, and `20260617000005_investigations.sql` renamed every table to what it
+is. **Migration filenames are history and are not rewritten**; the names inside the database are
+current.
 
 ## Why snapshots exist at all
 
 The engine is event-sourced and `tests/unit/replay.test.ts` proves a save reproduces exactly. The
 live web offers no such guarantee: a page read on Tuesday is a different page on Wednesday. So a
-page observed inside a timeline is **captured once** and referenced by id from then on. Replay
+page observed inside an investigation is **captured once** and referenced by id from then on. Replay
 shows what the player read, never what the site says now.
 
 A later fetch of the same URL produces a _different_ snapshot rather than overwriting the old one.
@@ -22,14 +22,14 @@ the schema answers.
 
 ## The tables
 
-| Table                      | What it holds                                                                                                            |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `wayup_snapshots`          | An immutable capture: canonical URL, content hash, title, normalised blocks, outgoing links, provider, remote fetch time |
-| `timeline_wayup_visits`    | Which timeline opened which snapshot, at what in-world day and minute, and what it cost in signal                        |
-| `future_evidence`          | An excerpt a player pinned, with its in-world capture time                                                               |
-| `mystery_unlocks`          | Which timeline has opened which mystery, and from what event                                                             |
-| `global_mystery_fragments` | The ledger for puzzles solved across all players                                                                         |
-| `global_mystery_state`     | The public projection of that ledger — "7 / 9"                                                                           |
+| Table                        | What it holds                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `relay_snapshots`            | An immutable capture: canonical URL, content hash, title, normalised blocks, outgoing links, provider, remote fetch time |
+| `investigation_relay_visits` | Which investigation opened which snapshot, at what in-world day and minute, and what it cost in signal                   |
+| `kept_lines`                 | An excerpt a player pinned, with its in-world capture time                                                               |
+| `mystery_unlocks`            | Which investigation has opened which mystery, and from what event                                                        |
+| `global_mystery_fragments`   | The ledger for puzzles solved across all players                                                                         |
+| `global_mystery_state`       | The public projection of that ledger — "7 / 9"                                                                           |
 
 ## The snapshot policy, which is the whole problem
 
@@ -38,15 +38,15 @@ Every other table in this schema has an owner. A snapshot does not: it is dedupl
 
 That makes the cache **shared for storage**. It must not become shared for reading. The
 publishable key is public and PostgREST is reachable directly, so a naive `select` grant turns
-`wayup_snapshots` into three things at once: a free scraped-web API on our bill, a behavioural
+`relay_snapshots` into three things at once: a free scraped-web API on our bill, a behavioural
 record of what every player looked up, and a spoiler table for a game whose entire subject is
 discovery.
 
 So ownership is **borrowed from the visits that reference it**:
 
-> You may read a captured page if one of your own timelines actually opened it.
+> You may read a captured page if one of your own investigations actually opened it.
 
-Same shape as `events follow their timeline` in the init migration. Deduplication still works —
+Same shape as `events follow their investigation` in the init migration. Deduplication still works —
 one row, many visitors — while a read requires a visit you own.
 
 Which forces a second decision. **Visits are service-role-only.** If a client could insert a visit
@@ -63,11 +63,11 @@ player who did not sees nothing, and both a forged visit and a forged snapshot a
 
 ## Provenance is a join, not a copy
 
-`future_evidence` deliberately does **not** carry the source URL, the remote fetch time or the
+`kept_lines` deliberately does **not** carry the source URL, the remote fetch time or the
 content hash. Those live on the snapshot, which the client cannot write.
 
 Copying them onto a client-writable row would create a second, forgeable version of the exact
-three facts the "is this document still yours" mechanic depends on. `lib/supabase/wayup.ts` reads
+three facts the "is this document still yours" mechanic depends on. `lib/supabase/relay.ts` reads
 them through the join. What the evidence row _does_ own is the excerpt, its hash, and the in-world
 moment it was pinned — none of which exist anywhere else.
 
@@ -77,14 +77,14 @@ rewrite the provenance they are about to put on the record.
 
 ## Sizes
 
-`timelines.snapshot` is capped at 512 KB. A cached page is bigger, but not unboundedly so:
+`investigations.snapshot` is capped at 512 KB. A cached page is bigger, but not unboundedly so:
 
 - `blocks` — **1 MB**. Extracted article text is normally well under 100 KB; this is roughly ten
   times the realistic worst case and still refuses to be a file host.
 - `outgoing_links` — **128 KB and 512 entries**. Both, because a jsonb array of fifty thousand
   short strings passes a byte cap while still being nonsense.
 - `excerpt` — **4 KB**. A pinned excerpt is a sentence or a paragraph.
-- `future_evidence` — **256 rows per timeline**, enforced by a trigger, because RLS cannot express
+- `kept_lines` — **256 rows per investigation**, enforced by a trigger, because RLS cannot express
   "at most N rows" and a free signup with an unbounded 4 KB-per-row table is a storage abuse
   surface. The trigger is `SECURITY INVOKER`, so it counts under the caller's own RLS.
 
@@ -104,7 +104,7 @@ side is therefore closed completely:
   contributions and nothing else — which fragments exist and who holds them is both a spoiler and
   a record of other people's play.
 - Its primary key is `(mystery_id, user_id)`, so **one contribution per account per mystery**.
-  Keyed on the account rather than the timeline, because a player can start as many timelines as
+  Keyed on the account rather than the investigation, because a player can start as many investigations as
   they like.
 - `global_mystery_state` is the public projection. Readable by everyone including guests — "7 / 9"
   is the point of a shared puzzle and the row carries no personal data — and writable only by the
@@ -129,16 +129,16 @@ bucket would reintroduce the exact leak the select policy above exists to preven
 without touching a single table.
 
 **Snapshot reads cost a join per row.** The select policy runs an `exists` over visits joined to
-timelines for every row considered. It is indexed on `(snapshot_id, timeline_id)` and fine at the
+investigations for every row considered. It is indexed on `(snapshot_id, investigation_id)` and fine at the
 scale of one player reading their own pages, but a listing query over many snapshots will feel it.
 If that becomes real, denormalise `user_id` onto the visit row and drop the join.
 
-**Guests get nothing.** A player without an account has no timeline row, so no visits, so no
-snapshot reads. That is consistent with how guest timelines already work — everything lives in
-IndexedDB until they claim it — but it means the Way Up history of a guest is not deduplicated
-with anyone else's and is lost if they clear their browser. Claiming a timeline should probably
+**Guests get nothing.** A player without an account has no investigation row, so no visits, so no
+snapshot reads. That is consistent with how guest investigations already work — everything lives in
+IndexedDB until they claim it — but it means the the relay history of a guest is not deduplicated
+with anyone else's and is lost if they clear their browser. Claiming an investigation should probably
 migrate their local snapshots up; nothing here does that yet.
 
 **Fragment awards are only as trustworthy as the route that grants them.** The schema stops an
 account contributing twice. It cannot tell whether the player earned the fragment. That check has
-to live server-side, against the timeline's actual state, and it is the obvious thing to get wrong.
+to live server-side, against the investigation's actual state, and it is the obvious thing to get wrong.

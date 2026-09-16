@@ -531,7 +531,7 @@ export function rateLimit(key: string, now = Date.now()): RateLimitResult {
  * Who is being limited.
  *
  * A signed-in player is identified by their account; a guest by the forwarded address, which is
- * the only stable thing available given Day 01 is deliberately account-free.
+ * the only stable thing available given Case 001 is deliberately account-free.
  */
 export function rateLimitKey(request: Request, userId: string | null): string {
   if (userId) return `user:${userId}`

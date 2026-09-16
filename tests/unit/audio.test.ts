@@ -23,7 +23,7 @@ describe('sound', () => {
     setMuted(true)
     expect(isMuted()).toBe(true)
     expect(seen).toEqual([true])
-    expect(window.localStorage.getItem('two009:muted')).toBe('1')
+    expect(window.localStorage.getItem('unlisted:muted')).toBe('1')
 
     unsubscribe()
     setMuted(false)

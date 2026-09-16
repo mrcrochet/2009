@@ -174,9 +174,9 @@ export function buildWorldIndex(world: World): WorldIndex {
 /**
  * The site an address belongs to: the folder its pages sit in.
  *
- * The host is not the site. `geohost.com` hosts a model railway enthusiast, a wedding page and a
- * band, and grouping by host puts fourteen strangers in one man's nav bar. What a 2009 free host
- * actually gave somebody was a directory — `geohost.com/Terminal/4417` — and everything under it
+ * The host is not the site. A free host carries a model railway enthusiast, a wedding page and a
+ * band, and grouping by host puts fourteen strangers in one man's nav bar. What a free host
+ * actually gave somebody was a directory — `example.com/~someone/` — and everything under it
  * was theirs.
  *
  * So: drop the last segment when it is a filename, keep it otherwise. `…/4417/links.html` and
@@ -351,7 +351,7 @@ const MONTHS = [
 /**
  * An ISO date as this machine writes one.
  *
- * Artifacts are stored ISO so they sort; a screen in 2009 never showed you `2008-11-30T23:40`.
+ * Artifacts are stored ISO so they sort; no screen in this world shows you `2026-06-09T23:40`.
  * The format matches the menu bar, so a date in a search result and the date in the corner of
  * the screen are recognisably the same kind of thing.
  */

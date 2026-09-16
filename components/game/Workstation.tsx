@@ -10,6 +10,7 @@ import { EvidenceTray } from './EvidenceTray'
 import { InvestigationBoard } from './InvestigationBoard'
 import { MenuBar } from './MenuBar'
 import { PhoneOverlay } from './PhoneOverlay'
+import { QuickLook } from './QuickLook'
 import { SurveillanceOverlay } from './SurveillanceOverlay'
 import { RelayOverlay } from './RelayOverlay'
 import { WindowManager } from './WindowManager'
@@ -26,10 +27,19 @@ const SURFACE_APP: Record<string, AppId> = {
   msg: 'msg',
   web: 'web',
   files: 'files',
-  bank: 'bank',
+  device: 'devices',
   term: 'term',
   archive: 'web',
 }
+
+/**
+ * A projected case artifact, taken apart.
+ *
+ * It read `^d\d+\.` — a day number — and case ids stopped being day numbers at the pivot, so it
+ * had quietly matched nothing since: every search result opened the right application and left
+ * the player to find the document again by hand. A case id is whatever a case calls itself.
+ */
+const PROJECTED = /^[A-Za-z0-9_-]+\.(mail|file|photo|sms|web)\.(.+)$/
 
 export function Workstation({ onFileReport }: { onFileReport: () => void }) {
   const content = useContent()
@@ -60,7 +70,7 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  // Escape backs out of whatever is on top, innermost first, and never out of the day itself.
+  // Escape backs out of whatever is on top, innermost first, and never out of the case itself.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
@@ -85,13 +95,20 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
     }
 
     const artifact = world?.index.artifactById.get(hit.id) ?? null
-    // A projected day artifact carries the id of the thing the day authored, which is what the
-    // mail and files apps address each other by.
-    const local = artifact ? /^d\d+\.(mail|file|photo|sms|txn|web)\.(.+)$/.exec(artifact.id) : null
+    // A projected case artifact carries the id of the thing the case authored, which is what the
+    // mail, files and photo surfaces address each other by.
+    const local = artifact ? PROJECTED.exec(artifact.id) : null
+
+    // A photograph belongs to the viewer, whichever source it came off.
+    if (local?.[1] === 'photo') {
+      dispatch({ type: 'APP_OPENED', app: 'photos' })
+      dispatch({ type: 'PHOTO_SELECTED', photoId: local[2]! })
+      return
+    }
 
     if (hit.surface === 'phone') {
       if (!phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
-      dispatch({ type: 'PHONE_TAB_CHANGED', tab: local?.[1] === 'photo' ? 'photos' : 'sms' })
+      dispatch({ type: 'PHONE_TAB_CHANGED', tab: 'sms' })
       return
     }
 
@@ -120,6 +137,7 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
       </DirectoryFocusProvider>
       <PhoneOverlay />
       <EvidenceTray />
+      <QuickLook />
       <InvestigationBoard />
       <RelayOverlay />
       <SearchPalette

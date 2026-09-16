@@ -17,10 +17,10 @@ const p = (text: string): RelayBlock => ({ kind: 'p', text })
 function draft(overrides: Partial<OverlayDraft> = {}): OverlayDraft {
   return {
     overlayId: 'ov_test_0001',
-    subject: 'aion',
-    title: 'Aion Group — Settlements',
-    address: 'aion-group.com/archive/173',
-    snippet: 'Settlements. Recovery. Actuarial.',
+    subject: 'marlow',
+    title: 'The Marlow Foundation — filings',
+    address: 'marlowfoundation.org/archive/173',
+    snippet: 'Grants. Disbursements. Annual returns.',
     blocks: [p('This domain is registered and in use. No public information is available.')],
     ...overrides,
   }
@@ -38,10 +38,10 @@ const refusalFor = (d: OverlayDraft): string | null => {
 // ---------------------------------------------------------------- the rule
 
 describe('an overlay may only be about something we invented', () => {
-  it('accepts a page about Aion Group', () => {
+  it('accepts a page about the Marlow Foundation', () => {
     expect(refusalFor(draft())).toBeNull()
     const overlay = createOverlay(draft())
-    expect(overlay.subject).toBe('aion')
+    expect(overlay.subject).toBe('marlow')
     expect(overlay.provenance).toBe('not-present-in-baseline-web')
   })
 
@@ -51,13 +51,15 @@ describe('an overlay may only be about something we invented', () => {
   })
 
   it('refuses an address on a host we do not own', () => {
-    expect(refusalFor(draft({ address: 'aion-group.co/archive' }))).toBe('address-not-ours')
-    expect(refusalFor(draft({ address: 'archive.org/aion' }))).toBe('address-not-ours')
+    expect(refusalFor(draft({ address: 'marlowfoundation.co/archive' }))).toBe('address-not-ours')
+    expect(refusalFor(draft({ address: 'archive.org/marlow' }))).toBe('address-not-ours')
   })
 
   it('refuses an address belonging to a different entity of ours', () => {
-    // Ours, but not Aion's. An overlay must not appear to live on the bank's site.
-    expect(refusalFor(draft({ address: 'meridiansavings.com/aion' }))).toBe('address-wrong-entity')
+    // Ours, but not the foundation's. An overlay must not appear to live on the firm's site.
+    expect(refusalFor(draft({ address: 'ridgelinepartners.com/marlow' }))).toBe(
+      'address-wrong-entity',
+    )
   })
 
   it('refuses the generic domains the game sells the player, review or not', () => {
@@ -92,14 +94,14 @@ describe('an overlay may only be about something we invented', () => {
 
 describe('an overlay may not name the real world', () => {
   it('refuses a real company in the title', () => {
-    expect(refusalFor(draft({ title: 'Aion Group acquired by Google' }))).toBe(
+    expect(refusalFor(draft({ title: 'The Marlow Foundation acquired by Google' }))).toBe(
       'real-world-reference',
     )
   })
 
   it('refuses a real company in the body, even when the subject is ours', () => {
     const d = draft({
-      blocks: [p('Aion Group was incorporated in 2017 and later sold to Microsoft.')],
+      blocks: [p('The Marlow Foundation was incorporated in 2009 and later sold to Microsoft.')],
     })
     expect(refusalFor(d)).toBe('real-world-reference')
   })
@@ -125,7 +127,7 @@ describe('an overlay may not name the real world', () => {
   it('refuses ways to contact a real person', () => {
     const cases: [string, string][] = [
       ['email', 'Write to settlements@some-firm.co.uk.'],
-      ['handle', 'See @aiongroupreal for updates.'],
+      ['handle', 'See @marlowfoundationreal for updates.'],
       ['phone', 'Reception: 212-887-4400.'],
       ['street', 'Registered at 1140 SE Morrison St.'],
     ]
@@ -138,9 +140,9 @@ describe('an overlay may not name the real world', () => {
     // Every one of these is a multi-word Title Case name, and none may be flagged.
     const ours = draft({
       blocks: [
-        p('The Columbia Register reported that Meridian Savings & Loan closed the account.'),
-        p('Marc Deleon and Lea Voss were both named. Owen T. Rask was not.'),
-        p('Filed from the Orbit through the Way Up Machine.'),
+        p('Ridgeline Partners confirmed that the Marlow Foundation closed the account.'),
+        p('Nadia Okafor and Richard Vale were both named. Daniel Mercer was not.'),
+        p('Filed from the Orbit through the relay.'),
       ],
     })
     expect(refusalFor(ours)).toBeNull()
@@ -173,15 +175,15 @@ describe('an overlay may not name the real world', () => {
 
 describe('attempts to get something past the check', () => {
   it('cannot hide a real name inside one of ours', () => {
-    // "Aionics" is not "Aion". Masking without token boundaries used to eat the prefix and let
+    // "Marlowe" is not "Marlow". Masking without token boundaries used to eat the prefix and let
     // the rest through as a fragment.
-    expect(refusalFor(draft({ blocks: [p('Acquired by Aionics Holdings in 2019.')] }))).toBe(
+    expect(refusalFor(draft({ blocks: [p('Acquired by Marlowe Holdings in 2019.')] }))).toBe(
       'real-world-reference',
     )
   })
 
   it('cannot smuggle a real name through the path of an address we own', () => {
-    expect(refusalFor(draft({ address: 'aion-group.com/google-filings' }))).toBe(
+    expect(refusalFor(draft({ address: 'marlowfoundation.org/google-filings' }))).toBe(
       'real-world-reference',
     )
   })
@@ -244,9 +246,9 @@ describe('an overlay is structurally not a capture', () => {
   it('an object that merely claims to be one is refused at the merge', () => {
     const forged = {
       overlayId: 'ov_forged',
-      subject: 'aion',
-      title: 'Aion Group',
-      address: 'aion-group.com/x',
+      subject: 'marlow',
+      title: 'The Marlow Foundation',
+      address: 'marlowfoundation.org/x',
       snippet: '',
       blocks: [],
       provenance: 'not-present-in-baseline-web',
@@ -332,7 +334,7 @@ describe('the registry', () => {
     const domains = UNIVERSE.flatMap((e) => e.domains)
     for (const domain of domains) {
       expect(domain, domain).toMatch(
-        /^(aion-group|meridiansavings|corvid|cluster|tradepost|namewell|nullcache|columbia-register|geohost)\.(com|org)$/,
+        /^(ridgelinepartners|marlowfoundation|fremontparking|cascademobile|nova-systems)\.(com|org)$/,
       )
     }
   })

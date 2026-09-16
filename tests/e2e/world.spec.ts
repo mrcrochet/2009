@@ -159,4 +159,26 @@ test.describe('the world', () => {
     await search.getByLabel('Only what I have found').check()
     await expect(search.getByRole('option').first()).toBeVisible()
   })
+
+  /**
+   * Opening a result has to arrive at the *document*.
+   *
+   * The shell took a projected artifact apart with a pattern that began `^d\d+\.` — a day number
+   * — and case ids stopped being day numbers at the pivot. It had matched nothing since: every
+   * result opened the right application and left the player to find the thing again by hand,
+   * which is a list of places you have already been.
+   */
+  test('a result opens the document, not the application that holds it', async ({ page }) => {
+    await boot(page)
+
+    await page.keyboard.press('Control+k')
+    await page.keyboard.type('fremont')
+    const search = page.getByRole('dialog', { name: 'Search NOVA' })
+    await search.getByRole('option', { name: /receipt-fremont-0609\.pdf/ }).click()
+
+    const files = page.locator('[data-app="files"]')
+    await expect(files).toBeVisible()
+    // Not merely open: open at the receipt.
+    await expect(files).toContainText('FREMONT STREET PARKING')
+  })
 })

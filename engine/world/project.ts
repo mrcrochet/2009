@@ -80,7 +80,7 @@ export function projectCase(content: CaseContent, options: ProjectionOptions): W
     contradicts: [],
   })
 
-  // Surfaces are named by the case, never by this file. It said "Corvid Mail" and "Nokora N90"
+  // Surfaces are named by the case, never by this file. It named one case's mail client and its
   // outright, which is authored prose living in the engine.
   const mailAppTitle = content.apps.find((a) => a.id === 'mail')?.title ?? 'Mail'
   const phoneLabel = content.phone?.device ?? 'Phone'
@@ -117,17 +117,20 @@ export function projectCase(content: CaseContent, options: ProjectionOptions): W
     })
   }
 
-  for (const photo of content.phone?.photos ?? []) {
+  for (const photo of content.photos) {
+    // A picture is filed under the source it came off, not under whatever window opened it.
+    const device = photo.sourceId ? content.devices.find((d) => d.id === photo.sourceId) : undefined
+    const text = [photo.meta, ...photo.detail].join(' ')
     artifacts.push({
       ...base(),
       id: projectedId.photo(kase, photo.id),
       type: 'photo',
       date,
       title: photo.label,
-      body: photo.meta,
-      source: `${phoneLabel} — Photos`,
-      surface: 'phone',
-      mentions: mentionsIn(photo.meta, resolve, names),
+      body: [photo.meta, ...photo.detail].join('\n'),
+      source: device ? `${device.label} — Photos` : `${phoneLabel} — Photos`,
+      surface: !device ? 'files' : device.kind === 'phone' ? 'phone' : 'device',
+      mentions: mentionsIn(text, resolve, names),
       // The metadata is the point. A player who reads it can cross-reference it.
       fields: { exif: photo.meta },
     })

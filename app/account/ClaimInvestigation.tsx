@@ -9,10 +9,10 @@ import styles from './account.module.css'
 type Status = 'idle' | 'working' | 'done' | 'missing' | 'error'
 
 /**
- * Moves a guest timeline out of IndexedDB and onto the account, once. After this the server owns
+ * Moves a guest investigation out of IndexedDB and onto the account, once. After this the server owns
  * it. Every state change happens in a promise callback, never synchronously inside the effect.
  */
-export function ClaimTimeline({ investigationId }: { investigationId: string | null }) {
+export function ClaimInvestigation({ investigationId }: { investigationId: string | null }) {
   const [attempt, setAttempt] = useState(0)
   const [status, setStatus] = useState<Status>(investigationId ? 'working' : 'idle')
   const [message, setMessage] = useState<string | null>(null)
@@ -31,14 +31,14 @@ export function ClaimTimeline({ investigationId }: { investigationId: string | n
         return fetch(`/api/investigations/${encodeURIComponent(investigationId)}`, {
           method: 'PUT',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ timeline: toStored(local) }),
+          body: JSON.stringify({ investigation: toStored(local) }),
         })
       })
       .then(async (response) => {
         if (cancelled || !response) return
         if (!response.ok) {
           const data = (await response.json().catch(() => ({}))) as { error?: string }
-          setMessage(data.error ?? 'could not save the timeline')
+          setMessage(data.error ?? 'could not save the investigation')
           setStatus('error')
           return
         }
@@ -60,12 +60,12 @@ export function ClaimTimeline({ investigationId }: { investigationId: string | n
 
   return (
     <section className={styles.card}>
-      <div className={styles.cardTitle}>Your Day 01</div>
+      <div className={styles.cardTitle}>The case you just worked</div>
       <div className={styles.mono}>
-        {status === 'working' ? 'Moving your timeline to this account…' : null}
-        {status === 'done' ? 'Saved. This timeline now follows your account.' : null}
+        {status === 'working' ? 'Moving your investigation to this account…' : null}
+        {status === 'done' ? 'Saved. This investigation now follows your account.' : null}
         {status === 'missing'
-          ? 'That timeline is not in this browser. Open it on the device you played it on.'
+          ? 'That investigation is not in this browser. Open it on the device you played it on.'
           : null}
         {status === 'error' ? `Could not save: ${message}` : null}
       </div>

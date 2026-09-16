@@ -34,7 +34,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
             Something broke on our side.
           </h1>
           <p style={{ fontSize: 14, lineHeight: 1.7, color: '#8b949c', margin: '0 0 20px' }}>
-            Your timeline is saved in this browser and was not affected.
+            Your investigation is saved in this browser and was not affected.
           </p>
           {/* A hard navigation on purpose: the root layout is what failed, so the client
               router is not something to rely on here. */}

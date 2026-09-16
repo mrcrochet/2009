@@ -108,7 +108,8 @@ export function BrowserApp() {
         {browser.view === 'home' ? (
           <div className="nova-web__home">
             <div className="nova-web__logo">
-              corvid<span>.</span>
+              {content.browser.homeBrand}
+              <span>.</span>
             </div>
             <div className="nova-web__searchrow">
               <input
@@ -131,9 +132,7 @@ export function BrowserApp() {
             >
               {content.browser.directoryLabel}
             </button>
-            <div className="nova-web__homefoot">
-              Web · Images · Groups · News · Mail — © 2009 Corvid Inc.
-            </div>
+            <div className="nova-web__homefoot">{content.browser.homeFoot}</div>
           </div>
         ) : null}
 
@@ -196,13 +195,13 @@ export function BrowserApp() {
  * A document from the corpus, rendered as the page it is.
  *
  * Deliberately plainer than an authored page. A day's pages are designed — a bank's palette, a
- * paper's masthead; these are the rest of the web, and in 2009 most of the web was black text on
+ * paper's masthead; these are the rest of the web, and most of the web is still black text on
  * white with the date at the top. Looking slightly unloved is correct, not a shortcut.
  */
 function CorpusPage({ artifact, onGo }: { artifact: WorldArtifact; onGo: (url: string) => void }) {
   const world = useWorldOptional()
   const fields = Object.entries(artifact.fields)
-  // The rest of the site. A page of somebody's GeoHost is never one page.
+  // The rest of the site. Somebody's personal page is never one page.
   const siblings = world ? siblingPages(world.index, artifact) : []
   /*
    * A receipt keeps its line breaks and a forum post does not.

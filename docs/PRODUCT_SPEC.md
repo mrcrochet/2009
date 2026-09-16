@@ -1,178 +1,189 @@
-# 2009 — Product Spec (v1, Day 01)
+# UNLISTED — Product Spec
 
-> **Superseded in part.** This was written for **2009**. The apps, the investigation, the
-> fictional browser and the relay are current; Recall, the economy and the temporal engine are
-> not, and neither is the canonical-world table. `CLAUDE.md` is the contract; this is the detail
-> underneath the half of it that survived.
+`CLAUDE.md` is the contract. This is the detail underneath it, written against what the code and
+`content/cases/case001/` actually ship rather than against an intention. Where a number appears
+here it is authored somewhere real, and the file it is authored in is named.
+
+The spec this replaced described **2009** — a thirty-day business simulation with a memory
+mechanic and a cash quota. That product is complete on `archive/2009` and described in
+[`ARCHIVE_2009.md`](ARCHIVE_2009.md). Nothing below is about it.
 
 ## Canonical world
 
-| Field           | Value                                      |
-| --------------- | ------------------------------------------ |
-| Date            | Thursday, 15 January 2009                  |
-| Wake time       | 07:32                                      |
-| Location        | Portland, Oregon                           |
-| Currency        | USD (stored as integer cents)              |
-| Player identity | Owen T. Rask (not the player's own)        |
-| Fictional OS    | NOVA 3.2 (build 4.1.882)                |
-| Bank            | Meridian Savings & Loan, checking ····4471 |
-| Opening balance | $437.82 (43782 cents)                      |
-| Core mystery    | Aion Group                                 |
-| Contacts        | Marc Deleon, Lea Voss, "M"                 |
-| Quota           | $10,000.00 within 30 days                  |
+| Field         | Value                                | Authored in                 |
+| ------------- | ------------------------------------ | --------------------------- |
+| Case          | 001 — He Never Came Home (`case001`) | `title`, `number`           |
+| Date          | Wednesday, 17 June 2026              | `dateISO`                   |
+| Session start | 19:12, running 260 in-world minutes  | `startMinute`               |
+| Location      | Portland, Oregon                     | `location`                  |
+| Currency      | USD                                  | —                           |
+| Investigator  | the player, under their own name     | `investigator`              |
+| Workstation   | NOVA 3.2 (build 3.2.114)             | `osName`, `boot`            |
+| Platform      | UNLISTED                             | —                           |
+| Client        | Claire Mercer                        | `client`                    |
+| Subject       | Daniel Mercer, missing since 9 June  | `summary`                   |
+| Cast          | Richard Vale, Nadia Okafor           | `content/world/entities.ts` |
+
+There is no balance, no quota, no day counter and no season. **The unit is a case.**
 
 ## Stage machine
 
-`landing → boot → playing → day-end`
+`intake → boot → playing → report`
 
-- **landing** — the marketing surface. One action: `WAKE UP`.
-- **boot** — NOVA 3.2 console boot, 10 lines at 170ms, then a 700ms hold.
-- **playing** — full-viewport NOVA desktop. After 1100ms Ember Messenger opens itself with a
-  message from an unknown handle. After 2600ms `READ_ME.txt` appears on the desktop.
-- **day-end** — surveillance reveal (3400ms), then the Day 01 summary card.
+- **intake** — the state a fresh investigation is created in. The landing route (`/`) is an
+  ordinary web page with no game bundle; opening the case is the last ordinary chrome the player
+  sees.
+- **boot** — the NOVA console ticker: seven authored lines at 170 ms, then a 700 ms hold
+  (`boot`, `bootIntervalMs`, `bootHoldMs`). Every one of these is a timer in `GameRoot.tsx`, and
+  `pace()` collapses them when the player has asked for reduced motion.
+- **playing** — the full-viewport workstation. At 1100 ms Dispatch opens itself with a message
+  (`messengerOpensAtMs`); at 2600 ms the intake note appears on the desktop
+  (`desktopIconAtMs`, `desktopIconFileId`).
+- **report** — every window closes, the surveillance overlay holds for 3400 ms
+  (`report.surveillanceDelayMs`), then the report card.
 
-## Applications (Day 01)
+## Applications
 
-| App id   | Title            | Window                   |
-| -------- | ---------------- | ------------------------ |
-| `mail`   | Corvid Mail      | 640×410                  |
-| `msg`    | Ember Messenger  | 318×392                  |
-| `web`    | Orbit  | 720×472                  |
-| `files`  | Files            | 600×352                  |
-| `bank`   | Meridian Savings | 472×364                  |
-| `mkt`    | Quoteline        | 520×340                  |
-| `notes`  | Notes            | 352×300                  |
-| `term`   | Terminal         | 568×328                  |
-| `recall` | Recall           | 428×352                  |
-| `phone`  | Nokora N90       | 296×552 in-world overlay |
+Which applications exist is the **case's** decision, not the build's. `WindowManager.tsx` holds
+the registry of what this build can render; the case's `apps` array is the roster, and an app a
+case names that this build does not have renders as a window saying so rather than as a crash.
+
+| App id      | Title      | Window  |
+| ----------- | ---------- | ------- |
+| `mail`      | Relay Mail | 640×410 |
+| `msg`       | Dispatch   | 318×392 |
+| `web`       | Orbit      | 720×472 |
+| `files`     | Files      | 792×468 |
+| `photos`    | Photos     | 668×472 |
+| `devices`   | Devices    | 520×380 |
+| `notes`     | Notes      | 352×300 |
+| `term`      | Console    | 568×328 |
+| `directory` | Directory  | 640×420 |
+
+Not applications, and deliberately so: the **phone** is an in-world overlay you can pick up and
+put down, the **evidence tray** is a collapsible strip, the **investigation board**, the **relay
+console** and **Quick Look** are focused modes that take the screen. None of them is a tab, and
+none of them is a permanent navigation rail.
+
+## Documents
+
+A document declares what it is — `note`, `letter`, `sheet`, `scan`, `audio`, `encrypted` — and
+the reader draws it as that. A spreadsheet is a table with row numbers and the comment somebody
+left in a cell; a receipt is paper off a flatbed; a voicemail is a transport over a transcript
+that is legible whether or not it is ever played. `engine/documents.ts` does the reading,
+`components/game/DocumentView.tsx` does the drawing, and no component decides what a document
+says. The authoring rules are in [`AUTHORING.md`](AUTHORING.md).
+
+**Space** holds the selected document up over the machine and Space again puts it down. Quick
+Look renders the same `DocumentView` the reader does — a preview that is a reduced version of a
+document is a second place for a document to be wrong.
+
+## Sources
+
+The workstation is the machine; a phone, a disk image or a drive is a **source attached to it**,
+and a case may attach two, one or none. Case 001 attaches two:
+
+| Device       | Kind   | State at intake            | What opens it                             |
+| ------------ | ------ | -------------------------- | ----------------------------------------- |
+| `dev-phone`  | phone  | connected, **locked**      | `190455`, written down in `passcodes.txt` |
+| `dev-laptop` | laptop | connected, open, read-only | —                                         |
+
+A locked source yields nothing, and the rule holds on every surface: the handset shows a lock
+screen instead of its thread, and a photograph taken on it is in neither the phone's roll nor the
+workstation's viewer until somebody opens it. `tests/unit/content.test.ts` fails a case that locks
+a device nothing in it can open.
 
 ## Investigation
 
-Evidence is a first-class object:
+Evidence is a first-class object (`engine/types.ts#Evidence`), and the loop is:
 
-```ts
-{
-  ;(id, source, text, discoveredBy, discoveredAt, tags, reliability)
-}
-```
+**discover → pin → tray → board → select evidence → assert claim → consequence.**
 
-Flow: **discover → pin → tray → board → select evidence → assert claim → consequence.**
+A claim requires an _exact_ evidence set — no extras, no omissions. Verdicts:
 
-A claim requires an _exact_ evidence set (no extras, no omissions). Verdicts:
+- `ACCEPTED` — the set is right and the claim is sound.
+- `INSUFFICIENT` — the set is not right.
+- `REFUSED` — the claim is unsound however it is supported. It is **filed anyway, under the
+  player's name**, and the report says so.
 
-- `ACCEPTED` — requirements met and the claim is sound.
-- `INSUFFICIENT` — requirements not met.
-- `REFUSED` — the claim is unsound even when "supported". It is **filed anyway, under the
-  player's name**, and produces a consequence at day end.
+Case 001 authors four claims. `c1`, `c2` and `c4` are sound; `c3` — "Daniel Mercer left Portland
+of his own accord" — is the one that can never be accepted and is filed regardless.
 
-Day 01 claims: `c1`–`c6` (see `content/day01/claims.ts`). `c4` ("Marc works for the Aion
-Group") is the trap: it can never be accepted.
+**No sound claim may need evidence that is behind a paid service.** This is the rule the business
+model rests on and it fails the build, not a refund request (`tests/unit/content.test.ts`).
+
+## The report gate
+
+`requiredBeats` decides when a report can be filed. Case 001 asks for three:
+
+| Beat        | Fired by                         |
+| ----------- | -------------------------------- |
+| `statement` | opening `draft-statement-v3.doc` |
+| `claire`    | answering the client in Dispatch |
+| `claim`     | asserting any claim on the board |
+
+`beatHints` supplies the line the gate shows for each outstanding beat. It used to be a hardcoded
+map in the menu bar naming Day 01's characters, which meant the second case would have told the
+player to answer somebody who is not in it.
+
+## The report
+
+Consequences are content, not a meter. `report.deeds` templates read state that already exists —
+how much was pinned, how many findings were filed under the player's name, which sources were
+opened, how many characters were typed into a notebook that is not theirs, how many lines were
+carried in from outside the case — and `report.deeds.flagged` adds a line per world flag the
+session set: telling Vale you were looking, decrypting a filing on a read-only image, getting
+into the handset with the client's permission and not the subject's.
+
+Then: the save ask. `report.saveHeadline`, `saveBody`, `primaryCta`, and `priceLine`, which says
+Case 001 is free and always will be.
 
 ## Dialogue
 
-Every choice answers itself. A choice carries the reply it earns, so asking Marc where he was on
-the 14th gets an answer to _that_ question before he changes the subject. A choice may also:
+Every choice answers itself. A `Choice` carries the reply it earns, and may also **hold the
+conversation** (`advances: false`), **set a world flag** (`setsFlag`) — which is how a
+conversation reaches out and changes a page — or **require evidence** (`requiresEvidence`), so an
+accusation is unavailable until the player is holding the thing that proves it.
 
-- **hold the conversation** (`advances: false`), leaving the other option open;
-- **set a world flag** (`setsFlag`), which is how a conversation reaches out and changes a page;
-- **require evidence** (`requiresEvidence`), so an accusation is unavailable until the player is
-  holding the thing that proves it.
+The load-bearing example in Case 001: telling Richard Vale you are looking sets `valeNotified`,
+and Ridgeline Partners' own website loses a sentence. The report notices.
 
-The load-bearing example: Lea has already posted about the car parked outside her building. She
-asks what to do. Tell her to write down the plate and the page gains a post; talk her out of it
-and the post comes down — **and `e9` with it, so claim `c5` becomes unprovable**. The player
-deletes the evidence they needed by giving advice that sounded kind. That is the game's thesis
-expressed as a mechanic rather than a meter.
+## The fictional Browser
 
-## Recall
+A closed internet — and an actual _web_, not a set of islands.
 
-Recall is **not** a chat assistant.
+- **Search** runs against an internal index only. It never calls a real search engine; the relay
+  is the only route out.
+- **Every page has an address**, two documents may never share one, and the case's pages and the
+  corpus are one internet. `tests/unit/browser.test.ts` walks the link graph and fails if a page
+  becomes an island or a link points at a page that does not exist.
+- **The Directory** is the way in when the player does not know what to search for, and it holds
+  only what this machine has learned. It is never a cast list.
+- **Back, forward and the address bar** all work. The bar forgives a scheme, a `www.`, a trailing
+  slash and stray case. An unknown host gets an in-period error page.
+- **A page may change**, keyed on a world flag, at the same URL — and says that it changed.
 
-1. The player types a concept.
-2. The engine resolves it against a structured authored memory library with synonyms.
-3. Every retrieval costs **9** points of memory integrity (floor 24).
-4. Confidence: `HIGH | MEDIUM | LOW | FRACTURED | NONE`.
-5. Below 78 integrity, non-NONE memories degrade one step and gain a drift line. Below 52 they
-   become `FRACTURED` and report two incompatible versions.
-6. No grounded match returns **"No recollection."** — never an invented historical outcome.
+## The relay
 
-## Fictional Browser
+The only route to the open web, and it is metered. Case 001 authors `signalBudget: 24`, a search
+at 1 and an open at 2, and it is **not available at start**: the player has to find the process
+running and open the line (`relay.availableAtStart: false`).
 
-A closed 2009 internet simulation — and an actual _web_, not a set of islands.
-
-- **Search** runs against an internal index only. It never calls a real search engine.
-- **Every site has a front page**, and sites link to each other: the Register's business article
-  links to Lea's Cluster page, Namewell's WHOIS links to the Meridian branch listing that shares
-  its address, nullcache threads link to each other.
-- **The Corvid Directory** (`corvid.com/directory`) is the way in when the player does not know
-  what to search for. An empty result set points there rather than dead-ending.
-- **A bookmarks bar** carries what was already on this machine when the player woke up —
-  including `aion-group.com`, which nobody explains.
-- **Back, forward and the address bar** all work. The address bar forgives a scheme, a `www.`,
-  a trailing slash and stray case. An unknown host gets a period error page.
-- **A link can hand the player back to the machine**: "Online Banking" on the Meridian site opens
-  the Meridian Savings application rather than faking a login.
-- Pages may resolve to a different variant after temporal shifts. When the business article
-  changes, the Register's own front page changes with it.
-
-`tests/unit/browser.test.ts` walks the link graph and fails if any page becomes an island or any
-link points at a page that does not exist.
-
-## Temporal engine
-
-Three internal quantities, none of them a permanent HUD:
-
-- `memoryIntegrity` — 100 → 24, spent by Recall.
-- `divergence` — how far the world has moved from its authored baseline.
-- `temporalShift` — the counter that content variants key off.
-
-`temporalShift` increases on: a Recall retrieval (+1), registering a domain (+1), completing the
-resale (+1). At `temporalShift >= 2` the Columbia Register business article resolves to its
-altered variant — the same URL, different text, plus a line telling the player it changed.
-
-## Money loop (Day 01)
-
-1. Marc, in Ember Messenger, mentions a phone on TradePost.
-2. Browser → `tradepost.com/pdx/electronics` → **BUY — MEET SELLER**: −$60.00, +45 minutes.
-3. **POST FOR RESALE**: +120 minutes, then after 2.2s it sells: +$340.00, `temporalShift +1`.
-4. Both legs appear in the Meridian Savings activity list.
-
-Domains at `namewell.com/register` cost $9.95 each and each registration shifts the timeline.
-
-Quoteline cannot trade on Day 01: placing orders requires a $2,000 brokerage deposit against a
-balance that peaks at $717.82. It offers the one thing that costs no money — a **watchlist**.
-Writing down what you know raises `heat`, and at 23:41 the unknown sender counts the names back.
-
-A second TradePost listing (`tradepost-parts`, $40 → $15, 155 minutes) exists to lose. One
-opportunity teaches only that future knowledge pays.
-
-## Day 01 gate
-
-`End day 01` appears in the menu bar only once **all five** beats are true:
-
-| Beat     | Fired by                            |
-| -------- | ----------------------------------- |
-| `readme` | opening `READ_ME.txt`               |
-| `marc`   | replying to Marc in Ember Messenger |
-| `recall` | running a Recall retrieval          |
-| `money`  | the TradePost resale completing     |
-| `claim`  | asserting any claim on the board    |
-
-## Day 01 end
-
-1. All windows close, phone closes, tray and board close.
-2. Surveillance overlay: a red pulsing indicator at the top of the screen — someone was watching.
-3. A new mail arrives from `UNKNOWN` (23:39). It quotes back any claim filed under the player's
-   name, escalates with `heat`, counts the characters typed into Notes (never a word of them),
-   and counts the names on the watchlist.
-4. The summary reports **deeds** as well as numbers — what the player did to 15 January 2009,
-   every line derived from state that already exists.
-5. After 3400ms the Day 01 summary card: balance, quota, memory coherence, claims on record,
-   holdings, whether a page changed, and the surveillance line.
-6. `CONTINUE YOUR TIMELINE` → save/auth/entitlement boundary. `Save this timeline — free` →
-   account creation that claims the local timeline.
+What comes back is an **immutable snapshot**, captured once and referenced by id, so a replay
+shows the bytes the player read rather than whatever the site says today. Keeping a line records
+its provenance — the excerpt, its hash, the address and the title as they stood at capture — and
+costs exposure. Every refusal the route can produce has an authored line; none of the server's own
+wording reaches the player. See [`RELAY_PERSISTENCE.md`](RELAY_PERSISTENCE.md).
 
 ## Commercial boundary
 
-Day 01 is free and account-free. Day 02+ requires an entitled account. Entitlement is resolved
-server-side; the client only _renders_ the result.
+Case 001 is free and account-free, start to finish, with no account prompt until the case has
+earned it. Another case requires an entitled account, and **entitlement is resolved server-side**
+(`lib/billing/entitlement.ts`); the client only renders the answer.
+
+**Forensic services** are one-time purchases offered inside a case — Case 001 offers one, the
+recovery of 90 further days of call metadata. Two rules hold them honest and both are code:
+`services` on the state is a projection of a server-side entitlement and never the check, and no
+sound claim may require what is behind one. No price, no card field and no purchase happens inside
+the fiction: recovery is offered in-world and bought on `/account`, where a purchase looks like a
+purchase.

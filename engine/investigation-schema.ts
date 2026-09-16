@@ -151,6 +151,7 @@ export const InvestigationStateSchema = z.object({
     decrypted: z.record(z.string().max(64), z.boolean()),
     decryptAttempts: z.record(z.string().max(64), z.number().int().min(0).max(64)),
   }),
+  media: z.object({ openPhotoId: z.string().max(64) }).default({ openPhotoId: '' }),
   terminal: z.object({
     lines: z
       .array(
@@ -191,6 +192,10 @@ export const InvestigationStateSchema = z.object({
     relayOpen: z.boolean().default(false),
     watched: z.boolean(),
     reportCard: z.boolean(),
+    quickLook: z
+      .object({ kind: z.enum(['file', 'photo']), id: z.string().max(64) })
+      .nullable()
+      .default(null),
   }),
 
   // A beat that has not fired is simply absent, and a case names its own.

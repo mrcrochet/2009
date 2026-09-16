@@ -1,10 +1,10 @@
 /**
- * The Way Up Machine — the boundary between the game's deterministic 2009 and the real web of
+ * The relay — the boundary between the game's deterministic world and the real web of
  * today.
  *
  * Everything crossing this boundary becomes an immutable snapshot. The engine is event-sourced
  * and `tests/unit/replay.test.ts` proves a save reproduces exactly; the live web offers no such
- * guarantee, so a page observed inside a timeline is captured once and referenced by id from
+ * guarantee, so a page observed inside an investigation is captured once and referenced by id from
  * then on. A later fetch of the same URL produces a *different* snapshot to compare against,
  * never a silent substitution.
  */
@@ -52,7 +52,7 @@ export interface RelayLink {
 }
 
 /**
- * A page as it existed at one moment, from one timeline's point of view.
+ * A page as it existed at one moment, from one investigation's point of view.
  *
  * `id` is derived from the canonical URL *and* the content hash, so capturing the same
  * unchanged page twice yields the same id, while a page that has changed since produces a new

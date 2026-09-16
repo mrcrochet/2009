@@ -16,18 +16,47 @@ interface MigrationStep {
 }
 
 /**
- * The chain, from the first schema this product ever shipped.
+ * The chain.
  *
- * It is empty, and that is the honest answer rather than a gap. Versions 1 to 12 were saves of a
- * different game: a day of thirty, a cash balance in cents, a memory-coherence score. There is no
- * function from those to an investigation on a case — a `day: 4` does not become a case, and
- * inventing one would hand a player a file they never built. Such a save reaches `migrateStored`,
- * finds no step, and is quarantined by the loader, which is what should happen to a save of a
- * product that no longer exists.
+ * It starts at 13, and that is the honest answer rather than a gap. Versions 1 to 12 were saves
+ * of a different game: a day of thirty, a cash balance in cents, a memory-coherence score. There
+ * is no function from those to an investigation on a case — a `day: 4` does not become a case,
+ * and inventing one would hand a player a file they never built. Such a save reaches
+ * `migrateStored`, finds no step, and is quarantined by the loader, which is what should happen
+ * to a save of a product that no longer exists.
  *
- * The machinery stays because the next migration is a real one.
+ * From 13 the chain is real, because from 13 the saves are this product's.
  */
-const STEPS: readonly MigrationStep[] = []
+const STEPS: readonly MigrationStep[] = [
+  {
+    from: 13,
+    to: 14,
+    describe: 'adds the photo viewer and Quick Look to the surface of the machine',
+    /**
+     * Both fields are surface, not investigation: which frame the viewer is on and what is being
+     * held up to the light. A session written before either existed had no frame selected and
+     * nothing held up, so the defaults *are* that session — nothing is invented, and nothing the
+     * report would ever cite is touched.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const ui = asRecord(snapshot.ui) ?? {}
+      return {
+        ...row,
+        snapshot: {
+          ...snapshot,
+          media: asRecord(snapshot.media) ?? { openPhotoId: '' },
+          ui: { ...ui, quickLook: ui.quickLook ?? null },
+        },
+      }
+    },
+  },
+]
+
+function asRecord(value: unknown): AnyRecord | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as AnyRecord) : null
+}
 
 export class MigrationError extends Error {
   constructor(

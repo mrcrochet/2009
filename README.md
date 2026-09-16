@@ -38,16 +38,16 @@ npm run test:e2e -- --project=chromium   # Case 001 end to end, the world, the n
 
 ## What is where
 
-| Path                   | What it holds                                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `engine/`              | The pure engine — types, events, reducer, rules, selectors, the world graph. No framework, no I/O.                |
-| `content/cases/`       | Authored cases: apps, devices, services, mail, threads, browser, files, terminal, relay, phone, report.           |
-| `content/world/`       | The corpus the cases happen inside — entities, artifacts, relations, facts.                                       |
-| `components/game/`     | The workstation: menu bar, desktop, dock, window manager, phone, evidence tray, board, search, and the apps.      |
-| `state/`               | The Zustand store that wraps the reducer.                                                                         |
-| `lib/`                 | Adapters: IndexedDB persistence + migrations, Supabase, Stripe, analytics, errors, the relay.                     |
-| `app/`                 | Next.js routes — a light landing, the game, account, auth, billing.                                               |
-| `supabase/migrations/` | Schema and row-level security.                                                                                    |
+| Path                   | What it holds                                                                                                |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `engine/`              | The pure engine — types, events, reducer, rules, selectors, the world graph. No framework, no I/O.           |
+| `content/cases/`       | Authored cases: apps, devices, services, mail, threads, browser, files, terminal, relay, phone, report.      |
+| `content/world/`       | The corpus the cases happen inside — entities, artifacts, relations, facts.                                  |
+| `components/game/`     | The workstation: menu bar, desktop, dock, window manager, phone, evidence tray, board, search, and the apps. |
+| `state/`               | The Zustand store that wraps the reducer.                                                                    |
+| `lib/`                 | Adapters: IndexedDB persistence + migrations, Supabase, Stripe, analytics, errors, the relay.                |
+| `app/`                 | Next.js routes — a light landing, the game, account, auth, billing.                                          |
+| `supabase/migrations/` | Schema and row-level security.                                                                               |
 
 The dependency arrow points one way: `content → engine → lib → components → app`. `engine/` and
 `content/` import nothing from a framework, a network client or a platform SDK, and
@@ -71,5 +71,6 @@ device and what the machine calls itself are all a case's decisions.
 - [`docs/AUTHORING.md`](docs/AUTHORING.md) — how to add a case without touching the engine
 - [`docs/CORPUS.md`](docs/CORPUS.md) — how to author the world cases happen inside, and what the build enforces
 - [`docs/MYSTERY_AUTHORING.md`](docs/MYSTERY_AUTHORING.md) — the editorial line on real-world mysteries
-- [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — the detail underneath, partly superseded by the pivot
+- [`docs/PRODUCT_SPEC.md`](docs/PRODUCT_SPEC.md) — the detail underneath, as Case 001 ships it
+- [`docs/RELAY_PERSISTENCE.md`](docs/RELAY_PERSISTENCE.md) — why a page read through the relay is captured, and who may read it back
 - [`docs/ARCHIVE_2009.md`](docs/ARCHIVE_2009.md) — what the previous product was, and where it lives

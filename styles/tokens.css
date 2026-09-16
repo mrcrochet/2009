@@ -1,7 +1,7 @@
 /*
  * NOVA 3.2 — the workstation's visual language.
  *
- * These were the 2009 handoff's literals, and the instruction on them was "do not modernise".
+ * These are the workstation's own literals, and the instruction on them was "do not modernise".
  * The product moved: the machine is a present-day forensic workstation, and a beige window with
  * a bevelled titlebar now reads as a costume rather than as a computer.
  *
@@ -34,10 +34,11 @@
   --platform-accent: #5b8db8;
 
   /* Chrome */
-  --menubar-height: 26px;
-  --titlebar-height: 28px;
-  --menubar-bg: linear-gradient(180deg, rgba(23, 27, 32, 0.96), rgba(15, 18, 22, 0.96));
-  --menubar-ink: #b9c1c8;
+  --menubar-height: 30px;
+  --titlebar-height: 34px;
+  --menubar-bg: rgba(12, 14, 17, 0.72);
+  --menubar-ink: #9aa4ad;
+  --menubar-ink-bright: #e7ecf0;
   --menubar-accent: var(--platform-accent);
 
   /*
@@ -45,22 +46,38 @@
    * a photograph of a desk comes from. The CRT aperture grid that used to sit over this is
    * gone: it was the single most costume-like thing on screen.
    */
-  --desktop-bg: radial-gradient(120% 90% at 22% 8%, #1e252c 0%, #141a20 44%, #0b0e11 100%);
+  --desktop-bg:
+    radial-gradient(85% 65% at 16% 2%, rgba(86, 112, 138, 0.18) 0%, transparent 60%),
+    radial-gradient(120% 100% at 50% 100%, #0a0d10 0%, #06080a 70%);
 
-  /* Window */
-  --radius-sm: 3px;
-  --radius-win: 6px;
-  --win-bg: #f3f4f5;
-  --win-border: #2c3238;
+  /*
+   * Window.
+   *
+   * The shell is dark and the document inside it is light. That is the whole hierarchy: the
+   * frame is the machine and recedes; the page is the evidence and does not. A light grey shell
+   * with a bevelled titlebar made the frame compete with the thing the investigator is reading,
+   * and read as a costume besides.
+   */
+  --radius-sm: 4px;
+  --radius-win: 10px;
+  --win-bg: #15191e;
+  --win-border: rgba(255, 255, 255, 0.09);
   --win-shadow:
-    0 18px 44px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-  /* Flat, with a single hairline. The bevel was the period; the hierarchy is the point. */
-  --titlebar-front: linear-gradient(180deg, #e9ebed, #dcdfe2);
-  --titlebar-back: linear-gradient(180deg, #f1f2f3, #e8eaec);
-  --titlebar-front-ink: #1f242a;
-  --titlebar-back-ink: #9aa1a8;
-  --titlebar-rule: #c3c8cd;
+    0 32px 64px -20px rgba(0, 0, 0, 0.85), 0 8px 20px -8px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(0, 0, 0, 0.6);
+  --titlebar-front: #171c21;
+  --titlebar-back: #12161a;
+  --titlebar-front-ink: #e2e8ed;
+  --titlebar-back-ink: #6a747d;
+  --titlebar-rule: rgba(255, 255, 255, 0.07);
+
+  /* Panes that are chrome rather than paper: lists, sidebars, toolbars. */
+  --shell: #14181d;
+  --shell-alt: #191e24;
+  --shell-line: rgba(255, 255, 255, 0.07);
+  --shell-ink: #c2cbd3;
+  --shell-ink-dim: #78828b;
+  --shell-selected: rgba(91, 141, 184, 0.22);
 
   /* Documents */
   --hairline: #d5d9dd;
@@ -104,11 +121,22 @@
    * as an application rather than as a rendering of one. Mono is reserved: timestamps, hashes,
    * addresses, the console, and the labels that are machine output rather than prose.
    */
-  --font-os:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-display: var(--font-archivo), 'Archivo', system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
-  --font-terminal: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --font-os: var(--font-inter), -apple-system, 'SF Pro Text', system-ui, 'Segoe UI', sans-serif;
+  /*
+   * The product's own voice. Geist for both, because UNLISTED is a service and a service reads
+   * better in one family than in three. NOVA's typefaces are below and are the machine's, not
+   * the product's — the two are never mixed on one surface.
+   */
+  --font-display:
+    var(--font-inter), -apple-system, 'SF Pro Text', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /*
+   * One mono, everywhere machine output appears: the console, timestamps, hashes, addresses.
+   * Geist Mono rather than a period typewriter face — a present-day forensic tool sets its data
+   * in the same mono the rest of the industry does, and a costume typeface was the last thing on
+   * this machine still dressed as the product this repository used to be.
+   */
+  --font-terminal: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-web: var(--font-os);
 
   /* Layers */
@@ -118,6 +146,8 @@
   --z-board: 8500;
   --z-phone: 8700;
   --z-dock: 8800;
+  /* Above the dock and the phone: Quick Look covers the machine, not the menu bar. */
+  --z-quicklook: 8850;
   --z-menubar: 9000;
   --z-watched: 9500;
   --z-reportcard: 9700;

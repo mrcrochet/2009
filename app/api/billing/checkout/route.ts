@@ -14,11 +14,11 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'sign in first' }, { status: 401 })
 
   let planId = 'monthly'
-  let timelineId: string | null = null
+  let investigationId: string | null = null
   try {
-    const body = (await request.json()) as { plan?: string; timelineId?: string }
+    const body = (await request.json()) as { plan?: string; investigationId?: string }
     if (body.plan) planId = body.plan
-    if (body.timelineId) timelineId = body.timelineId
+    if (body.investigationId) investigationId = body.investigationId
   } catch {
     /* defaults are fine */
   }
@@ -35,10 +35,10 @@ export async function POST(request: Request) {
       line_items: [{ price: plan.priceId, quantity: 1 }],
       ...(customerId ? { customer: customerId } : { customer_email: user.email ?? undefined }),
       client_reference_id: user.id,
-      metadata: { userId: user.id, timelineId: timelineId ?? '' },
+      metadata: { userId: user.id, investigationId: investigationId ?? '' },
       subscription_data: { metadata: { userId: user.id } },
       success_url: `${siteUrl()}/billing/success?session_id={CHECKOUT_SESSION_ID}${
-        timelineId ? `&claim=${encodeURIComponent(timelineId)}` : ''
+        investigationId ? `&claim=${encodeURIComponent(investigationId)}` : ''
       }`,
       cancel_url: `${siteUrl()}/account?checkout=cancelled`,
       allow_promotion_codes: true,

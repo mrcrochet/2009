@@ -21,20 +21,25 @@ import { content, dispatch, fresh, run } from './helpers'
 const world = WorldSchema.parse({
   entities: [
     {
-      id: 'person.marc-deleon',
+      id: 'person.ada-lindqvist',
       type: 'person',
-      canonicalName: 'Marc Deleon',
-      aliases: ['Marc', 'Deleon', 'm.deleon', 'saabman81'],
+      canonicalName: 'Ada Lindqvist',
+      aliases: ['Ada', 'Lindqvist', 'a.lindqvist', 'saabman81'],
       metadata: { 'Last known address': '1822 SE 39th Ave' },
     },
     { id: 'vehicle.saab-900', type: 'vehicle', canonicalName: 'Black Saab 900', aliases: ['Saab'] },
-    { id: 'org.aion-group', type: 'organization', canonicalName: 'Aion Group', aliases: ['Aion'] },
+    {
+      id: 'org.halberd-trust',
+      type: 'organization',
+      canonicalName: 'Halberd Trust',
+      aliases: ['Halberd'],
+    },
   ],
   facts: [
     {
-      id: 'fact.marc-saab',
-      statement: 'Marc Deleon owns a black Saab 900.',
-      about: ['person.marc-deleon', 'vehicle.saab-900'],
+      id: 'fact.ada-saab',
+      statement: 'Ada Lindqvist owns a black Saab 900.',
+      about: ['person.ada-lindqvist', 'vehicle.saab-900'],
       register: 'ordinary',
     },
   ],
@@ -45,10 +50,10 @@ const world = WorldSchema.parse({
       date: '2008-11-03',
       title: 'need parts for the saab',
       body: 'the alternator went again. anyone know a yard that carries 900 parts',
-      source: 'Corvid Mail',
+      source: 'Mail',
       surface: 'mail',
-      mentions: ['person.marc-deleon', 'vehicle.saab-900'],
-      factId: 'fact.marc-saab',
+      mentions: ['person.ada-lindqvist', 'vehicle.saab-900'],
+      factId: 'fact.ada-saab',
     },
     {
       id: 'a.classified',
@@ -59,41 +64,41 @@ const world = WorldSchema.parse({
       source: 'tradepost.com/pdx/auto',
       surface: 'web',
       mentions: ['vehicle.saab-900'],
-      factId: 'fact.marc-saab',
+      factId: 'fact.ada-saab',
     },
     {
       id: 'a.bank-parts',
       type: 'transaction',
       date: '2008-11-07',
       title: 'PORTLAND AUTO PARTS',
-      source: 'Meridian Savings',
+      source: 'Cascade Savings',
       surface: 'device',
-      mentions: ['person.marc-deleon'],
+      mentions: ['person.ada-lindqvist'],
       amountCents: -21400,
-      factId: 'fact.marc-saab',
+      factId: 'fact.ada-saab',
     },
     {
       id: 'a.rumour',
       type: 'forumPost',
       date: '2008-12-01',
-      title: 'who is aion group anyway',
+      title: 'who is halberd trust anyway',
       body: 'somebody i drink with says he does settlements for them. no idea if that is true.',
       source: 'nullcache.org',
       surface: 'web',
-      mentions: ['org.aion-group'],
+      mentions: ['org.halberd-trust'],
     },
   ],
   relations: [
     {
-      from: 'person.marc-deleon',
+      from: 'person.ada-lindqvist',
       relation: 'owns',
       to: 'vehicle.saab-900',
       confidence: 'asserted',
     },
     {
-      from: 'person.marc-deleon',
+      from: 'person.ada-lindqvist',
       relation: 'employedBy',
-      to: 'org.aion-group',
+      to: 'org.halberd-trust',
       confidence: 'rumoured',
       // Nothing names them together. The rumour lives in one post, and that post is the only
       // reason the player ever hears it.
@@ -120,20 +125,20 @@ describe('the world is searchable', () => {
     const results = searchWorld(index, 'saab', { discovered: all })
     expect(results.hits.map((h) => h.id)).not.toContain('a.bank-parts')
 
-    const dossier = entityDossier(index, 'person.marc-deleon', all)!
+    const dossier = entityDossier(index, 'person.ada-lindqvist', all)!
     expect(Object.keys(dossier.known).sort()).toEqual(['device', 'mail'])
   })
 
   it('an entity outranks a mention of it', () => {
-    const results = searchWorld(index, 'marc deleon', { discovered: all })
+    const results = searchWorld(index, 'ada lindqvist', { discovered: all })
     expect(results.hits[0]?.kind).toBe('entity')
   })
 
   it('a handle reaches a person', () => {
     // The thing that makes a search feel like a world: you type what you found, not what you know.
-    expect(resolveAlias(index, 'saabman81')?.id).toBe('person.marc-deleon')
+    expect(resolveAlias(index, 'saabman81')?.id).toBe('person.ada-lindqvist')
     expect(searchWorld(index, 'saabman81', { discovered: all }).hits[0]?.id).toBe(
-      'person.marc-deleon',
+      'person.ada-lindqvist',
     )
   })
 
@@ -152,7 +157,7 @@ describe('the world is searchable', () => {
 
 describe('an entity page shows the gap', () => {
   it('counts what has not been found without listing it', () => {
-    const dossier = entityDossier(index, 'person.marc-deleon', new Set(['a.email-parts']))!
+    const dossier = entityDossier(index, 'person.ada-lindqvist', new Set(['a.email-parts']))!
     expect(dossier.knownCount).toBe(1)
     // Two more exist. The page says so and does not say where.
     expect(dossier.undiscoveredCount).toBe(1)
@@ -160,9 +165,9 @@ describe('an entity page shows the gap', () => {
   })
 
   it('keeps a rumour distinguishable from a fact', () => {
-    const dossier = entityDossier(index, 'person.marc-deleon', all)!
+    const dossier = entityDossier(index, 'person.ada-lindqvist', all)!
     const employment = dossier.relations.find((r) => r.relation.relation === 'employedBy')
-    // The whole Day 01 trap is a claim that Marc works for Aion. The graph must not assert it.
+    // The whole trap in Case 001 is a claim that Ada works for Halberd. The graph must not assert it.
     expect(employment?.relation.confidence).toBe('rumoured')
     expect(dossier.relations.find((r) => r.relation.relation === 'owns')?.relation.confidence).toBe(
       'asserted',
@@ -176,11 +181,7 @@ describe('an entity page shows the gap', () => {
 
 describe('one fact, many surfaces', () => {
   it('two of three is enough to act on', () => {
-    const partial = factCoverage(
-      index,
-      'fact.marc-saab',
-      new Set(['a.email-parts', 'a.bank-parts']),
-    )
+    const partial = factCoverage(index, 'fact.ada-saab', new Set(['a.email-parts', 'a.bank-parts']))
     expect(partial).toEqual({ found: 2, total: 3, conflicts: 0 })
   })
 
@@ -202,14 +203,10 @@ describe('one fact, many surfaces', () => {
     )
 
     // One trace of each: nothing to disagree with yet.
-    expect(factCoverage(disputed, 'fact.marc-saab', new Set(['a.email-parts'])).conflicts).toBe(0)
+    expect(factCoverage(disputed, 'fact.ada-saab', new Set(['a.email-parts'])).conflicts).toBe(0)
 
     // Both in hand, and they cannot both be true.
-    const both = factCoverage(
-      disputed,
-      'fact.marc-saab',
-      new Set(['a.email-parts', 'a.bank-parts']),
-    )
+    const both = factCoverage(disputed, 'fact.ada-saab', new Set(['a.email-parts', 'a.bank-parts']))
     expect(both).toEqual({ found: 2, total: 3, conflicts: 1 })
 
     // Declared in one direction, true in both.
@@ -238,11 +235,11 @@ describe('one fact, many surfaces', () => {
 })
 
 describe('the day is part of the world', () => {
-  const names = ['Marc', 'Aion', 'Rask', 'Lea', 'Meridian']
+  const names = ['Ada', 'Halberd', 'Vogt', 'Nils', 'Cascade']
   const resolve = (name: string) =>
     ({
-      Marc: 'person.marc-deleon',
-      Aion: 'org.aion-group',
+      Ada: 'person.ada-lindqvist',
+      Halberd: 'org.halberd-trust',
     })[name] ?? null
 
   it('projects Day 01 into the same graph the search reads', () => {
@@ -308,16 +305,16 @@ describe('the world as of a date', () => {
 
   it('takes a name away with its documents, rather than leaving it searchable and empty', () => {
     const early = worldAsOf(world, '2008-11-03')
-    // Aion is mentioned only by the December post, so on 3 November Aion is not a name yet.
-    expect(early.entities.map((e) => e.id)).not.toContain('org.aion-group')
-    expect(searchWorld(buildWorldIndex(early), 'aion').total).toBe(0)
+    // Halberd is mentioned only by the December post, so on 3 November Halberd is not a name yet.
+    expect(early.entities.map((e) => e.id)).not.toContain('org.halberd-trust')
+    expect(searchWorld(buildWorldIndex(early), 'halberd').total).toBe(0)
     // And the rumour that needed that post as its source goes with it.
     expect(early.relations.map((r) => r.relation)).not.toContain('employedBy')
   })
 
   it('keeps a fact only while something still carries it', () => {
     expect(worldAsOf(world, '2008-11-02').facts).toEqual([])
-    expect(worldAsOf(world, '2008-11-03').facts.map((f) => f.id)).toEqual(['fact.marc-saab'])
+    expect(worldAsOf(world, '2008-11-03').facts.map((f) => f.id)).toEqual(['fact.ada-saab'])
   })
 })
 
@@ -335,7 +332,7 @@ describe('an address leads somewhere', () => {
     const txn = index.world.artifacts.find((a) => a.id === 'a.bank-parts')!
     // Its source is a bank, but even a hostname-shaped one would not make it a web page.
     expect(artifactUrl(txn)).toBeNull()
-    expect(artifactUrl({ ...txn, url: 'meridiansavings.com/statement' })).toBeNull()
+    expect(artifactUrl({ ...txn, url: 'cascadesavings.com/statement' })).toBeNull()
   })
 
   it('reads a source that names a place rather than an address as no address at all', () => {
@@ -382,8 +379,8 @@ describe('an address leads somewhere', () => {
 })
 
 describe('reading something is finding it', () => {
-  const names = ['Marc', 'Aion']
-  const resolve = (name: string) => (name === 'Marc' ? 'person.marc-deleon' : 'org.aion-group')
+  const names = ['Ada', 'Halberd']
+  const resolve = (name: string) => (name === 'Ada' ? 'person.ada-lindqvist' : 'org.halberd-trust')
   const projected = new Set(projectCase(content, { resolve, names }).map((a) => a.id))
 
   /**
@@ -396,6 +393,8 @@ describe('reading something is finding it', () => {
       { type: 'MAIL_OPENED', mailId: content.mail[0]!.id },
       { type: 'FILE_OPENED', fileId: 'f2' },
       { type: 'APP_OPENED', app: 'devices' },
+      // The handset has to be opened before anything on it has been read.
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
       { type: 'PHONE_TOGGLED' },
       { type: 'PHONE_TAB_CHANGED', tab: 'photos' },
       { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
@@ -414,11 +413,25 @@ describe('reading something is finding it', () => {
       expect(state.discovered).not.toContain(projectedId.mail(content.id, other.id))
   })
 
+  it('reveals nothing off a handset nobody has opened', () => {
+    const state = run(fresh(), [
+      { type: 'PHONE_TOGGLED' },
+      { type: 'PHONE_TAB_CHANGED', tab: 'photos' },
+      { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
+    ])
+    expect(state.discovered.filter((id) => id.startsWith(`${content.id}.sms.`))).toHaveLength(0)
+    expect(state.discovered.filter((id) => id.startsWith(`${content.id}.photo.`))).toHaveLength(0)
+  })
+
   it('reveals the SMS thread only as far as it has been read', () => {
     const sms = (state: { discovered: readonly string[] }) =>
       state.discovered.filter((id) => id.startsWith(`${content.id}.sms.`))
 
-    let state = run(fresh(), [{ type: 'PHONE_TOGGLED' }, { type: 'PHONE_TAB_CHANGED', tab: 'sms' }])
+    let state = run(fresh(), [
+      { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
+      { type: 'PHONE_TOGGLED' },
+      { type: 'PHONE_TAB_CHANGED', tab: 'sms' },
+    ])
     expect(sms(state)).toHaveLength(1)
 
     state = dispatch(state, { type: 'SMS_ADVANCED' })
@@ -459,24 +472,24 @@ describe('a name is not a licence to know somebody', () => {
     // everyone in the world to a player who has met nobody. It is the most spoiling leak the
     // search can produce.
     const metNobody = new Set<string>()
-    expect(searchWorld(index, 'marc', { discovered: metNobody }).total).toBe(0)
-    expect(isEntityKnown(index, 'person.marc-deleon', metNobody)).toBe(false)
+    expect(searchWorld(index, 'ada', { discovered: metNobody }).total).toBe(0)
+    expect(isEntityKnown(index, 'person.ada-lindqvist', metNobody)).toBe(false)
   })
 
   it('somebody exists once one thing mentioning them has been found', () => {
     const seen = new Set(['a.email-parts'])
-    expect(isEntityKnown(index, 'person.marc-deleon', seen)).toBe(true)
-    expect(searchWorld(index, 'marc', { discovered: seen }).hits[0]?.kind).toBe('entity')
+    expect(isEntityKnown(index, 'person.ada-lindqvist', seen)).toBe(true)
+    expect(searchWorld(index, 'ada', { discovered: seen }).hits[0]?.kind).toBe('entity')
 
-    // Aion is mentioned by nothing that has been found, so Aion is still a stranger.
-    expect(isEntityKnown(index, 'org.aion-group', seen)).toBe(false)
+    // Halberd is mentioned by nothing that has been found, so Halberd is still a stranger.
+    expect(isEntityKnown(index, 'org.halberd-trust', seen)).toBe(false)
     expect(knownEntities(index, seen).map((e) => e.id)).toEqual([
-      'person.marc-deleon',
+      'person.ada-lindqvist',
       'vehicle.saab-900',
     ])
   })
 
   it('an unfiltered search still sees the whole world, for authoring', () => {
-    expect(searchWorld(index, 'aion').total).toBeGreaterThan(0)
+    expect(searchWorld(index, 'halberd').total).toBeGreaterThan(0)
   })
 })

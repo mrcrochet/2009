@@ -8,7 +8,7 @@ import {
 import type { RelayBlock, RelayResult, RelaySnapshot } from './types'
 
 /**
- * A page that exists only inside one timeline, shown among results that came off the real web.
+ * A page that exists only inside one investigation, shown among results that came off the real web.
  *
  * The mechanic is deliberate and good: in a game about whether documents are real, a result that
  * is not present in anyone else's baseline is the sharpest tool available. It is also the one
@@ -198,9 +198,9 @@ const PROPER_NOUN_RUN = /\b[A-Z][a-z]{1,}(?:\s+[A-Z][a-z]{1,})+\b/g
 /**
  * Replaces our own vocabulary with spaces, so the scanner only sees what is left over.
  *
- * Domains go first and aliases second, which is not cosmetic: masking the alias "Aion" before
+ * Domains go first and aliases second, which is not cosmetic: masking the alias "Marlow" before
  * the domain leaves `-group.com` behind, and the hostname rule then reports `group.com` as a
- * foreign host. Within each pass, longest first — masking "Aion" before "Aion Group" would strand
+ * foreign host. Within each pass, longest first — masking "Marlow" before "Marlow Foundation" would strand
  * a bare "Group".
  */
 function maskOurs(text: string): string {
@@ -219,7 +219,7 @@ function maskOurs(text: string): string {
  * Matches a name only as a whole token.
  *
  * Without the boundaries, masking hides real names inside longer ones: `@aiongroupreal` loses
- * its "aion" and stops looking like a handle, and `Aionics Ltd` becomes `ics Ltd`. `\b` is not
+ * its "marlow" and stops looking like a handle, and `Marlowe Ltd` becomes `e Ltd`. `\b` is not
  * enough because several aliases end in punctuation (`Rask, O.`, `m.deleon`), so this brackets
  * on alphanumerics directly.
  */
@@ -406,7 +406,7 @@ export type RelayFeedEntry =
   | { readonly kind: 'real'; readonly result: RelayResult }
   | { readonly kind: 'overlay'; readonly overlay: FictionalOverlay }
 
-/** Deterministic, so the same timeline sees the overlay in the same place on every replay. */
+/** Deterministic, so the same investigation sees the overlay in the same place on every replay. */
 function stablePosition(overlayId: string, span: number): number {
   let hash = 2166136261
   for (let i = 0; i < overlayId.length; i += 1) {

@@ -68,8 +68,8 @@ export function BillingActions({
   if (!configured) {
     return (
       <div className={styles.mono}>
-        Billing is not configured in this environment. The paywall boundary is live — Day 02 is
-        gated server-side — but no checkout can be started here.
+        Billing is not configured in this environment. The paywall boundary is live — a second case
+        is gated server-side — but no checkout can be started here.
       </div>
     )
   }

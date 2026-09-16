@@ -11,17 +11,16 @@ async function openApp(page: Page, label: string) {
 }
 
 test.describe('Case 001', () => {
-  test('plays from the landing to the paywall boundary', async ({ page }) => {
-    // --- landing ---------------------------------------------------------
+  test('plays from the front door to the paywall boundary', async ({ page }) => {
+    // --- home ------------------------------------------------------------
     await page.goto('/')
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('HE NEVER')
-    await expect(page.getByText('One evening at the workstation.')).toBeVisible()
-    await expect(page.getByText('CASE 24-118 · 17 JUN 2026 · PORTLAND, OR')).toBeVisible()
-    // The landing route ships no game surface at all.
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Good evening')
+    await expect(page.locator('.hero')).toContainText('He never came home')
+    // The front door ships no game surface at all.
     await expect(page.getByTestId('desktop')).toHaveCount(0)
 
     // --- open + boot -----------------------------------------------------
-    await page.getByRole('link', { name: 'OPEN THE CASE' }).click()
+    await page.getByRole('link', { name: /Resume workstation/ }).click()
     await expect(page.getByTestId('boot')).toBeVisible()
     await expect(page.getByTestId('boot')).toContainText('NOVA 3.2 (build 3.2.114)')
     await expect(page.getByTestId('boot')).toContainText('sources: 2 attached · 1 locked')
@@ -34,8 +33,8 @@ test.describe('Case 001', () => {
     // No SaaS shell anywhere in the playing surface. Anchored positively first, so this cannot
     // pass by virtue of nothing having rendered.
     const dockItems = page.getByRole('navigation', { name: 'Dock' }).getByRole('button')
-    // Eight applications this case ships, and the handset it supplies.
-    await expect(dockItems).toHaveCount(9)
+    // Nine applications this case ships, and the handset it supplies.
+    await expect(dockItems).toHaveCount(10)
     await expect(page.locator('.nova-desktop')).toBeVisible()
     // The tray is the only aside, and it stays collapsed until something is pinned.
     await expect(page.locator('aside')).toHaveCount(0)
@@ -211,18 +210,19 @@ test.describe('Case 001', () => {
     await phoneRow.getByRole('button', { name: 'OPEN' }).click()
     await expect(phoneRow).toHaveAttribute('data-unlocked', 'true')
 
-    // Give the debounced autosave time to land, then resume from the saved id.
+    // Give the debounced autosave time to land, then resume from the saved id — the same id the
+    // front door's held session resumes from.
     await page.waitForTimeout(1200)
-    await page.goto('/')
-    const resume = page.getByRole('button', { name: 'resume your investigation' })
-    await expect(resume).toBeVisible()
-    await resume.click()
+    const saved = await page.evaluate(() => localStorage.getItem('unlisted:last-investigation'))
+    expect(saved).toBeTruthy()
+    await page.goto(`/play/${saved}`)
 
     await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 15_000 })
     await openApp(page, 'Devices')
-    await expect(
-      page.locator('[data-app="devices"] [data-device="dev-phone"]'),
-    ).toHaveAttribute('data-unlocked', 'true')
+    await expect(page.locator('[data-app="devices"] [data-device="dev-phone"]')).toHaveAttribute(
+      'data-unlocked',
+      'true',
+    )
   })
 
   test('another case is gated server-side, without an account', async ({ page }) => {

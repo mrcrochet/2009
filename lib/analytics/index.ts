@@ -31,7 +31,7 @@ export function track<N extends AnalyticsEventName>(name: N, properties: Analyti
   queue.push({ name, properties: payload })
   if (queue.length > 200) queue.shift()
   if (process.env.NODE_ENV === 'development') {
-    console.debug('[2009:analytics]', name, payload)
+    console.debug('[unlisted:analytics]', name, payload)
   }
 }
 

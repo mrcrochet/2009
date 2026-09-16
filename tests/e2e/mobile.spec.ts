@@ -10,7 +10,7 @@ const win = (page: Page, app: string) => page.locator(`.nova-window[data-app="${
 const tray = (page: Page) => page.getByRole('complementary', { name: 'Pinned evidence' })
 const board = (page: Page) => page.getByRole('dialog', { name: 'Investigation board' })
 
-/** Straight to a guest timeline, then wait out the scripted opening. */
+/** Straight to a guest investigation, then wait out the scripted opening. */
 async function boot(page: Page) {
   await page.goto('/play')
   await expect(page.getByTestId('desktop')).toBeVisible({ timeout: 15_000 })

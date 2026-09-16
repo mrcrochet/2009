@@ -11,6 +11,10 @@ import { SurveillanceOverlay } from '@/components/game/SurveillanceOverlay'
 import { DevicesApp } from '@/components/game/apps/DevicesApp'
 import { EvidenceTray } from '@/components/game/EvidenceTray'
 import { Dock } from '@/components/game/Dock'
+import { FilesApp } from '@/components/game/apps/FilesApp'
+import { PhotosApp } from '@/components/game/apps/PhotosApp'
+import { PhoneOverlay } from '@/components/game/PhoneOverlay'
+import { QuickLook } from '@/components/game/QuickLook'
 import { createGameStore, type GameStoreApi } from '@/state/store'
 import type { EventInput } from '@/engine/events'
 import { content, fresh } from './helpers'
@@ -135,13 +139,14 @@ describe('the browser is the computer', () => {
       'Dispatch',
       'Orbit',
       'Files',
+      'Photos',
       'Devices',
       'Notes',
       'Console',
       'Directory',
       'NOVA M12',
     ])
-    for (const forbidden of ['Business', 'Timeline', 'Dashboard', 'Settings', 'Computer']) {
+    for (const forbidden of ['Business', 'Investigation', 'Dashboard', 'Settings', 'Computer']) {
       expect(labels).not.toContain(forbidden)
     }
     // Icons are hand-drawn SVG, never emoji.
@@ -259,5 +264,166 @@ describe('accessibility', () => {
     expect(within(phone).getByLabelText('Passcode')).toBeInTheDocument()
     // Disabled until there is something to submit, and honest about being a button.
     expect(within(phone).getByRole('button', { name: 'OPEN' })).toBeDisabled()
+  })
+})
+
+const OPEN_THE_PHONE: readonly EventInput[] = [
+  { type: 'DEVICE_UNLOCK_ATTEMPTED', deviceId: 'dev-phone', key: '190455' },
+]
+
+/**
+ * The reader, and the three shapes a document can arrive in that a block of monospace text
+ * cannot. These assert the *structure* — a table is a table, a recording has a transport — not
+ * the styling, which is the only half of "character" a test can hold on to.
+ */
+describe('documents look like what they are', () => {
+  it('renders a spreadsheet as a table with the rows the case wrote', async () => {
+    const user = userEvent.setup()
+    mount(<FilesApp />)
+    await user.click(screen.getByRole('option', { name: /grant-disbursements-2013\.csv/ }))
+
+    const table = screen.getByRole('table')
+    // Eleven disbursements plus the header row.
+    expect(within(table).getAllByRole('row')).toHaveLength(13)
+    expect(within(table).getByRole('columnheader', { name: 'amount' })).toBeInTheDocument()
+    expect(within(table).getByText('412,000')).toBeInTheDocument()
+  })
+
+  /** The most human thing in the file was being rendered as one more line of CSV. */
+  it('keeps the comment somebody left in a cell', async () => {
+    const user = userEvent.setup()
+    mount(<FilesApp />)
+    await user.click(screen.getByRole('option', { name: /grant-disbursements-2013\.csv/ }))
+    expect(screen.getByText('D1')).toBeInTheDocument()
+    expect(screen.getByText(/asked three people/)).toBeInTheDocument()
+  })
+
+  it('gives a recording a transport, and a transcript that is legible without it', async () => {
+    const user = userEvent.setup()
+    mount(<FilesApp />)
+    await user.click(screen.getByRole('option', { name: /voicemail-0610\.m4a/ }))
+
+    // Nothing has been played, and every word is already on the screen.
+    expect(screen.getByText('I am not going to keep doing this by message.')).toBeInTheDocument()
+    expect(screen.getByRole('slider', { name: /position in the recording/i })).toHaveValue('0')
+
+    const play = screen.getByRole('button', { name: /play the recording/i })
+    await user.click(play)
+    expect(screen.getByRole('button', { name: /pause the recording/i })).toBeInTheDocument()
+  })
+
+  it('seeks to a line when the line is clicked', async () => {
+    const user = userEvent.setup()
+    mount(<FilesApp />)
+    await user.click(screen.getByRole('option', { name: /voicemail-0610\.m4a/ }))
+
+    await user.click(screen.getByRole('button', { name: /I am not going to keep doing this/ }))
+    const cue = screen.getByRole('button', { name: /I am not going to keep doing this/ })
+    expect(cue).toHaveAttribute('aria-current', 'true')
+    // Not colour alone: the current line is marked in the accessibility tree too.
+    expect(screen.getByRole('slider', { name: /position in the recording/i })).toHaveValue('3.4')
+  })
+
+  it('does not preview what is inside a sealed file', async () => {
+    const user = userEvent.setup()
+    mount(<FilesApp />)
+    await user.click(screen.getByRole('option', { name: /marlow-2013\.enc/ }))
+    expect(screen.getByText(/This file is encrypted/)).toBeInTheDocument()
+    expect(screen.queryByText(/4,118,204/)).toBeNull()
+  })
+})
+
+describe('the photo viewer', () => {
+  it('says nothing has been extracted while the source is shut', () => {
+    mount(<PhotosApp />)
+    expect(screen.getByText(/Nothing has been extracted/)).toBeInTheDocument()
+    expect(screen.queryByRole('listbox')).toBeNull()
+  })
+
+  it('shows the contact sheet and what the extraction found', () => {
+    mount(<PhotosApp />, OPEN_THE_PHONE)
+    expect(screen.getAllByRole('option')).toHaveLength(3)
+    expect(screen.getByText("Daniel's NOVA M12")).toBeInTheDocument()
+    expect(screen.getByText(/No GPS block/)).toBeInTheDocument()
+  })
+
+  /**
+   * A `role="listbox"` promises arrow keys. Claiming the role without them is worse than using
+   * no role at all, so the contract is asserted rather than assumed.
+   */
+  it('is a listbox that can actually be worked with the arrow keys', async () => {
+    const user = userEvent.setup()
+    const { api } = mount(<PhotosApp />, OPEN_THE_PHONE)
+
+    const tiles = screen.getAllByRole('option')
+    tiles[0]!.focus()
+    await user.keyboard('{ArrowRight}')
+    await waitFor(() => expect(api.getState().investigation.media.openPhotoId).toBe('p2'))
+    // Selection and focus travel together, which is the whole contract.
+    await waitFor(() => expect(document.activeElement).toBe(screen.getAllByRole('option')[1]))
+
+    await user.keyboard('{End}')
+    await waitFor(() => expect(api.getState().investigation.media.openPhotoId).toBe('p3'))
+  })
+})
+
+describe('quick look', () => {
+  it('holds a document up on Space and puts it down on Escape', async () => {
+    const user = userEvent.setup()
+    const { api } = mount(
+      <>
+        <FilesApp />
+        <QuickLook />
+      </>,
+    )
+
+    const row = screen.getByRole('option', { name: /receipt-fremont-0609\.pdf/ })
+    row.focus()
+    await user.keyboard(' ')
+
+    const dialog = await screen.findByRole('dialog', { name: /receipt-fremont-0609/ })
+    expect(dialog).toHaveAttribute('aria-modal', 'true')
+    // Focus is state: it moves into the overlay rather than being merely announced.
+    await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true))
+
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(api.getState().investigation.ui.quickLook).toBeNull()
+  })
+
+  it('shows the same document the reader shows, not a reduced copy of it', async () => {
+    const user = userEvent.setup()
+    mount(
+      <>
+        <FilesApp />
+        <QuickLook />
+      </>,
+    )
+    const row = screen.getByRole('option', { name: /grant-disbursements-2013\.csv/ })
+    row.focus()
+    await user.keyboard(' ')
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('table')).toBeInTheDocument()
+    expect(within(dialog).getByText('D1')).toBeInTheDocument()
+  })
+})
+
+describe('the handset on the desk', () => {
+  /**
+   * The passcode the case hides, and the beat that fires on finding it, were decoration: the
+   * overlay showed the thread, the roll and the contacts whatever the device said.
+   */
+  it('shows a lock screen until somebody opens it', () => {
+    mount(<PhoneOverlay />, [{ type: 'PHONE_TOGGLED' }])
+    expect(screen.getByText('Locked')).toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).toBeNull()
+    expect(screen.queryByText(/im already here/)).toBeNull()
+  })
+
+  it('is the handset once it is open', () => {
+    mount(<PhoneOverlay />, [...OPEN_THE_PHONE, { type: 'PHONE_TOGGLED' }])
+    expect(screen.getByRole('tablist', { name: 'Phone' })).toBeInTheDocument()
+    expect(screen.queryByText('Locked')).toBeNull()
   })
 })

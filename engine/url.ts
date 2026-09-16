@@ -8,7 +8,7 @@
  */
 
 /**
- * What a 2009 address bar forgave: a scheme, a `www.`, a trailing slash, stray case in the host.
+ * What an address bar forgives: a scheme, a `www.`, a trailing slash, stray case in the host.
  * The query string is left exactly as typed so percent-encoding survives.
  */
 export function normalizeUrl(raw: string): string {
@@ -20,8 +20,8 @@ export function normalizeUrl(raw: string): string {
   const rest = cut === -1 ? '' : url.slice(cut)
 
   // Only the host is case-insensitive. Lowercasing the path too would make
-  // `geohost.com/Terminal/4417` a different page from the one that was authored — and on a real
-  // 2009 server it was a different page.
+  // `example.com/Terminal/4417` a different page from the one that was authored — and on a real
+  // server it was a different page.
   const slash = path.indexOf('/')
   const host = (slash === -1 ? path : path.slice(0, slash)).toLowerCase()
   const rest0 = slash === -1 ? '' : path.slice(slash)

@@ -7,8 +7,8 @@ import styles from './shell.module.css'
 
 /**
  * The route-level fault page. Deliberately *not* in character — a crash is not something NOVA
- * did, and dressing a real failure up as fiction would leave the player unsure whether their
- * timeline is safe. It says so plainly instead.
+ * did, and dressing a real failure up as fiction would leave the player unsure whether the work
+ * they have done is safe. It says so plainly instead.
  */
 export default function RouteError({
   error,
@@ -24,11 +24,11 @@ export default function RouteError({
   return (
     <main className={styles.root}>
       <div className={styles.inner}>
-        <div className={styles.eyebrow}>2009 · fault</div>
+        <div className={styles.eyebrow}>unlisted · fault</div>
         <h1 className={styles.title}>This page stopped.</h1>
         <p className={styles.body}>
-          Your timeline is saved in this browser and was not affected. Try again, and if it keeps
-          happening the reference below will tell us where to look.
+          Your investigation is saved in this browser and was not affected. Try again, and if it
+          keeps happening the reference below will tell us where to look.
         </p>
         <div className={styles.row}>
           <button type="button" className="nova-cta" onClick={reset}>

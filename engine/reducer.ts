@@ -1,6 +1,14 @@
 import type { CaseContent } from './case-schema'
 import { clockString } from './clock'
-import { cascadePosition, clampPhone, clampWindow, evaluateClaim, searchIndex } from './rules'
+import {
+  cascadePosition,
+  clampPhone,
+  clampWindow,
+  evaluateClaim,
+  phoneDeviceId,
+  photoAvailable,
+  searchIndex,
+} from './rules'
 import { findPage } from './pages'
 import { normalizeUrl } from './url'
 import { projectedId } from './world/project'
@@ -71,6 +79,27 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
     case 'FILE_OPENED':
       return [projectedId.file(kase, event.fileId)]
 
+    case 'PHOTO_SELECTED':
+      return [projectedId.photo(kase, event.photoId)]
+
+    // Held up long enough to read is read. The overlay shows the whole document, not a thumbnail.
+    case 'QUICK_LOOK_OPENED':
+      return [
+        event.ref.kind === 'file'
+          ? projectedId.file(kase, event.ref.id)
+          : projectedId.photo(kase, event.ref.id),
+      ]
+
+    /**
+     * Opening the viewer is opening a contact sheet: every frame on it has been seen, and the
+     * ones off a source nobody has unlocked are not on it to be seen.
+     */
+    case 'APP_OPENED':
+      if (event.app !== 'photos') return []
+      return content.photos
+        .filter((photo) => photoAvailable(photo, next.devices))
+        .map((photo) => projectedId.photo(kase, photo.id))
+
     case 'BROWSER_NAVIGATED':
     case 'BROWSER_WENT_BACK':
     case 'BROWSER_WENT_FORWARD': {
@@ -92,8 +121,14 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
       // A case may supply no phone at all, and then there is nothing to have looked at.
       const phone = content.phone
       if (!phone || !next.phone.open) return []
+      // A handset nobody has opened shows a lock screen, and a lock screen is not a document.
+      const handset = phoneDeviceId(content)
+      if (handset && !next.devices[handset]?.unlocked) return []
       if (next.phone.tab === 'photos')
-        return phone.photos.map((photo) => projectedId.photo(kase, photo.id))
+        // The roll on this handset, not every picture the case holds.
+        return content.photos
+          .filter((photo) => photo.sourceId !== null && photoAvailable(photo, next.devices))
+          .map((photo) => projectedId.photo(kase, photo.id))
       if (next.phone.tab === 'sms')
         // Only as far down the thread as the player has actually scrolled.
         return phone.sms.slice(0, next.phone.smsStep + 1).map((sms) => projectedId.sms(kase, sms.time))
@@ -496,6 +531,39 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return withBeat(opened, doc.beat as BeatId | null)
     }
 
+    /**
+     * The viewer moves to a frame. A picture off a source this machine has not opened is not
+     * selectable, for the same reason it is not on the grid.
+     */
+    case 'PHOTO_SELECTED': {
+      const photo = content.photos.find((p) => p.id === event.photoId)
+      if (!photo || !photoAvailable(photo, state.devices)) return state
+      if (state.media.openPhotoId === event.photoId) return state
+      return { ...state, media: { openPhotoId: event.photoId } }
+    }
+
+    /**
+     * Quick Look. It refuses a reference to something this case does not hold, or to a picture
+     * off a locked source — the overlay is a second way to read a document, never a way around
+     * the rule about which documents exist.
+     */
+    case 'QUICK_LOOK_OPENED': {
+      const { kind, id } = event.ref
+      if (kind === 'file') {
+        if (!content.files.some((f) => f.id === id)) return state
+      } else {
+        const photo = content.photos.find((p) => p.id === id)
+        if (!photo || !photoAvailable(photo, state.devices)) return state
+      }
+      const held = state.ui.quickLook
+      if (held && held.kind === kind && held.id === id) return state
+      return { ...state, ui: { ...state.ui, quickLook: { kind, id } } }
+    }
+
+    case 'QUICK_LOOK_CLOSED':
+      if (!state.ui.quickLook) return state
+      return { ...state, ui: { ...state.ui, quickLook: null } }
+
     // --- terminal ----------------------------------------------------------
     case 'TERMINAL_INPUT_CHANGED':
       return { ...state, terminal: { ...state.terminal, input: event.value } }
@@ -627,7 +695,6 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     }
 
     // --- the report --------------------------------------------------------
-    // --- day end -----------------------------------------------------------
     case 'REPORT_FILED': {
       if (state.stage === 'report') return state
       return {
@@ -636,7 +703,14 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
         minute: content.sessionMinutes,
         windows: [],
         phone: { ...state.phone, open: false },
-        ui: { trayOpen: false, boardOpen: false, watched: true, reportCard: false, relayOpen: false },
+        ui: {
+          trayOpen: false,
+          boardOpen: false,
+          watched: true,
+          reportCard: false,
+          relayOpen: false,
+          quickLook: null,
+        },
         mail: { ...state.mail, unknownArrived: true, openId: content.unknownMail.id },
       }
     }

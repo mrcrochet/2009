@@ -3,7 +3,7 @@
  * import, so the marketing landing can offer "resume" without pulling the storage layer into a
  * route that never opens a database.
  */
-const LAST_KEY = 'two009:last-investigation'
+const LAST_KEY = 'unlisted:last-investigation'
 
 export function lastInvestigationId(): string | null {
   if (typeof window === 'undefined') return null

@@ -1,21 +1,20 @@
 /**
  * The registry of what belongs to us.
  *
- * The Way Up Machine shows the player the real web. A designed mechanic lets our fiction place
- * an invented result among the real ones — a page that exists only in this timeline. That is a
- * good beat in a game about whether documents are real, and it is also the most dangerous thing
- * in the product: done carelessly it fabricates statements about real people and real companies
- * and hands them to a player as something retrieved from the live internet.
+ * The relay shows the player the real web. A designed mechanic lets our fiction place an invented
+ * result among the real ones — a page that exists only in this investigation. That is a good beat
+ * in a game about whether documents are real, and it is also the most dangerous thing in the
+ * product: done carelessly it fabricates statements about real people and real companies and
+ * hands them to a player as something retrieved from the live internet.
  *
  * So an overlay may only ever concern an entity listed here. This file is the allowlist, and
  * `overlay.ts` is the thing that refuses anything else. Editorial care will not hold that line
- * across thirty days and several authors; a failing test will.
+ * across a case library and several authors; a failing test will.
  *
- * Note what is deliberately *absent*. The authored 2009 web mentions Apple, Amazon, Google,
- * Microsoft, Netflix, Bitcoin, Sony, the Dow, Portland and the metzdowd mailing list. All of
- * that is correct for the historical layer — the player is in 2009 and 2009 contained those
- * things. None of it may appear in an overlay, because an overlay is us inventing a document and
- * showing it to the player as if the network returned it.
+ * Note what is deliberately *absent*. A case's authored web may mention a real city, a real
+ * transit agency or a real public records office, because the corpus is set in a real place and
+ * saying so is not a claim about anybody. None of it may appear in an overlay, because an overlay
+ * is us inventing a document and showing it to the player as if the network returned it.
  */
 
 /** How much a name is ours, which decides how much invention it can carry. */
@@ -33,102 +32,82 @@ export interface UniverseEntity {
 }
 
 /**
- * Everything invented for 2009. Aliases are matched case-insensitively and are what stops the
+ * Everything invented for UNLISTED. Aliases are matched case-insensitively and are what stops the
  * proper-noun scanner in `overlay.ts` from flagging our own vocabulary.
  */
 export const UNIVERSE: readonly UniverseEntity[] = [
   {
-    id: 'aion',
+    id: 'ridgeline',
     provenance: 'invented',
-    aliases: ['Aion Group', 'Aion Group LLC', 'Aion', 'AION GROUP', 'Settlements'],
-    domains: ['aion-group.com'],
+    aliases: ['Ridgeline Partners', 'Ridgeline Partners LLC', 'Ridgeline'],
+    domains: ['ridgelinepartners.com'],
   },
   {
-    id: 'meridian',
+    id: 'marlow',
     provenance: 'invented',
-    aliases: [
-      'Meridian Savings & Loan',
-      'Meridian Savings and Loan',
-      'Meridian Savings',
-      'Meridian Wireless',
-      'Meridian',
-    ],
-    domains: ['meridiansavings.com'],
+    aliases: ['The Marlow Foundation', 'Marlow Foundation', 'Marlow'],
+    domains: ['marlowfoundation.org'],
   },
   {
-    id: 'corvid',
+    id: 'fremont-parking',
     provenance: 'invented',
-    aliases: ['Corvid Inc', 'Corvid Mail', 'Corvid Directory', 'Corvid'],
-    domains: ['corvid.com'],
+    aliases: ['Fremont Street Parking', 'Fremont Street', 'Fremont lot'],
+    domains: ['fremontparking.com'],
   },
   {
-    id: 'cluster',
+    id: 'cascade-mobile',
     provenance: 'invented',
-    aliases: ['Cluster'],
-    domains: ['cluster.com'],
+    aliases: ['Cascade Mobile', 'CASCADE MOBILE'],
+    domains: ['cascademobile.com'],
   },
   {
-    id: 'tradepost',
+    id: 'hollow-coast',
     provenance: 'invented',
-    aliases: ['TradePost'],
-    domains: ['tradepost.com'],
-  },
-  {
-    id: 'namewell',
-    provenance: 'invented',
-    aliases: ['Namewell', 'NAMEWELL'],
-    domains: ['namewell.com'],
-  },
-  {
-    id: 'nullcache',
-    provenance: 'invented',
-    aliases: ['nullcache'],
-    domains: ['nullcache.org'],
-  },
-  {
-    id: 'columbia-register',
-    provenance: 'invented',
-    aliases: ['The Columbia Register', 'Columbia Register'],
-    domains: ['columbia-register.com'],
+    aliases: ['The Hollow Coast', 'Hollow Coast'],
+    domains: [],
   },
   {
     id: 'nova',
     provenance: 'invented',
-    // The OS, and the vocabulary its own screens print. Registered so the scanner does not flag
-    // the game's own chrome as a foreign proper noun.
-    aliases: ['NOVA', 'the workstation', 'Orbit', 'Way Up Machine', 'Way Up'],
-    domains: [],
-  },
-  {
-    id: 'geohost',
-    provenance: 'invented',
-    aliases: ['GeoHost', 'Quiet Line', 'QUIET LINE'],
-    domains: ['geohost.com'],
-  },
-  {
-    id: 'ember',
-    provenance: 'invented',
-    aliases: ['Ember Messenger', 'Ember'],
-    domains: [],
-  },
-  {
-    id: 'nokora',
-    provenance: 'invented',
-    aliases: ['Nokora', 'NOKORA N90', 'Nokora N90'],
-    domains: [],
-  },
-  {
-    id: 'quoteline',
-    provenance: 'invented',
-    aliases: ['Quoteline', 'QUOTELINE'],
-    domains: [],
+    // The workstation, its maker, and the vocabulary its own screens print. Registered so the
+    // scanner does not flag the game's own chrome as a foreign proper noun.
+    aliases: [
+      'UNLISTED',
+      'NOVA Systems',
+      'NOVA',
+      'NOVA M12',
+      'the workstation',
+      'Relay Mail',
+      'Dispatch',
+      'Orbit',
+      'the relay',
+    ],
+    domains: ['nova-systems.com'],
   },
   {
     id: 'cast',
     provenance: 'invented',
     // The people of the fiction. Named here so a page about one of them is allowed, and so the
     // scanner does not mistake them for real people.
-    aliases: ['Owen T. Rask', 'Owen Rask', 'Rask', 'Marc Deleon', 'Deleon', 'Lea Voss', 'Voss'],
+    aliases: [
+      'Daniel James Mercer',
+      'Daniel Mercer',
+      'Claire Mercer',
+      'Richard A. Vale',
+      'Richard Vale',
+      'Nadia Okafor',
+      'Amara Whitfield',
+      'Joel Reyes',
+      'Alice Marlow',
+      'Peter Brandt',
+      'Sofia Ellery',
+      'Marguerite Hoy',
+      'Mercer',
+      'Okafor',
+      'Whitfield',
+      'Vale',
+      'Reyes',
+    ],
     domains: [],
   },
 ]
@@ -147,7 +126,8 @@ export const OWNED_DOMAINS: ReadonlySet<string> = new Set(
 /**
  * Every alias, longest first.
  *
- * Order matters: masking "Aion" before "Aion Group" would leave a stray " Group" behind and the
+ * Order matters: masking "Marlow" before "Marlow Foundation" would leave a stray " Foundation"
+ * behind and the
  * proper-noun scanner would then have a fragment to complain about.
  */
 export const ALL_ALIASES: readonly string[] = UNIVERSE.flatMap((entity) => entity.aliases).sort(
@@ -155,15 +135,32 @@ export const ALL_ALIASES: readonly string[] = UNIVERSE.flatMap((entity) => entit
 )
 
 /**
- * Real-world names an author is most likely to reach for, because the authored 2009 content is
+ * Real-world names an author is most likely to reach for, because the authored content is
  * full of them.
  *
  * This is not a model of the real world and cannot be — it is a tripwire under the specific
  * mistake of copying a line out of `content/day01/` into an overlay. Matched case-insensitively
  * on a word boundary, so `REUTERS` and `Reuters` both trip it.
  */
+/**
+ * Real-world names an author is most likely to reach for, because the corpus is set in a real
+ * city and is full of them.
+ *
+ * This is not a model of the real world and cannot be — it is a tripwire under the specific
+ * mistake of copying a line out of `content/` into an overlay. Matched case-insensitively on a
+ * word boundary, so `REUTERS` and `Reuters` both trip it.
+ */
 export const REAL_ENTITY_DENYLIST: readonly string[] = [
-  // In the authored 2009 web, and therefore within copy-paste reach.
+  // Real institutions the authored corpus stands next to, and therefore within copy-paste reach.
+  'KGW',
+  'TriMet',
+  'Multnomah',
+  'Portland General',
+  'Portland Public Schools',
+  'Doug Fir',
+  'Secretary of State',
+  'Department of Justice',
+  // Common enough in tech and news writing to be worth naming.
   'Apple',
   'Amazon',
   'Google',
@@ -176,13 +173,6 @@ export const REAL_ENTITY_DENYLIST: readonly string[] = [
   'YouTube',
   'Sony',
   'Dow Jones',
-  'Obama',
-  'Ace Hotel',
-  'metzdowd',
-  'FDIC',
-  'Steelers',
-  'Cardinals',
-  // Common enough in tech writing to be worth naming.
   'Nvidia',
   'OpenAI',
   'Anthropic',
@@ -194,7 +184,6 @@ export const REAL_ENTITY_DENYLIST: readonly string[] = [
   'Vercel',
   'Firecrawl',
   'Yahoo',
-  'GeoCities',
   'Craigslist',
   'eBay',
   'Meta',

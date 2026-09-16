@@ -7,18 +7,18 @@ import { fromStored, toStored, type StoredInvestigation } from './types'
 
 /**
  * Local persistence is best-effort by design: a private window with IndexedDB disabled must
- * still be able to play Day 01 from start to finish.
+ * still be able to play Case 001 from start to finish.
  */
 
 export async function saveInvestigation(state: InvestigationState): Promise<boolean> {
   const db = await getDb()
   if (!db) return false
   try {
-    await db.timelines.put(toStored(state))
+    await db.investigations.put(toStored(state))
     rememberInvestigationId(state.id)
     return true
   } catch (error) {
-    reportError(error, { scope: 'persistence.save', timelineId: state.id })
+    reportError(error, { scope: 'persistence.save', investigationId: state.id })
     return false
   }
 }
@@ -27,7 +27,7 @@ export async function loadInvestigation(id: string): Promise<InvestigationState 
   const db = await getDb()
   if (!db) return null
   try {
-    const raw = await db.timelines.get(id)
+    const raw = await db.investigations.get(id)
     if (!raw) return null
     return fromStored(migrateStored(raw))
   } catch (error) {
@@ -35,7 +35,7 @@ export async function loadInvestigation(id: string): Promise<InvestigationState 
       await quarantine(id, error)
       return null
     }
-    reportError(error, { scope: 'persistence.load', timelineId: id })
+    reportError(error, { scope: 'persistence.load', investigationId: id })
     return null
   }
 }
@@ -44,7 +44,7 @@ export async function listInvestigations(): Promise<StoredInvestigation[]> {
   const db = await getDb()
   if (!db) return []
   try {
-    const rows = await db.timelines.orderBy('updatedAt').reverse().toArray()
+    const rows = await db.investigations.orderBy('updatedAt').reverse().toArray()
     return rows.flatMap((row) => {
       try {
         return [migrateStored(row)]
@@ -62,9 +62,9 @@ export async function deleteInvestigation(id: string): Promise<void> {
   const db = await getDb()
   if (!db) return
   try {
-    await db.timelines.delete(id)
+    await db.investigations.delete(id)
   } catch (error) {
-    reportError(error, { scope: 'persistence.delete', timelineId: id })
+    reportError(error, { scope: 'persistence.delete', investigationId: id })
   }
 }
 
@@ -72,14 +72,14 @@ async function quarantine(id: string, error: MigrationError): Promise<void> {
   const db = await getDb()
   if (!db) return
   try {
-    const raw = await db.timelines.get(id)
+    const raw = await db.investigations.get(id)
     await db.quarantine.put({
       id,
       raw: JSON.stringify(raw ?? null),
       reason: error.message,
       at: new Date().toISOString(),
     })
-    await db.timelines.delete(id)
+    await db.investigations.delete(id)
   } catch {
     /* quarantining is a courtesy, not a requirement */
   }
