@@ -36,7 +36,7 @@ export function contentHashOf(
 /**
  * The id folds in the content hash on purpose.
  *
- * Capturing an unchanged page twice yields the same id, so a timeline that reads the same
+ * Capturing an unchanged page twice yields the same id, so an investigation that reads the same
  * article twice holds one snapshot. A page that has changed yields a different id, which is the
  * whole temporal-checksum mechanic obtained for free rather than bolted on.
  */
@@ -125,7 +125,7 @@ export function snapshotFrom(document: RelayDocument, provider: string): RelaySn
 /**
  * A per-process memo, so opening the same page twice in one session costs one outbound request.
  *
- * Deliberately not the durable store: persistence belongs to the timeline (IndexedDB for guests,
+ * Deliberately not the durable store: persistence belongs to the investigation (IndexedDB for guests,
  * Supabase for accounts), because a snapshot is part of a save, not part of a server's cache.
  * This only stops the obvious duplicate.
  */

@@ -4,7 +4,7 @@ import { useCallback, useSyncExternalStore } from 'react'
 import { isMuted, setMuted, subscribeMuted } from '@/lib/audio'
 
 /**
- * The speaker in the menu bar. A 2009 machine put its volume there, and so does this one — it is
+ * The speaker in the menu bar. A workstation puts its volume there, and so does this one — it is
  * the only place a player would think to look, which is what makes it diegetic rather than a
  * settings panel bolted onto a game.
  */

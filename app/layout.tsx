@@ -28,13 +28,13 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: '2009',
+  title: 'UNLISTED',
   description:
-    'You wake up on 15 January 2009 with $437.82, a name that is not yours, and everything you remember from the future.',
+    'A man has been missing eight days and the police are not looking. You get a laptop image, a locked handset, and one evening at the workstation. Case 001 is free and needs no account.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   openGraph: {
-    title: '2009',
-    description: 'An interactive record. 30 days. $10,000. One timeline.',
+    title: 'UNLISTED — Case 001',
+    description: 'He never came home. The police are not looking. Where do you look first?',
     type: 'website',
   },
 }

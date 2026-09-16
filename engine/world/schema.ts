@@ -4,7 +4,7 @@ import { z } from 'zod'
  * The world graph: everything that exists, independently of the day a player meets it.
  *
  * **This is content, not a database.** The instinct to put it in Postgres is understandable and
- * wrong for two reasons the repo has already paid for: Day 01 is playable with no account and no
+ * wrong for two reasons the repo has already paid for: Case 001 is playable with no account and no
  * network, and a world that lives in rows has no offline existence; and the engine is pure and
  * replayable, which a world that changes because someone updated a row is not. Supabase stores
  * what a *timeline* did with the world — what it visited, pinned, discovered — never the world.
@@ -68,7 +68,7 @@ export const WorldArtifactSchema = z.object({
    * ISO date, or a date-time when the hour matters — which for an alibi it usually does.
    *
    * The shape is enforced because artifacts are ordered with `localeCompare`, and a single
-   * `14/01/2009` among the ISO dates sorts to the wrong decade without anything failing. What
+   * `14/01/2026` among the ISO dates sorts to the wrong decade without anything failing. What
    * the player sees is never this string: `displayDate` renders it in the machine's own format.
    */
   date: z

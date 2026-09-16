@@ -18,11 +18,11 @@ accusation about a real person that was never established.
 
 ## Three layers of truth
 
-| Layer                     | What it is                                                                                                       | What it may do                                                                                                                                                             |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Historical Web**        | The web that really existed: services, archives, cultural events, the first Bitcoin posts, the free hosts dying. | State facts, with a citation. Never recast a real person as a character in a conspiracy.                                                                                   |
-| **Fictional Shadow Web**  | Aion, Meridian, Corvid, GeoHost, nullcache, the Quiet Line — everything we invented.                             | Anything. This is where borrowed _shapes_ get rebuilt from scratch with our own names, documents and causalities.                                                          |
-| **Way Up / Temporal Web** | The real present-day internet, captured as immutable snapshots, plus the anomalies belonging to a timeline.      | A real source is never altered to make it say something false. Fictional material stays structurally separate in the data model even while it is mysterious to the player. |
+| Layer                    | What it is                                                                                                        | What it may do                                                                                                                                                             |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Historical Web**       | The web that really existed: services, archives, cultural events, the first Bitcoin posts, the free hosts dying.  | State facts, with a citation. Never recast a real person as a character in a conspiracy.                                                                                   |
+| **Fictional Shadow Web** | Aion, Meridian, Corvid, GeoHost, nullcache, the Quiet Line — everything we invented.                              | Anything. This is where borrowed _shapes_ get rebuilt from scratch with our own names, documents and causalities.                                                          |
+| **The relay**            | The real present-day internet, captured as immutable snapshots, plus the anomalies belonging to an investigation. | A real source is never altered to make it say something false. Fictional material stays structurally separate in the data model even while it is mysterious to the player. |
 
 Roughly 70% of the season should be wholly original, 20% contextualised historical web
 archaeology, and 10% documentary reference. That ratio is what gives the world the texture of
@@ -48,9 +48,9 @@ rule are not advice here; they fail `npm run test`:
 
 ## Notation
 
-`timelineDependency` — how far the content bends to what the player did.
+`investigationDependency` — how far the content bends to what the player did.
 
-`T0` static · `T1` small variants · `T2` conditioned on divergence · `T3` depends on Way Up
+`T0` static · `T1` small variants · `T2` conditioned on divergence · `T3` depends on the relay
 observations or contradictions between them · `T4` shared across players.
 
 Higher is not better. Each step up is a step away from a save that replays from its own log.
@@ -80,7 +80,7 @@ a stranger.
 
 **The relay observes; it does not adjudicate.** Web pages change for ordinary reasons, and web
 archives are incomplete for ordinary reasons. The interface says _the remote document changed_.
-It never says _the timeline changed_. Deciding which it was is the player's job, and sometimes
+It never says _the investigation changed_. Deciding which it was is the player's job, and sometimes
 there is no answer.
 
 ## The line to hold

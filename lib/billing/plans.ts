@@ -17,7 +17,8 @@ export function getPlans(): readonly Plan[] {
     {
       id: 'monthly',
       name: 'Full access — monthly',
-      blurb: 'Days 02–30, alternate timelines, and the scenarios that only exist if you fail.',
+      blurb:
+        'Every case after the first, and the ones that only open once you have filed a report somebody disagreed with.',
       priceId: process.env.STRIPE_PRICE_ID_MONTHLY || null,
       displayPrice: process.env.NEXT_PUBLIC_PRICE_MONTHLY ?? '$6.99/mo',
     },

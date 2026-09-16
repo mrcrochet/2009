@@ -4,7 +4,7 @@ import { getServerEntitlement } from '@/lib/billing/entitlement'
 import { getCurrentUser } from '@/lib/supabase/server'
 import { listServerInvestigations } from '@/lib/supabase/investigations'
 import { isSupabaseConfigured } from '@/lib/supabase/config'
-import { ClaimTimeline } from './ClaimTimeline'
+import { ClaimInvestigation } from './ClaimInvestigation'
 import { BillingActions } from './BillingActions'
 import styles from './account.module.css'
 
@@ -36,6 +36,9 @@ export default async function AccountPage({ searchParams }: Props) {
     <main className={styles.root}>
       <div className={styles.inner}>
         <div className={styles.eyebrow}>unlisted · account</div>
+        <Link className={styles.back} href="/cases">
+          ← the library
+        </Link>
         <h1 className={styles.title}>
           {user ? 'Your investigations' : 'Keep the investigation you just ran'}
         </h1>
@@ -77,7 +80,7 @@ export default async function AccountPage({ searchParams }: Props) {
           </section>
         ) : (
           <>
-            <ClaimTimeline investigationId={claim ?? null} />
+            <ClaimInvestigation investigationId={claim ?? null} />
 
             <section className={styles.card}>
               <div className={styles.cardTitle}>Subscription</div>

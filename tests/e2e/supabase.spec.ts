@@ -66,8 +66,8 @@ test.describe('Supabase', () => {
     }
   })
 
-  test('the Way Up cache is shared for storage, never for reading', async ({ request }) => {
-    // A snapshot has no owner — it is deduplicated across timelines. Ownership is borrowed from
+  test('the relay cache is shared for storage, never for reading', async ({ request }) => {
+    // A snapshot has no owner — it is deduplicated across investigations. Ownership is borrowed from
     // the visits that reference it, so an anonymous read must see nothing. Without that policy
     // `select=*` on a public key would be a free scraped-web API, a record of what every player
     // looked up, and a spoiler table for a game whose subject is discovery.
@@ -128,7 +128,7 @@ test.describe('Supabase', () => {
   })
 
   test('a save cannot be used as a file host', async ({ request }) => {
-    const res = await request.post(`${SUPABASE_URL}/rest/v1/timelines`, {
+    const res = await request.post(`${SUPABASE_URL}/rest/v1/investigations`, {
       headers: {
         apikey: SUPABASE_KEY,
         authorization: `Bearer ${SUPABASE_KEY}`,

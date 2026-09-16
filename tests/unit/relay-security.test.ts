@@ -20,7 +20,7 @@ import {
 import { RelayRefused } from '@/lib/relay/types'
 
 /**
- * The Way Up Machine reaches the real internet on a player's behalf, which makes this the one
+ * The relay reaches the real internet on a player's behalf, which makes this the one
  * place in the game where a string typed into a fictional operating system becomes an outbound
  * request from our own network. Every test here is a bypass someone would actually try.
  */
@@ -173,9 +173,9 @@ describe('assertSafeUrl', () => {
 
   it('will not call back into this machine', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://twothousandnine.example')
-    expect(refusalFor('https://twothousandnine.example/api/timelines/x')).toBe('own-origin')
+    expect(refusalFor('https://twothousandnine.example/api/investigations/x')).toBe('own-origin')
     // A trailing dot is the classic way past a naive host comparison.
-    expect(refusalFor('https://twothousandnine.example./api/timelines/x')).toBe('own-origin')
+    expect(refusalFor('https://twothousandnine.example./api/investigations/x')).toBe('own-origin')
     vi.unstubAllEnvs()
   })
 

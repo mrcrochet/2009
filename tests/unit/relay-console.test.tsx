@@ -27,7 +27,7 @@ const cfg = content.relay!
 const SNAPSHOT: RelaySnapshot = {
   id: 'wu_0123456789abcdef0123456789abcdef',
   canonicalUrl: 'https://columbia-register.com/archive/173',
-  title: 'Aion Group — settlements, filings',
+  title: 'The Marlow Foundation — filings',
   remoteFetchedAt: '2026-09-08T11:04:22.000Z',
   contentHash: 'a'.repeat(64),
   blocks: [
@@ -56,14 +56,14 @@ const SNAPSHOT: RelaySnapshot = {
 
 const RESULTS = [
   {
-    title: 'Aion Group — settlements, filings',
+    title: 'The Marlow Foundation — filings',
     url: 'https://columbia-register.com/archive/173',
     snippet: 'Settlements. Recovery. Actuarial.',
   },
   {
-    title: 'Meridian Savings & Loan — closures',
+    title: 'Ridgeline Partners — people',
     url: 'https://meridiansavings.com/closed',
-    snippet: 'Branch closures, 2009.',
+    snippet: 'Partners and staff.',
   },
 ]
 
@@ -228,7 +228,7 @@ describe('the budget', () => {
     const { api } = mount()
 
     await transmit(user)
-    await user.click(await screen.findByRole('button', { name: /settlements, filings/i }))
+    await user.click(await screen.findByRole('button', { name: /Marlow Foundation/i }))
 
     // The page is on screen, and the machine reports the capture the way the day wrote it.
     // Waited on the back control rather than the title: a row carries the same title as the page
@@ -257,7 +257,7 @@ describe('the budget', () => {
     // the log should not carry the second observation either: a save is a record of what
     // happened, and reading a page twice is one capture.
     await user.click(screen.getByRole('button', { name: cfg.backLabel }))
-    await user.click(await screen.findByRole('button', { name: /settlements, filings/i }))
+    await user.click(await screen.findByRole('button', { name: /Marlow Foundation/i }))
     await screen.findByRole('button', { name: cfg.backLabel })
 
     expect(api.getState().investigation.relay.signalSpent).toBe(cfg.searchCost + cfg.openCost)
@@ -298,7 +298,7 @@ describe('the budget', () => {
     const { api } = mount()
 
     await transmit(user)
-    const row = await screen.findByRole('button', { name: /settlements, filings/i })
+    const row = await screen.findByRole('button', { name: /Marlow Foundation/i })
     expect(row).toHaveAttribute('aria-disabled', 'false')
     // The price is on the row before it is paid, not discovered afterwards.
     expect(row).toHaveTextContent(cfg.costTemplate.replace('{{cost}}', String(cfg.openCost)))
@@ -376,7 +376,7 @@ describe('what crosses into the game’s own DOM', () => {
     const { container } = mount()
 
     await transmit(user)
-    await user.click(await screen.findByRole('button', { name: /settlements, filings/i }))
+    await user.click(await screen.findByRole('button', { name: /Marlow Foundation/i }))
     await screen.findByRole('button', { name: cfg.backLabel })
 
     expect(container.querySelector('script')).toBeNull()
@@ -412,7 +412,7 @@ describe('keeping a line', () => {
     })
     const mounted = mount()
     await transmit(user)
-    await user.click(await screen.findByRole('button', { name: /settlements, filings/i }))
+    await user.click(await screen.findByRole('button', { name: /Marlow Foundation/i }))
     await screen.findByRole('button', { name: cfg.backLabel })
     return mounted
   }

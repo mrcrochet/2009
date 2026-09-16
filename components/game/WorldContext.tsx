@@ -6,10 +6,10 @@ import type { WorldIndex } from '@/engine/world'
 import { useGameApi } from './GameContext'
 
 /**
- * The world graph, and which of it this timeline has actually met.
+ * The world graph, and which of it this investigation has actually met.
  *
  * Deliberately separate from `GameContext`. The index is authored content built once and never
- * changing; `discovered` is timeline state. Keeping them in one value here means the surfaces
+ * changing; `discovered` is investigation state. Keeping them in one value here means the surfaces
  * that browse the world — search, the directory — never reach into the store, and so cannot be
  * the thing that re-renders the desktop on an unrelated event.
  */

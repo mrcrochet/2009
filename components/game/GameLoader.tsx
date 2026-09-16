@@ -12,7 +12,7 @@ import { worldIndexForCase } from '@/content'
  */
 const GameRoot = dynamic(() => import('./GameRoot').then((m) => m.GameRoot), {
   ssr: false,
-  loading: () => <div className="two009-preboot" aria-busy="true" />,
+  loading: () => <div className="unlisted-preboot" aria-busy="true" />,
 })
 
 export function GameLoader({

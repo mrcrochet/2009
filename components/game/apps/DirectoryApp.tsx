@@ -45,8 +45,8 @@ const RELATION_PHRASE: Readonly<Record<RelationType, string>> = {
  * How sure the world is, and how the page says so.
  *
  * Colour would not be enough and a coloured badge would not be much better. The real fix is
- * grammar: a rumour is written as reported speech. "Marc works for the Aion Group" and "Somebody
- * says Marc works for the Aion Group" cannot be confused for one another by anybody, including a
+ * grammar: a rumour is written as reported speech. "Vale resigned from the board" and "Somebody
+ * says Vale resigned from the board" cannot be confused for one another by anybody, including a
  * player skimming, including a screen reader. Presenting a claim in the same sentence shape as a
  * document *is* the problem, so the sentence shape changes.
  */
@@ -141,7 +141,7 @@ export function DirectoryApp() {
    *
    * Listing the whole graph would hand them the season's cast on the first morning, in
    * alphabetical order, with the dates of death filled in. The directory is not a database of
-   * the world; it is what this machine has learned, and on Day 01 that is almost nothing.
+   * the world; it is what this machine has learned, and at the start of a case that is almost nothing.
    */
   const known = useMemo(() => (world ? knownEntities(world.index, world.discovered) : []), [world])
 

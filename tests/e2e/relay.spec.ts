@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * The Way Up Machine, walked the way a player reaches it: from a command line, through a process
+ * The relay, walked the way a player reaches it: from a command line, through a process
  * that refuses until it is given the one argument three pages never say together.
  *
  * The unit tests mock the transport, so they prove the console is honest about answers it is

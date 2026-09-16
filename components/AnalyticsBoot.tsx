@@ -3,8 +3,8 @@
 import { useEffect } from 'react'
 import { setAnalyticsProvider } from '@/lib/analytics'
 
-const DISTINCT_KEY = 'two009:distinct-id'
-const CONSENT_KEY = 'two009:analytics-consent'
+const DISTINCT_KEY = 'unlisted:distinct-id'
+const CONSENT_KEY = 'unlisted:analytics-consent'
 
 /**
  * Whether analytics may run at all.
@@ -12,7 +12,7 @@ const CONSENT_KEY = 'two009:analytics-consent'
  * Setting `NEXT_PUBLIC_ANALYTICS_REQUIRE_CONSENT=1` makes it opt-in: nothing is sent, and no
  * pseudonymous id is minted, until something calls `grantAnalyticsConsent()`. This is the
  * mechanism, not the policy — where and how consent is asked for is a product decision, and it
- * does not belong inside a fictional 2009 operating system.
+ * does not belong inside a fictional operating system.
  */
 function hasConsent(): boolean {
   if (process.env.NEXT_PUBLIC_ANALYTICS_REQUIRE_CONSENT !== '1') return true
@@ -57,7 +57,7 @@ export function AnalyticsBoot() {
         api_key: key,
         event,
         distinct_id: distinctId,
-        properties: { ...properties, $lib: '2009-web' },
+        properties: { ...properties, $lib: 'unlisted-web' },
         timestamp: new Date().toISOString(),
       })
       // keepalive so the day-end events survive the navigation that follows them.

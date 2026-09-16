@@ -1,15 +1,15 @@
 /**
  * A very small Web Audio synth.
  *
- * Everything NOVA makes a noise about is generated at runtime — no audio files ship, which
- * keeps the bundle honest and happens to be exactly right for the period: these are system
- * beeps out of a 2009 machine, not a sound designer's library.
+ * Everything NOVA makes a noise about is generated at runtime — no audio files ship, which keeps
+ * the bundle honest and is exactly right for the machine: these are system beeps out of a
+ * workstation with one small speaker behind a plastic grille, not a sound designer's library.
  *
  * Audio is always optional. Nothing here may throw into gameplay, and nothing plays until the
  * player has interacted with the page (browsers require a gesture before an AudioContext runs).
  */
 
-const MUTE_KEY = 'two009:muted'
+const MUTE_KEY = 'unlisted:muted'
 const MASTER_GAIN = 0.16
 
 export type Waveform = 'sine' | 'square' | 'triangle' | 'sawtooth'
@@ -25,7 +25,7 @@ export interface Tone {
   readonly duration: number
   /** Peak gain, 0–1, before the master. */
   readonly gain: number
-  /** Cents of detune. The Recall cue raises this as memory degrades. */
+  /** Cents of detune. How far out of tune the machine sounds. */
   readonly detune?: number
 }
 

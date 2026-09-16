@@ -108,7 +108,7 @@ analytics, or any UI framework.** This is enforced by `tests/unit/engine-purity.
 /api/billing/portal        create customer portal session
 /api/billing/webhook       Stripe webhook
 /api/investigations        cloud sync (RLS-backed)
-/api/wayup/{search,fetch}  the relay's server half
+/api/relay/{search,fetch}  the relay's server half
 ```
 
 The in-game OS does **not** use URL navigation for individual apps/windows. Window/app state is
@@ -179,7 +179,8 @@ window saying so rather than as a crash.
 
 ## 10–14
 
-See `docs/PRODUCT_SPEC.md` for apps, investigation, devices, the fictional Browser and the relay.
+See `docs/PRODUCT_SPEC.md` for the stage machine, the apps, the investigation, devices, the
+fictional Browser and the relay, as Case 001 actually ships them.
 
 ## 15. Persistence
 
@@ -192,8 +193,15 @@ chain deliberately starts empty: a 2009 save is quarantined, never reshaped.
 ## 16. Database
 
 See `supabase/migrations/`. Never store Stripe secret keys or service-role keys in the client.
-The `timelines` table keeps its name for now and stores `case_id`; renaming the table is a
-separate migration and a separate decision.
+The nouns are current — `investigations`, `investigation_events`, `relay_snapshots`,
+`kept_lines` — renamed in `20260617000005_investigations.sql` rather than dropped and recreated,
+so row-level security survived untouched. **Migration filenames are history**: the file still
+called `wayup.sql` created the relay's tables under the mechanic's old codename, and renaming an
+applied migration is how a schema stops being reproducible.
+
+The guest store is `unlisted` in IndexedDB. A database cannot be renamed, only replaced, so
+opening it carries forward whatever was in the old one and then deletes it
+(`lib/persistence/db.ts`).
 
 ## 17. Subscription / paywall boundary
 

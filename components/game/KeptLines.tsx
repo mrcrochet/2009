@@ -6,7 +6,7 @@ import { useContent, useInvestigation } from './GameContext'
  * Lines the player carried back from the far side of the relay.
  *
  * They appear wherever evidence appears — the tray, and the board while a claim is being built —
- * and they are never selectable. That is the point of them. A claim made in 2009 cannot rest on
+ * and they are never selectable. That is the point of them. A claim filed on the record cannot rest on
  * a document from a year nobody has reached, so the player builds their case beside a paragraph
  * they know is true and cannot use, every single time.
  *

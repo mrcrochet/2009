@@ -1,6 +1,9 @@
 /**
- * Deterministic PRNG. Day 01 is fully authored and does not use it, but the seed is recorded on
- * every timeline from the start so later days can add randomness without breaking replay.
+ * Deterministic PRNG. Case 001 is fully authored and does not use it, but the seed is recorded on
+ * every investigation from the start so a later case can add randomness without breaking replay.
+ *
+ * It is also what a derived drawing hangs off — a recording's waveform, say — so the same
+ * document looks the same in a replay as it did in the session.
  */
 
 export function mulberry32(seed: number): () => number {
@@ -14,7 +17,7 @@ export function mulberry32(seed: number): () => number {
   }
 }
 
-/** Stable 32-bit hash of a string — used to derive per-timeline seeds from an id. */
+/** Stable 32-bit hash of a string — used to derive per-investigation seeds from an id. */
 export function hashSeed(input: string): number {
   let h = 2166136261 >>> 0
   for (let i = 0; i < input.length; i += 1) {

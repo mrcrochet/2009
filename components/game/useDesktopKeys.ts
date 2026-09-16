@@ -5,7 +5,7 @@ import type { GameStoreApi } from '@/state/store'
 
 /**
  * Keyboard routes through NOVA. With nine windows open the dock sits about a hundred Tab
- * presses away, so a keyboard player needs the same shortcuts a 2009 machine gave everyone else.
+ * presses away, so a keyboard player needs the shortcuts every other machine gives them.
  */
 export function useDesktopKeys(api: GameStoreApi): void {
   useEffect(() => {
