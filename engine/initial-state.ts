@@ -106,6 +106,7 @@ export function createInvestigation(
       url: content.browser.home,
       query: '',
       resultIds: [],
+      resultUrls: [],
       draftUrl: null,
       history: [],
       forward: [],

@@ -154,7 +154,17 @@ export interface BrowserEntry {
   readonly view: BrowserView
   readonly url: string
   readonly query: string
+  /** Hits in the case's own authored index, which carries its own titles and snippets. */
   readonly resultIds: readonly string[]
+  /**
+   * Addresses the corpus answered with.
+   *
+   * The engine cannot search the world — only the shell holds the index — so the addresses come
+   * in on the event, the way a navigated artifact's id does. Without this the search engine on
+   * this machine saw ten authored pages and called the other eighty-four "0 found", which
+   * teaches a player in ten seconds that the internet is a puzzle box with ten rooms in it.
+   */
+  readonly resultUrls: readonly string[]
 }
 
 export interface BrowserState extends BrowserEntry {
@@ -423,7 +433,12 @@ export type GameEvent =
   | (Base & { type: 'CHAT_ADVANCED'; thread: ThreadId })
   | (Base & { type: 'BROWSER_QUERY_CHANGED'; query: string })
   | (Base & { type: 'BROWSER_URL_CHANGED'; url: string })
-  | (Base & { type: 'BROWSER_SEARCHED'; query: string })
+  | (Base & {
+      type: 'BROWSER_SEARCHED'
+      query: string
+      /** What the corpus answered, resolved by the shell. */
+      webUrls?: readonly string[]
+    })
   | (Base & {
       type: 'BROWSER_NAVIGATED'
       url: string

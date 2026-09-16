@@ -168,6 +168,32 @@ test.describe('the world', () => {
    * result opened the right application and left the player to find the thing again by hand,
    * which is a list of places you have already been.
    */
+  /**
+   * The search engine on this machine searches the whole internet.
+   *
+   * It matched the case's own authored index and nothing else, so a query the corpus could
+   * answer came back "0 found" — which is how a player learns in ten seconds that this web is a
+   * set of props rather than a place.
+   */
+  test('the browser searches the corpus, not only the pages the case wrote', async ({ page }) => {
+    await boot(page)
+    await openApp(page, 'Orbit')
+
+    const web = page.locator('[data-app="web"]')
+    await web.getByLabel('Search the web').fill('alberta')
+    await web.getByRole('button', { name: 'Search' }).click()
+
+    const head = web.locator('.nova-web__resulthead')
+    await expect(head).not.toContainText('0 found')
+    // Pages no case authored, reached from the machine's own search engine.
+    await expect(web).toContainText('albertamainst.org')
+    await expect(web).toContainText('pdxbusinessjournal.com')
+
+    // And they open.
+    await web.getByRole('button', { name: /Alberta Street block party/ }).click()
+    await expect(page.getByTestId('web-corpus')).toBeVisible()
+  })
+
   test('a result opens the document, not the application that holds it', async ({ page }) => {
     await boot(page)
 

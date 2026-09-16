@@ -27,15 +27,7 @@ const minute = z
  */
 const AppId = z.string().min(1).max(64)
 const ThreadId = z.string().min(1).max(64)
-const SourceKind = z.enum([
-  'mail',
-  'files',
-  'browser',
-  'phone',
-  'terminal',
-  'messenger',
-  'device',
-])
+const SourceKind = z.enum(['mail', 'files', 'browser', 'phone', 'terminal', 'messenger', 'device'])
 
 const WindowStateSchema = z.object({
   app: AppId,
@@ -51,6 +43,7 @@ const BrowserEntrySchema = z.object({
   url: z.string().max(2048),
   query: z.string().max(2048),
   resultIds: z.array(z.string().max(128)).max(64),
+  resultUrls: z.array(z.string().max(2048)).max(64).default([]),
 })
 
 const ChatLineSchema = z.object({

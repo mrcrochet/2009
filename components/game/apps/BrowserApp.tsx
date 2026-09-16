@@ -4,7 +4,13 @@ import type { Block } from '@/engine/case-schema'
 import { selectPage, selectSearchResults } from '@/engine/selectors'
 import type { AppId } from '@/engine/types'
 import { normalizeUrl } from '@/engine/url'
-import { artifactUrl, displayDate, siblingPages, type WorldArtifact } from '@/engine/world'
+import {
+  artifactUrl,
+  displayDate,
+  searchWorld,
+  siblingPages,
+  type WorldArtifact,
+} from '@/engine/world'
 import { useContent, useDispatch, useInvestigation } from '../GameContext'
 import { useWorldOptional } from '../WorldContext'
 import { PinButton } from '../PinButton'
@@ -32,10 +38,49 @@ export function BrowserApp() {
       url,
       worldArtifactId: world?.index.artifactByUrl.get(normalizeUrl(url))?.id ?? null,
     })
+  /**
+   * The search engine on this machine searches the whole internet, not the case's own eleven
+   * pages.
+   *
+   * It used to match only the authored index, so a query the corpus could answer came back "0
+   * found" — which is how a player learns in ten seconds that this web is a set of props. The
+   * engine holds no world index (a pure reducer may not ask a question it cannot replay), so the
+   * addresses are resolved here and carried on the event, exactly as a navigated artifact's id is.
+   */
   const search = () => {
-    if (!browser.query.trim()) return
-    dispatch({ type: 'BROWSER_SEARCHED', query: browser.query })
+    const query = browser.query.trim()
+    if (!query) return
+    const fromCorpus = world
+      ? searchWorld(world.index, query, { surfaces: ['web', 'archive'] }).hits.flatMap((hit) => {
+          const artifact = world.index.artifactById.get(hit.id)
+          const url = artifact ? artifactUrl(artifact) : null
+          return url ? [url] : []
+        })
+      : []
+    dispatch({ type: 'BROWSER_SEARCHED', query: browser.query, webUrls: fromCorpus })
   }
+
+  /**
+   * A corpus page as a result row. The case's own index rows come with authored titles and
+   * snippets; these come off the document, which is the only honest thing to show for a page
+   * nobody wrote a search result for.
+   */
+  const corpusRows = browser.resultUrls.flatMap((url) => {
+    const artifact = world?.index.artifactByUrl.get(url)
+    if (!artifact) return []
+    // A case page already has an authored row; showing the projection of it as well is the same
+    // document twice.
+    if (results.some((r) => r.url === url)) return []
+    return [
+      {
+        id: artifact.id,
+        title: artifact.title,
+        url,
+        snippet: artifact.body.split('\n').find((line) => line.trim().length > 0) ?? '',
+      },
+    ]
+  })
+  const found = results.length + corpusRows.length
 
   return (
     <div className="nova-web">
@@ -139,7 +184,7 @@ export function BrowserApp() {
         {browser.view === 'results' ? (
           <div className="nova-web__results">
             <div className="nova-web__resulthead">
-              Results for <b>{browser.query}</b> — {results.length} found
+              Results for <b>{browser.query}</b> — {found} found
             </div>
             {results.map((r) => (
               <div key={r.id} className="nova-web__result">
@@ -155,7 +200,16 @@ export function BrowserApp() {
                 <div className="nova-web__resultsnip">{r.snippet}</div>
               </div>
             ))}
-            {results.length === 0 ? (
+            {corpusRows.map((r) => (
+              <div key={r.id} className="nova-web__result">
+                <button type="button" className="nova-web__resulttitle" onClick={() => go(r.url)}>
+                  {r.title}
+                </button>
+                <div className="nova-web__resulturl">{r.url}</div>
+                <div className="nova-web__resultsnip">{r.snippet}</div>
+              </div>
+            ))}
+            {found === 0 ? (
               <div className="nova-web__empty">
                 {content.browser.emptyResults}
                 <div>

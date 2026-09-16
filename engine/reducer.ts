@@ -46,6 +46,8 @@ export const LIMITS = {
   discovered: 4096,
   relayCaptures: 512,
   kept: 256,
+  /** Matches the schema's cap on a results page, so a wide query cannot grow a save. */
+  browserResults: 64,
 } as const
 
 // How much of the session each action costs.
@@ -238,6 +240,7 @@ function currentEntry(state: InvestigationState): BrowserEntry {
     url: state.browser.url,
     query: state.browser.query,
     resultIds: state.browser.resultIds,
+    resultUrls: state.browser.resultUrls,
   }
 }
 
@@ -503,6 +506,9 @@ function apply(
           url: `${content.browser.home}/search?q=${encodeURIComponent(query)}`,
           query,
           resultIds,
+          // Addresses the corpus answered with, resolved by the shell — the engine holds no
+          // world index and a pure reducer may not ask a question it cannot replay.
+          resultUrls: (event.webUrls ?? []).slice(0, LIMITS.browserResults),
           draftUrl: null,
           history: pushHistory(state),
           forward: [],
@@ -522,6 +528,7 @@ function apply(
           url,
           query: state.browser.query,
           resultIds: state.browser.resultIds,
+          resultUrls: state.browser.resultUrls,
           draftUrl: null,
           history,
           // Going somewhere new is what discards the forward stack, exactly as a
