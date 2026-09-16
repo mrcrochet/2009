@@ -103,6 +103,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
       wrongKey: 'Not that one. The handset does not say how many tries are left, which usually means it is not counting.',
       setsFlag: 'phoneOpen',
       beat: 'device',
+      volume: 'Daniel-NOVA-M12',
     },
     {
       id: 'dev-laptop',
@@ -117,6 +118,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
       wrongKey: '',
       setsFlag: null,
       beat: null,
+      volume: 'Daniel-MBP',
     },
   ],
 
@@ -461,6 +463,9 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Desktop',
+      created: '17 Jun 08:02',
+      modified: '17 Jun 08:02',
     },
     {
       id: 'f2',
@@ -474,6 +479,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: 'statement',
+      dir: '/Volumes/Daniel-MBP/Documents',
+      bytes: 4182,
+      created: '07 Jun 21:14',
+      modified: '08 Jun 23:41',
     },
     {
       id: 'f3',
@@ -487,6 +496,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Documents',
+      bytes: 217088,
+      created: '12 Jun 14:20',
+      modified: '12 Jun 14:20',
     },
     {
       id: 'f4',
@@ -500,6 +513,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Volumes/Daniel-MBP/Documents',
+      bytes: 312,
+      created: '14 Mar 19:55',
+      modified: '02 Jun 08:30',
     },
     {
       id: 'f5',
@@ -516,6 +533,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: true,
       beat: null,
+      dir: '/Volumes/Daniel-MBP/Documents',
+      bytes: 90112,
+      created: '19 Nov 22:10',
+      modified: '19 Nov 22:10',
     },
     {
       id: 'f7',
@@ -529,6 +550,9 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Volumes/Daniel-MBP/Documents',
+      created: '02 Jun 20:48',
+      modified: '02 Jun 21:07',
     },
     {
       id: 'f8',
@@ -556,6 +580,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Documents',
+      bytes: 148480,
+      created: '12 Jun 14:22',
+      modified: '12 Jun 14:22',
     },
     {
       id: 'f6',
@@ -569,6 +597,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Downloads',
     },
   ],
 
@@ -591,6 +620,8 @@ export const case001: z.input<typeof CaseContentSchema> = {
         'No edit history. This is the file the camera wrote.',
       ],
       evidenceId: 'e6',
+      bytes: 3812864,
+      captured: '09 Jun 22:47',
     },
     {
       id: 'p2',
@@ -605,6 +636,8 @@ export const case001: z.input<typeof CaseContentSchema> = {
         'Taken forty minutes before draft-statement-v3.doc was last modified.',
       ],
       evidenceId: null,
+      bytes: 2965504,
+      captured: '08 Jun 23:39',
     },
     {
       id: 'p3',
@@ -618,19 +651,18 @@ export const case001: z.input<typeof CaseContentSchema> = {
         'Underexposed by four stops. Nothing in the frame resolves, and enhancement will not make it.',
       ],
       evidenceId: null,
+      bytes: 4128768,
+      captured: '02 Jun 19:04',
     },
   ],
 
   terminal: {
-    prompt: 'nova$',
+    prompt: 'nova@workstation',
     banner: { text: 'NOVA console 3.2 — case volume CASE-24-118 mounted read-only', tone: 'dim' },
     statics: {
       help: [
-        { text: 'ls · cat <file> · date · whoami · decrypt <file> --key <word> · relay', tone: 'out' },
-      ],
-      ls: [
-        { text: 'CASE_24-118.txt   draft-statement-v3.doc   receipt-fremont-0609.pdf', tone: 'out' },
-        { text: 'passcodes.txt     marlow-2013.enc', tone: 'out' },
+        { text: 'pwd · cd · ls [-l] · cat · stat · file · find · open · mount', tone: 'out' },
+        { text: 'date · whoami · ps · decrypt <file> --key <word> · relay', tone: 'out' },
       ],
       /*
        * The process table, and the one line in it nothing in the case explains.
@@ -648,11 +680,6 @@ export const case001: z.input<typeof CaseContentSchema> = {
       ],
     },
     dateTemplate: 'Wed 17 Jun 2026 {{clock}} PDT',
-    catTargets: {
-      'case_24-118.txt': 'f1',
-      'draft-statement-v3.doc': 'f2',
-      'passcodes.txt': 'f4',
-    },
     catBinary: 'cat: not a text file',
     whoami: [
       { text: 'investigator · session 24-118 · read-only on all attached sources', tone: 'out' },

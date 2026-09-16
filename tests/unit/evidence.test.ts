@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { isWithheld, selectEvidenceCards, selectFiles } from '@/engine/selectors'
+import { walk } from '@/engine/machine/vfs'
+import { isWithheld, selectEvidenceCards, selectFileSystem } from '@/engine/selectors'
 import { content, dispatch, fresh, run } from './helpers'
 
 describe('evidence', () => {
@@ -82,9 +83,21 @@ describe('evidence behind a forensic service', () => {
     expect(state.evidence).toHaveLength(1)
   })
 
-  it('a recovered document is not on the disk until it has been recovered', () => {
-    const before = selectFiles(fresh(), content).map((f) => f.id)
-    const after = selectFiles(fresh('playing', [gated.id]), content).map((f) => f.id)
+  /**
+   * Asked of the whole machine rather than of one directory.
+   *
+   * The file manager shows a folder at a time now, so listing the folder the recovery happens
+   * to land in would pass for the wrong reason. What has to be true is that the document is
+   * nowhere on this machine — not on a volume, not in a folder nobody has opened — until it has
+   * been paid for, because the shell can walk everywhere the file manager can.
+   */
+  it('a recovered document is nowhere on the machine until it has been recovered', () => {
+    const everywhere = (state: ReturnType<typeof fresh>) =>
+      walk(selectFileSystem(state, content), '/').flatMap((node) =>
+        node.fileId ? [node.fileId] : [],
+      )
+    const before = everywhere(fresh())
+    const after = everywhere(fresh('playing', [gated.id]))
     for (const fileId of gated.grantsFileIds) {
       expect(before).not.toContain(fileId)
       expect(after).toContain(fileId)

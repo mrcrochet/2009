@@ -9,6 +9,8 @@ import {
   photoAvailable,
   searchIndex,
 } from './rules'
+import { isShellCommand, promptFor, runShellCommand } from './machine/shell'
+import { buildFileSystem, nodeAt, normalise } from './machine/vfs'
 import { findPage } from './pages'
 import { normalizeUrl } from './url'
 import { projectedId } from './world/project'
@@ -656,6 +658,21 @@ function apply(
     }
 
     /**
+     * The file manager moves to a directory.
+     *
+     * Checked against the tree rather than taken on trust: a path on a volume nobody has opened
+     * is not a directory this machine has, and a save that claims the manager is standing inside
+     * one is a save that has been edited.
+     */
+    case 'FILES_NAVIGATED': {
+      const path = normalise(event.path)
+      const node = nodeAt(buildFileSystem(state, content), path)
+      if (!node || node.type === 'file' || node.locked) return state
+      if (state.files.cwd === path) return state
+      return { ...state, files: { ...state.files, cwd: path, openId: '' } }
+    }
+
+    /**
      * The viewer moves to a frame. A picture off a source this machine has not opened is not
      * selectable, for the same reason it is not on the grid.
      */
@@ -976,7 +993,9 @@ function runTerminal(
   const cfg = content.terminal
   const command = rawCommand.trim()
   const lower = command.toLowerCase()
-  const out: TerminalLine[] = [{ text: `${cfg.prompt} ${command}`, tone: 'prompt' }]
+  const out: TerminalLine[] = [
+    { text: `${promptFor(content, state.machine.cwd)} ${command}`, tone: 'prompt' },
+  ]
 
   let nextState: InvestigationState = { ...state, terminal: { ...state.terminal, input: '' } }
 
@@ -993,6 +1012,49 @@ function runTerminal(
   const verb = lower.split(/\s+/)[0] ?? ''
   const staticOut = cfg.statics[verb]
 
+  /*
+   * The shell reads the machine first.
+   *
+   * Before this, `ls` was a paragraph in the case file and `cat` was a lookup table of three
+   * filenames, so the terminal and the file manager were two accounts of a disk that never had
+   * to agree. They go through one tree now, which is also why these win over a case's static of
+   * the same name: a case may still author `help` or `ps`, but it may not author a listing that
+   * contradicts the volume it mounted.
+   */
+  if (isShellCommand(verb)) {
+    // Case matters in a path. Split the raw command, not the lowered one.
+    const argv = command.split(/\s+/)
+    const result = runShellCommand(
+      buildFileSystem(state, content),
+      state.machine.cwd,
+      [verb, ...argv.slice(1)],
+      content,
+    )
+    out.push(...result.lines)
+    if (result.cwd !== null) {
+      nextState = { ...nextState, machine: { ...nextState.machine, cwd: result.cwd } }
+    }
+    // Opening it here is opening it. The document lands in the reader, and the world graph
+    // records that this investigator has read it — whichever window they read it through.
+    if (result.opened) {
+      nextState = reduce(nextState, { type: 'FILE_OPENED', fileId: result.opened, at }, content)
+    }
+    if (result.openedPhoto) {
+      nextState = reduce(
+        nextState,
+        { type: 'PHOTO_SELECTED', photoId: result.openedPhoto, at },
+        content,
+      )
+    }
+    return {
+      ...nextState,
+      terminal: {
+        lines: [...state.terminal.lines, ...out].slice(-LIMITS.terminalLines),
+        input: '',
+      },
+    }
+  }
+
   if (verb === 'whoami') {
     out.push(...cfg.whoami)
     const contradiction = cfg.whoamiAfterEvidence
@@ -1006,11 +1068,6 @@ function runTerminal(
       text: cfg.dateTemplate.replace('{{clock}}', clockAt(content, state.minute)),
       tone: 'out',
     })
-  } else if (verb === 'cat') {
-    const arg = lower.slice(3).trim()
-    const fileId = cfg.catTargets[arg]
-    const doc = fileId ? content.files.find((f) => f.id === fileId) : undefined
-    out.push(doc ? { text: doc.body, tone: 'out' } : { text: cfg.catBinary, tone: 'out' })
   } else if (cfg.relay && verb === cfg.relay.command) {
     const relay = cfg.relay
     if (state.relay.unlocked) {

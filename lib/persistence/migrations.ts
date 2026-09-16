@@ -140,6 +140,33 @@ const STEPS: readonly MigrationStep[] = [
       }
     },
   },
+  {
+    from: 16,
+    to: 17,
+    describe: 'gives the machine a filesystem that Files and the shell both stand in',
+    /**
+     * Files and Terminal used to be two accounts of one disk that never had to agree. There is
+     * one tree now, derived from the case and from which sources are open — so nothing of it is
+     * written into a save, and all a save needs is where each of the two was standing.
+     *
+     * The file manager comes back on the desktop and the shell in the investigator's home, which
+     * is where they both start. A document that was open stays open: `files.openId` is a case
+     * document, not a path, and it survived the change.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const files = asRecord(snapshot.files) ?? {}
+      return {
+        ...row,
+        snapshot: {
+          ...snapshot,
+          files: { ...files, cwd: '/Users/investigator/Desktop' },
+          machine: { cwd: '/Users/investigator' },
+        },
+      }
+    },
+  },
 ]
 
 function asRecord(value: unknown): AnyRecord | null {

@@ -7,7 +7,7 @@
  * everything that is merely the surface of the machine lives in another.
  */
 
-export const SCHEMA_VERSION = 16
+export const SCHEMA_VERSION = 17
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -405,6 +405,21 @@ export interface InvestigationState {
     readonly openId: string
     readonly decrypted: Readonly<Record<string, boolean>>
     readonly decryptAttempts: Readonly<Record<string, number>>
+    /** Which directory the file manager is showing. */
+    readonly cwd: string
+  }
+
+  /**
+   * The machine itself, rather than one application's view of it.
+   *
+   * Only what the player has changed lives here. The filesystem is derived from the case and
+   * from which sources are open, every time it is asked for — a tree written into a save is a
+   * tree that can disagree with the case that authored it, and the first thing anybody would do
+   * with the disagreement is edit a locked volume open.
+   */
+  readonly machine: {
+    /** Where the shell is standing. */
+    readonly cwd: string
   }
   /** Which frame the viewer is on. Playback position is not here: a transport is not state. */
   readonly media: { readonly openPhotoId: string }
@@ -506,6 +521,8 @@ export type GameEvent =
   | (Base & { type: 'BROWSER_WENT_BACK' })
   | (Base & { type: 'BROWSER_WENT_FORWARD' })
   | (Base & { type: 'FILE_OPENED'; fileId: string })
+  /** The file manager moved to a directory. The shell has its own working directory. */
+  | (Base & { type: 'FILES_NAVIGATED'; path: string })
   | (Base & { type: 'PHOTO_SELECTED'; photoId: string })
   /**
    * Held up to the light without opening anything.

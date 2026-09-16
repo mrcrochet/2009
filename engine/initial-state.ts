@@ -1,4 +1,5 @@
 import type { CaseContent } from './case-schema'
+import { HOME } from './machine/vfs'
 import { hashSeed } from './seed'
 import { projectedId } from './world/project'
 import {
@@ -119,7 +120,18 @@ export function createInvestigation(
       history: [],
       forward: [],
     },
-    files: { openId: content.files[0]?.id ?? '', decrypted: {}, decryptAttempts: {} },
+    /*
+     * The file manager opens where the case put what it handed over, and the shell opens in the
+     * investigator's home. They are two windows onto one machine, not one window twice, so they
+     * are allowed to be standing in different places.
+     */
+    files: {
+      openId: '',
+      decrypted: {},
+      decryptAttempts: {},
+      cwd: `${HOME}/Desktop`,
+    },
+    machine: { cwd: HOME },
     media: { openPhotoId: content.photos[0]?.id ?? '' },
     terminal: { lines: [content.terminal.banner], input: '' },
 

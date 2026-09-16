@@ -8,6 +8,16 @@ import type {
   Photo,
 } from './case-schema'
 import { clockString, menuBarClock } from './clock'
+import { humanSize } from './machine/shell'
+import {
+  HOME,
+  buildFileSystem,
+  listing,
+  volumes,
+  type FileSystem,
+  type VfsNode,
+  type VfsNodeType,
+} from './machine/vfs'
 import { findPage, hasWitnessedChange, resolveBlocks, resolveSearchEntry } from './pages'
 import { canFileReport, outstandingBeats, photoAvailable, phoneDeviceId } from './rules'
 import type { AppId, BeatId, Evidence, InvestigationState } from './types'
@@ -300,24 +310,93 @@ export interface FileRow {
   readonly kind: DocumentKind
   readonly meta: string
   readonly selected: boolean
+  /** Where it is. The row's identity for navigation, and what a breadcrumb is built from. */
+  readonly path: string
+  readonly type: VfsNodeType
+  readonly locked: boolean
+  readonly fileId: string | null
+  readonly photoId: string | null
 }
 
+/**
+ * The machine's filesystem, as this investigation currently has it.
+ *
+ * Memoised on what can actually change it — which sources are open, which recoveries have been
+ * granted, and the case — so the file manager, the shell and Quick Look all read one tree built
+ * once rather than three trees built per render.
+ */
+export const selectFileSystem: (
+  state: InvestigationState,
+  content: CaseContent,
+) => FileSystem = memoBy(
+  (s, c) => [s.devices, s.services, c],
+  (state, content) => buildFileSystem(state, content),
+)
+
+/**
+ * What is in the directory the file manager is showing.
+ *
+ * A row is a node of the tree, not a document the case authored: a folder is a row, a volume is
+ * a row, and a picture on somebody's camera roll is a row. What it means to open one is the
+ * caller's problem.
+ */
 export const selectFiles: (
   state: InvestigationState,
   content: CaseContent,
 ) => readonly FileRow[] = memoBy(
-  (s, c) => [s.files.decrypted, s.files.openId, s.services, c],
+  (s, c) => [s.files.decrypted, s.files.openId, s.files.cwd, s.devices, s.services, c],
   (state, content) => {
-    return content.files
-      // A document a forensic service would recover is not on the disk until it has been.
-      .filter((f) => !isWithheld(state, content, 'file', f.id))
-      .map((f) => ({
-        id: f.id,
-        name: f.name,
-        kind: documentKind(state, f),
-        meta: state.files.decrypted[f.id] && f.metaWhenDecrypted ? f.metaWhenDecrypted : f.meta,
-        selected: state.files.openId === f.id,
-      }))
+    const fs = selectFileSystem(state, content)
+    return listing(fs, state.files.cwd).map((node) => {
+      const doc = node.fileId ? content.files.find((f) => f.id === node.fileId) : undefined
+      const decrypted = doc ? Boolean(state.files.decrypted[doc.id]) : false
+      return {
+        id: node.fileId ?? node.photoId ?? node.path,
+        path: node.path,
+        name: node.name,
+        type: node.type,
+        locked: node.locked,
+        fileId: node.fileId,
+        photoId: node.photoId,
+        kind: doc ? documentKind(state, doc) : node.photoId ? 'scan' : 'note',
+        meta: rowMeta(node, doc, decrypted),
+        selected: node.fileId !== null && state.files.openId === node.fileId,
+      }
+    })
+  },
+)
+
+/** The line on the right of a row: the case's own words for a document, the machine's for the rest. */
+function rowMeta(
+  node: VfsNode,
+  doc: CaseContent['files'][number] | undefined,
+  decrypted: boolean,
+): string {
+  if (doc) return decrypted && doc.metaWhenDecrypted ? doc.metaWhenDecrypted : doc.meta
+  if (node.type === 'volume') return node.locked ? 'locked' : `${node.owner} · read-only`
+  if (node.type === 'directory') return ''
+  return [humanSize(node.size), node.modified].filter(Boolean).join(' · ')
+}
+
+/** The places sidebar: the investigator's own folders, then whatever is attached. */
+export const selectPlaces: (
+  state: InvestigationState,
+  content: CaseContent,
+) => readonly { name: string; path: string; locked: boolean }[] = memoBy(
+  (s, c) => [s.devices, s.services, c],
+  (state, content) => {
+    const fs = selectFileSystem(state, content)
+    const home = listing(fs, HOME).map((node) => ({
+      name: node.name,
+      path: node.path,
+      locked: false,
+    }))
+    const attached = volumes(fs).map((node) => ({
+      name: node.name,
+      path: node.path,
+      locked: node.locked,
+    }))
+    return [...home, ...attached]
   },
 )
 

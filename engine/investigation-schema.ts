@@ -147,7 +147,11 @@ export const InvestigationStateSchema = z.object({
     openId: z.string().max(64),
     decrypted: z.record(z.string().max(64), z.boolean()),
     decryptAttempts: z.record(z.string().max(64), z.number().int().min(0).max(64)),
+    cwd: z.string().max(512).default('/Users/investigator/Desktop'),
   }),
+  machine: z
+    .object({ cwd: z.string().max(512) })
+    .default({ cwd: '/Users/investigator' }),
   media: z.object({ openPhotoId: z.string().max(64) }).default({ openPhotoId: '' }),
   terminal: z.object({
     lines: z

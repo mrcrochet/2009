@@ -270,6 +270,21 @@ export const FileDocSchema = z.object({
   disputedClaim: z.string().max(300).nullable().default(null),
   evidenceRequiresDecryption: z.boolean().default(false),
   beat: z.string().nullable().default(null),
+
+  /*
+   * Where this document actually is on the machine.
+   *
+   * The directory, not the whole path, so a file cannot end up with a name in one field and a
+   * different name in another. Empty means the investigator's desktop, which is where a case
+   * puts what it hands over at the door. A path on a volume is only there while that volume is
+   * open — which is how a passcode file recovered off somebody's laptop image stops being
+   * something the player is simply given.
+   */
+  dir: z.string().default(''),
+  /** What it weighs, when the body is not what it weighs — a scan, a recording, a sealed file. */
+  bytes: z.number().int().nonnegative().nullable().default(null),
+  created: z.string().default(''),
+  modified: z.string().default(''),
 })
 
 // --- Terminal --------------------------------------------------------------
@@ -284,7 +299,7 @@ export const TerminalConfigSchema = z.object({
   banner: TerminalLineSchema,
   statics: z.record(z.string(), z.array(TerminalLineSchema)),
   dateTemplate: z.string(),
-  catTargets: z.record(z.string(), id),
+  /** What `cat` says about a file that is not text. The shell resolves the path itself. */
   catBinary: z.string(),
   whoami: z.array(TerminalLineSchema),
   /** The machine only contradicts itself once the player can see the contradiction. */
@@ -446,6 +461,9 @@ export const PhotoSchema = z.object({
   /** What the extraction says about the file. Shown in the viewer, not on the handset. */
   detail: z.array(z.string()).default([]),
   evidenceId: id.nullable().default(null),
+  /** On the volume it came off, a frame is a file, and a file has a size and a date. */
+  bytes: z.number().int().nonnegative().default(0),
+  captured: z.string().default(''),
 })
 
 export const ContactSchema = z.object({ name: z.string(), number: z.string() })
@@ -631,6 +649,16 @@ export const DeviceSchema = z.object({
   /** Set on the world when this device is opened. */
   setsFlag: z.string().nullable().default(null),
   beat: z.string().nullable().default(null),
+  /**
+   * What this source is called under `/Volumes` once it is attached.
+   *
+   * A mount name, so it has no spaces and no apostrophes in it: "Daniel's NOVA M12" is what the
+   * workstation calls the handset, and `Daniel-NOVA-M12` is what a path calls it.
+   */
+  volume: z
+    .string()
+    .min(1)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/, 'a volume name is a path segment'),
 })
 
 // --- Forensic services -----------------------------------------------------

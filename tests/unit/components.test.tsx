@@ -26,6 +26,14 @@ function mount(node: ReactNode, seed: readonly EventInput[] = []) {
   return { api, ...utils }
 }
 
+/** Where the case actually put each document, so a reader test can reach one. */
+const IN_DOCUMENTS: readonly EventInput[] = [
+  { type: 'FILES_NAVIGATED', path: '/Users/investigator/Documents' },
+]
+const ON_THE_IMAGE: readonly EventInput[] = [
+  { type: 'FILES_NAVIGATED', path: '/Volumes/Daniel-MBP/Documents' },
+]
+
 describe('Devices app', () => {
   it('shows a locked source as locked, and opens it with what the case hid', async () => {
     const user = userEvent.setup()
@@ -279,7 +287,7 @@ const OPEN_THE_PHONE: readonly EventInput[] = [
 describe('documents look like what they are', () => {
   it('renders a spreadsheet as a table with the rows the case wrote', async () => {
     const user = userEvent.setup()
-    mount(<FilesApp />)
+    mount(<FilesApp />, ON_THE_IMAGE)
     await user.click(screen.getByRole('option', { name: /grant-disbursements-2013\.csv/ }))
 
     const table = screen.getByRole('table')
@@ -292,7 +300,7 @@ describe('documents look like what they are', () => {
   /** The most human thing in the file was being rendered as one more line of CSV. */
   it('keeps the comment somebody left in a cell', async () => {
     const user = userEvent.setup()
-    mount(<FilesApp />)
+    mount(<FilesApp />, ON_THE_IMAGE)
     await user.click(screen.getByRole('option', { name: /grant-disbursements-2013\.csv/ }))
     expect(screen.getByText('D1')).toBeInTheDocument()
     expect(screen.getByText(/asked three people/)).toBeInTheDocument()
@@ -300,7 +308,7 @@ describe('documents look like what they are', () => {
 
   it('gives a recording a transport, and a transcript that is legible without it', async () => {
     const user = userEvent.setup()
-    mount(<FilesApp />)
+    mount(<FilesApp />, IN_DOCUMENTS)
     await user.click(screen.getByRole('option', { name: /voicemail-0610\.m4a/ }))
 
     // Nothing has been played, and every word is already on the screen.
@@ -314,7 +322,7 @@ describe('documents look like what they are', () => {
 
   it('seeks to a line when the line is clicked', async () => {
     const user = userEvent.setup()
-    mount(<FilesApp />)
+    mount(<FilesApp />, IN_DOCUMENTS)
     await user.click(screen.getByRole('option', { name: /voicemail-0610\.m4a/ }))
 
     await user.click(screen.getByRole('button', { name: /I am not going to keep doing this/ }))
@@ -326,7 +334,7 @@ describe('documents look like what they are', () => {
 
   it('does not preview what is inside a sealed file', async () => {
     const user = userEvent.setup()
-    mount(<FilesApp />)
+    mount(<FilesApp />, ON_THE_IMAGE)
     await user.click(screen.getByRole('option', { name: /marlow-2013\.enc/ }))
     expect(screen.getByText(/This file is encrypted/)).toBeInTheDocument()
     expect(screen.queryByText(/4,118,204/)).toBeNull()
@@ -375,6 +383,7 @@ describe('quick look', () => {
         <FilesApp />
         <QuickLook />
       </>,
+      IN_DOCUMENTS,
     )
 
     const row = screen.getByRole('option', { name: /receipt-fremont-0609\.pdf/ })
@@ -398,6 +407,7 @@ describe('quick look', () => {
         <FilesApp />
         <QuickLook />
       </>,
+      ON_THE_IMAGE,
     )
     const row = screen.getByRole('option', { name: /grant-disbursements-2013\.csv/ })
     row.focus()

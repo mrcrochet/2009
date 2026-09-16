@@ -1091,7 +1091,7 @@
 /* --------------------------------------------------------------- files */
 
 .nova-files__places {
-  width: 150px;
+  width: 176px;
   flex: none;
   background: var(--shell-alt);
   border-right: 1px solid var(--shell-line);
@@ -1107,27 +1107,142 @@
   color: var(--shell-ink-dim);
 }
 
+/*
+ * Places is a list of real destinations now: the investigator's own folders, then whatever is
+ * attached. A source that is locked stays on the list — a disk nobody has opened is plugged in,
+ * which is a different thing from absent — and says so in a word rather than by going grey.
+ */
 .nova-files__place {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
   padding: 5px 8px;
+  border: none;
   border-radius: 6px;
+  background: none;
+  text-align: left;
+  font: inherit;
   color: var(--shell-ink-dim);
+  cursor: pointer;
 }
 
-.nova-files__place--active {
+.nova-files__place:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nova-files__place[aria-current='true'] {
   background: rgba(255, 255, 255, 0.07);
   color: var(--ink-bright);
 }
 
-.nova-files__place--off {
-  opacity: 0.35;
+.nova-files__place[aria-disabled='true'] {
+  cursor: default;
+}
+
+.nova-files__place[aria-disabled='true']:hover {
+  background: none;
+}
+
+/* The name gives way before the word that says the source is shut. */
+.nova-files__placename {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nova-files__lockedtag {
+  flex: none;
+  font-family: var(--font-terminal);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  color: var(--shell-ink-dim);
+  opacity: 0.8;
 }
 
 .nova-files__list {
-  width: 210px;
+  width: 234px;
   flex: none;
   border-right: 1px solid var(--shell-line);
   background: var(--shell);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* The trail, which is also how you get back up it. */
+.nova-files__crumbs {
+  flex: none;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--shell-line);
+  background: var(--shell-alt);
+  font-family: var(--font-terminal);
+  font-size: 9.5px;
+}
+
+.nova-files__crumb,
+.nova-files__up {
+  border: none;
+  background: none;
+  padding: 2px 3px;
+  font: inherit;
+  color: var(--shell-ink-dim);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.nova-files__crumb:hover,
+.nova-files__up:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--ink-bright);
+}
+
+.nova-files__crumbs span:last-child .nova-files__crumb {
+  color: var(--shell-ink);
+}
+
+.nova-files__up {
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 5px 2px;
+  margin-right: 3px;
+}
+
+.nova-files__up[aria-disabled='true'] {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.nova-files__up[aria-disabled='true']:hover {
+  background: none;
+}
+
+.nova-files__sep {
+  color: var(--shell-ink-dim);
+  opacity: 0.45;
+}
+
+.nova-files__rows {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
+}
+
+.nova-files__empty,
+.nova-files__nothing {
+  padding: 14px 12px;
+  font-size: 10.5px;
+  color: var(--shell-ink-dim);
+}
+
+.nova-files__nothing {
+  padding: 18px;
 }
 
 .nova-files__row {
@@ -1180,6 +1295,21 @@
   font-size: 10px;
   line-height: 1.4;
   color: #9a9a92;
+}
+
+.nova-files__meta:empty {
+  display: none;
+}
+
+/* A folder is a place, so its row is a row of one line. */
+.nova-files__row[data-type='directory'] .nova-files__name,
+.nova-files__row[data-type='volume'] .nova-files__name {
+  color: var(--ink-bright);
+}
+
+.nova-files__row[data-type='volume'] .nova-files__meta {
+  font-family: var(--font-terminal);
+  font-size: 9.5px;
 }
 
 .nova-files__body {
@@ -2698,8 +2828,37 @@ h5.nova-relay__h {
     border-bottom: 1px solid var(--hairline);
   }
 
+  /*
+   * Places stops being a column and becomes a strip.
+   *
+   * It used to be hidden here, which was harmless while the file manager showed everything at
+   * once. Now that it walks a tree, hiding Places would leave a narrow screen with no way onto
+   * an attached volume at all — the one destination a player has to reach.
+   */
   .nova-files__places {
+    width: auto;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 7px 10px;
+    border-right: none;
+    border-bottom: 1px solid var(--shell-line);
+    scrollbar-width: none;
+  }
+
+  .nova-files__places::-webkit-scrollbar {
     display: none;
+  }
+
+  .nova-files__placeshead {
+    display: none;
+  }
+
+  .nova-files__place {
+    width: auto;
+    flex: none;
+    white-space: nowrap;
+    border: 1px solid var(--shell-line);
   }
 
   /* The dock sits at z-index 8800, above both of these. Reserving its strip is not cosmetic:

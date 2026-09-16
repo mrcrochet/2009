@@ -56,6 +56,11 @@ test.describe('Case 001', () => {
     await expect(files).toContainText('Portland Police are not treating')
 
     // --- the statement, which is the case ---------------------------------
+    // It is not on the desktop. It is on the subject's laptop image, in his Documents, and the
+    // only way to it is the way there would be on a real machine: open the volume and look.
+    await expect(files.getByRole('option', { name: /draft-statement-v3/ })).toHaveCount(0)
+    await files.locator('[data-place="Daniel-MBP"]').click()
+    await files.getByRole('option', { name: 'Documents' }).click()
     await files.getByRole('option', { name: /draft-statement-v3/ }).click()
     await expect(files).toContainText('Oregon Department of Justice')
     await files.getByRole('button', { name: 'PIN AS EVIDENCE' }).click()
@@ -90,6 +95,8 @@ test.describe('Case 001', () => {
 
     // The passcode is in the subject's own notes, on the image the client handed over.
     await openApp(page, 'Files')
+    // Still standing in the image's Documents from earlier, because a file manager remembers
+    // where it was left — which is the whole reason the passcode is findable at all.
     await files.getByRole('option', { name: /passcodes\.txt/ }).click()
     await expect(files).toContainText('phone           — 190455')
 

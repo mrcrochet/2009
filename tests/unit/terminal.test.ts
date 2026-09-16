@@ -4,14 +4,13 @@ import { stamp } from '@/engine/events'
 import { content, dispatch, fresh, run } from './helpers'
 
 const last = (state: ReturnType<typeof fresh>) => state.terminal.lines.at(-1)
+const text = (state: ReturnType<typeof fresh>) =>
+  state.terminal.lines.map((line) => line.text).join('\n')
 
 describe('terminal', () => {
-  it('answers help, ls and whoami from authored content', () => {
+  it('answers help and whoami from authored content', () => {
     let state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'help' })
     expect(last(state)?.text).toContain('decrypt <file> --key <word>')
-
-    state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'ls' })
-    expect(last(state)?.text).toContain('marlow-2013.enc')
 
     state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'whoami' })
     expect(state.terminal.lines.map((l) => l.text).join('\n')).toContain('read-only on all')
@@ -53,9 +52,17 @@ describe('terminal', () => {
     expect(state.exposure).toBe(30)
   })
 
-  it('cats a text file but not the binary', () => {
+  it('cats a text file but not the binary, and only where the file actually is', () => {
+    // There is no `passcodes.txt` in the investigator's home, and the shell says so rather than
+    // finding it anyway: the lookup table it used to have would answer from anywhere.
     let state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'cat passcodes.txt' })
-    expect(last(state)?.text).toContain('phone           — 190455')
+    expect(last(state)?.text).toContain('No such file or directory')
+
+    state = run(state, [
+      { type: 'TERMINAL_COMMAND_RUN', command: 'cd /Volumes/Daniel-MBP/Documents' },
+      { type: 'TERMINAL_COMMAND_RUN', command: 'cat passcodes.txt' },
+    ])
+    expect(text(state)).toContain('phone           — 190455')
 
     state = dispatch(state, { type: 'TERMINAL_COMMAND_RUN', command: 'cat marlow-2013.enc' })
     expect(last(state)?.text).toBe(content.terminal.catBinary)
@@ -193,7 +200,8 @@ describe('the lockout locks', () => {
 
   it('a flag on a known command is still that command', () => {
     const state = dispatch(fresh(), { type: 'TERMINAL_COMMAND_RUN', command: 'ls -l' })
-    expect(last(state)?.text).toContain('marlow-2013.enc')
+    expect(text(state)).toContain('Desktop/')
+    expect(text(state)).not.toContain('command not found')
   })
 
   it('ps leaves the one process nothing in the case explains', () => {

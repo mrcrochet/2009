@@ -32,12 +32,25 @@ async function openTheHandset(page: Page) {
   await expect(row).toHaveAttribute('data-unlocked', 'true')
 }
 
+/** Where the case put each document. The file manager is a file manager; you have to go there. */
+async function goTo(page: Page, ...folders: readonly string[]) {
+  const files = page.locator('[data-app="files"]')
+  for (const folder of folders) {
+    // A folder in the listing wins over a shortcut of the same name: "Documents" inside a
+    // mounted image is not the investigator's own Documents, and Places holds both.
+    const row = files.getByRole('option', { name: folder, exact: true })
+    if (await row.count()) await row.click()
+    else await files.locator(`[data-place="${folder}"]`).click()
+  }
+}
+
 test.describe('documents look like what they are', () => {
   test('a spreadsheet is a spreadsheet, and a recording can be played', async ({ page }) => {
     await boot(page)
     await openApp(page, 'Files')
     const files = page.locator('[data-app="files"]')
 
+    await goTo(page, 'Daniel-MBP', 'Documents')
     await files.getByRole('option', { name: /grant-disbursements-2013\.csv/ }).click()
     const table = files.getByRole('table')
     await expect(table).toBeVisible()
@@ -46,6 +59,7 @@ test.describe('documents look like what they are', () => {
     // The comment somebody left in a cell, in the margin where a spreadsheet puts it.
     await expect(files.getByText('D1')).toBeVisible()
 
+    await goTo(page, 'Documents')
     await files.getByRole('option', { name: /voicemail-0610\.m4a/ }).click()
     // The transcript is legible before anything is pressed.
     await expect(files.getByText('I am not going to keep doing this by message.')).toBeVisible()
@@ -58,6 +72,7 @@ test.describe('documents look like what they are', () => {
     await openApp(page, 'Files')
     const files = page.locator('[data-app="files"]')
 
+    await goTo(page, 'Documents')
     await files.getByRole('option', { name: /receipt-fremont-0609\.pdf/ }).focus()
     await page.keyboard.press(' ')
 
