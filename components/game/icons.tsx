@@ -58,6 +58,14 @@ const GLYPHS: Record<string, ReactElement> = {
       <path d="M5.6 8.4l2.1 1.9-2.1 1.9M10 12.6h4.6" />
     </g>
   ),
+  relay: (
+    <g>
+      <path d="M10 12.5v5" />
+      <circle cx="10" cy="10" r="2.2" />
+      <path d="M6.2 6.2a5.4 5.4 0 0 0 0 7.6M13.8 6.2a5.4 5.4 0 0 1 0 7.6" />
+      <path d="M3.6 3.6a9 9 0 0 0 0 12.8M16.4 3.6a9 9 0 0 1 0 12.8" opacity=".55" />
+    </g>
+  ),
   directory: (
     <g>
       <rect x="3.5" y="3" width="13" height="14" rx="1.4" />

@@ -12,7 +12,6 @@ import { MenuBar } from './MenuBar'
 import { PhoneOverlay } from './PhoneOverlay'
 import { QuickLook } from './QuickLook'
 import { SurveillanceOverlay } from './SurveillanceOverlay'
-import { RelayOverlay } from './RelayOverlay'
 import { WindowManager } from './WindowManager'
 import { useContent, useDispatch, useInvestigation } from './GameContext'
 import { useWorldOptional } from './WorldContext'
@@ -55,7 +54,6 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
   const [directoryFocus, setDirectoryFocus] = useState<string | null>(null)
   const trayOpen = useInvestigation((s) => s.ui.trayOpen)
   const boardOpen = useInvestigation((s) => s.ui.boardOpen)
-  const relayOpen = useInvestigation((s) => s.ui.relayOpen)
   const phoneOpen = useInvestigation((s) => s.phone.open)
 
   // One search across the whole machine. Ctrl+K rather than a dock icon: it is a route through
@@ -74,13 +72,13 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
-      if (searchOpen || boardOpen || relayOpen) return // each handles its own Escape
+      if (searchOpen || boardOpen) return // each handles its own Escape
       if (trayOpen) dispatch({ type: 'TRAY_TOGGLED', open: false })
       else if (phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen, relayOpen])
+  }, [dispatch, trayOpen, boardOpen, phoneOpen, searchOpen])
 
   /**
    * Opening a result has to arrive at the document, not at the application that happens to hold
@@ -108,7 +106,7 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
 
     if (hit.surface === 'phone') {
       if (!phoneOpen) dispatch({ type: 'PHONE_TOGGLED' })
-      dispatch({ type: 'PHONE_TAB_CHANGED', tab: 'sms' })
+      dispatch({ type: 'MOBILE_OPENED', app: 'messages' })
       return
     }
 
@@ -139,7 +137,6 @@ export function Workstation({ onFileReport }: { onFileReport: () => void }) {
       <EvidenceTray />
       <QuickLook />
       <InvestigationBoard />
-      <RelayOverlay />
       <SearchPalette
         machine={content.osName.split(' ')[0] ?? 'the machine'}
         open={searchOpen}

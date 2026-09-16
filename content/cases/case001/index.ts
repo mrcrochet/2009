@@ -72,8 +72,21 @@ export const case001: z.input<typeof CaseContentSchema> = {
     { id: 'notes', title: 'Notes', mono: 'N', width: 352, height: 300 },
     { id: 'term', title: 'Console', mono: '>', width: 568, height: 328 },
     { id: 'directory', title: 'Directory', mono: 'I', width: 640, height: 420 },
+    { id: 'relay', title: 'Relay', mono: 'R', width: 560, height: 470 },
   ],
-  dock: ['mail', 'msg', 'web', 'files', 'photos', 'devices', 'notes', 'term', 'directory', 'phone'],
+  dock: [
+    'mail',
+    'msg',
+    'web',
+    'files',
+    'photos',
+    'devices',
+    'notes',
+    'term',
+    'directory',
+    'relay',
+    'phone',
+  ],
 
   devices: [
     {
@@ -90,6 +103,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
       wrongKey: 'Not that one. The handset does not say how many tries are left, which usually means it is not counting.',
       setsFlag: 'phoneOpen',
       beat: 'device',
+      volume: 'Daniel-NOVA-M12',
     },
     {
       id: 'dev-laptop',
@@ -104,6 +118,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
       wrongKey: '',
       setsFlag: null,
       beat: null,
+      volume: 'Daniel-MBP',
     },
   ],
 
@@ -448,6 +463,9 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Desktop',
+      created: '17 Jun 08:02',
+      modified: '17 Jun 08:02',
     },
     {
       id: 'f2',
@@ -461,6 +479,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: 'statement',
+      dir: '/Volumes/Daniel-MBP/Documents',
+      bytes: 4182,
+      created: '07 Jun 21:14',
+      modified: '08 Jun 23:41',
     },
     {
       id: 'f3',
@@ -474,6 +496,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Documents',
+      bytes: 217088,
+      created: '12 Jun 14:20',
+      modified: '12 Jun 14:20',
     },
     {
       id: 'f4',
@@ -487,6 +513,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Volumes/Daniel-MBP/Documents',
+      bytes: 312,
+      created: '14 Mar 19:55',
+      modified: '02 Jun 08:30',
     },
     {
       id: 'f5',
@@ -503,6 +533,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: true,
       beat: null,
+      dir: '/Volumes/Daniel-MBP/Documents',
+      bytes: 90112,
+      created: '19 Nov 22:10',
+      modified: '19 Nov 22:10',
     },
     {
       id: 'f7',
@@ -516,6 +550,9 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Volumes/Daniel-MBP/Documents',
+      created: '02 Jun 20:48',
+      modified: '02 Jun 21:07',
     },
     {
       id: 'f8',
@@ -543,6 +580,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Documents',
+      bytes: 148480,
+      created: '12 Jun 14:22',
+      modified: '12 Jun 14:22',
     },
     {
       id: 'f6',
@@ -556,6 +597,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
       disputedClaim: null,
       evidenceRequiresDecryption: false,
       beat: null,
+      dir: '/Users/investigator/Downloads',
     },
   ],
 
@@ -578,6 +620,8 @@ export const case001: z.input<typeof CaseContentSchema> = {
         'No edit history. This is the file the camera wrote.',
       ],
       evidenceId: 'e6',
+      bytes: 3812864,
+      captured: '09 Jun 22:47',
     },
     {
       id: 'p2',
@@ -592,6 +636,8 @@ export const case001: z.input<typeof CaseContentSchema> = {
         'Taken forty minutes before draft-statement-v3.doc was last modified.',
       ],
       evidenceId: null,
+      bytes: 2965504,
+      captured: '08 Jun 23:39',
     },
     {
       id: 'p3',
@@ -605,42 +651,87 @@ export const case001: z.input<typeof CaseContentSchema> = {
         'Underexposed by four stops. Nothing in the frame resolves, and enhancement will not make it.',
       ],
       evidenceId: null,
+      bytes: 4128768,
+      captured: '02 Jun 19:04',
     },
   ],
 
   terminal: {
-    prompt: 'nova$',
+    prompt: 'nova@workstation',
     banner: { text: 'NOVA console 3.2 — case volume CASE-24-118 mounted read-only', tone: 'dim' },
     statics: {
       help: [
-        { text: 'ls · cat <file> · date · whoami · decrypt <file> --key <word> · relay', tone: 'out' },
-      ],
-      ls: [
-        { text: 'CASE_24-118.txt   draft-statement-v3.doc   receipt-fremont-0609.pdf', tone: 'out' },
-        { text: 'passcodes.txt     marlow-2013.enc', tone: 'out' },
-      ],
-      /*
-       * The process table, and the one line in it nothing in the case explains.
-       *
-       * Nothing announces it and nothing reacts to it. The relay is reachable from here by
-       * somebody who wonders what a session mirror is and goes looking — which is the whole
-       * mechanic: the machine never points at the thing.
-       */
-      ps: [
-        { text: '  PID  COMMAND', tone: 'dim' },
-        { text: '  118  nova-session --case 24-118', tone: 'out' },
-        { text: '  241  index --watch /volumes/case', tone: 'out' },
-        { text: '  377  relay --idle', tone: 'out' },
-        { text: '  412  smirror --peer 10.24.0.1 --quiet', tone: 'out' },
+        { text: 'pwd · cd · ls [-l] · cat · stat · file · find · open · mount', tone: 'out' },
+        { text: 'ps [aux] · top · kill <pid> · date · whoami', tone: 'out' },
+        { text: 'decrypt <file> --key <word> · relay', tone: 'out' },
       ],
     },
     dateTemplate: 'Wed 17 Jun 2026 {{clock}} PDT',
-    catTargets: {
-      'case_24-118.txt': 'f1',
-      'draft-statement-v3.doc': 'f2',
-      'passcodes.txt': 'f4',
-    },
     catBinary: 'cat: not a text file',
+
+    /*
+     * The process table, and the one line in it nothing in the case explains.
+     *
+     * Nothing announces `smirror` and nothing points at it. The relay is reachable from here by
+     * somebody who wonders what a session mirror is and goes looking, and the mirror itself can
+     * be ended by somebody who decides they do not want to be watched while they work.
+     *
+     * Ending it costs. The peer on the other end of it notices the line go quiet, which is what
+     * the exposure is: not a punishment for curiosity, a consequence of acting on it. And forty
+     * minutes later it is running again under a number nobody has seen before, which no part of
+     * this machine will mention to anybody who does not look twice.
+     */
+    processes: [
+      {
+        pid: 118,
+        command: 'nova-session --case 24-118',
+        user: 'investigator',
+        cpu: 2.1,
+        mem: 184,
+        system: true,
+      },
+      { pid: 241, command: 'index --watch /Volumes', user: 'system', cpu: 0.4, mem: 96, system: true },
+      { pid: 377, command: 'relay --idle', user: 'system', cpu: 0, mem: 22, system: true },
+      {
+        pid: 412,
+        command: 'smirror --peer 10.24.0.1 --quiet',
+        user: 'system',
+        cpu: 0.1,
+        mem: 14,
+        system: false,
+        onKill: {
+          lines: [
+            { text: 'smirror: peer 10.24.0.1 closed the session.', tone: 'dim' },
+            { text: 'smirror: 41 minutes mirrored before close.', tone: 'dim' },
+          ],
+          setsFlag: 'mirrorKilled',
+          beat: null,
+          exposure: 5,
+        },
+        respawnAfter: 40,
+        respawnPid: 561,
+      },
+      {
+        pid: 604,
+        command: 'relayd --route open --metered',
+        user: 'investigator',
+        cpu: 0.6,
+        mem: 41,
+        system: false,
+        needsRelay: true,
+        onKill: {
+          lines: [{ text: 'relayd: route closed. no outbound on this session.', tone: 'err' }],
+          setsFlag: 'relayKilled',
+          beat: null,
+          exposure: 0,
+        },
+        respawnAfter: null,
+        respawnPid: null,
+      },
+    ],
+    killProtected: 'kill: {{pid}}: operation not permitted',
+    killNoSuch: 'kill: {{pid}}: no such process',
+    killUsage: 'usage: kill <pid>',
     whoami: [
       { text: 'investigator · session 24-118 · read-only on all attached sources', tone: 'out' },
     ],
@@ -666,6 +757,11 @@ export const case001: z.input<typeof CaseContentSchema> = {
         { text: 'relay: everything you pull is captured and kept as read.', tone: 'dim' },
       ],
       opened: [{ text: 'relay: attached.', tone: 'ok' }],
+      daemonPid: 604,
+      killed: [
+        { text: 'relay: relayd is not running on this session.', tone: 'err' },
+        { text: 'relay: you closed it. it does not come back from here.', tone: 'dim' },
+      ],
     },
     decrypt: {
       key: 'reyes',
@@ -680,7 +776,7 @@ export const case001: z.input<typeof CaseContentSchema> = {
   },
 
   relay: {
-    signalBudget: 24,
+    signalBudget: 40,
     availableAtStart: false,
     searchCost: 1,
     openCost: 2,
@@ -720,7 +816,10 @@ export const case001: z.input<typeof CaseContentSchema> = {
       'These are not evidence. A filed claim rests on the case file, and a line pulled off the open web is context — it is how you knew where to look, not what you can show. You know it anyway.',
     pinLabel: 'KEEP THIS LINE',
     pinnedLabel: 'kept',
-    closeLabel: 'detach the relay',
+    capturesLabel: 'brought back',
+    captureTemplate: '{{when}} · cost {{cost}}',
+    capturesEmpty:
+      'Nothing has come back through this route yet. What does will be held here exactly as it arrived, and it will not change afterwards.',
     backLabel: 'back to what came back',
     resultsLabel: 'came back:',
     linksLabel: 'this document names further addresses:',
@@ -733,6 +832,152 @@ export const case001: z.input<typeof CaseContentSchema> = {
   phone: {
     device: 'NOVA M12',
     carrier: 'Cascade Mobile',
+    os: 'NOVA Mobile 18.4',
+    lockDate: 'Tuesday 9 June',
+    lockTime: '22:51',
+    battery: 68,
+    wrongPasscode: 'Wrong passcode',
+
+    /*
+     * What the handset was showing when it stopped.
+     *
+     * Reading one clears it, which is the cheapest honest thing a phone does: the machine
+     * changes because somebody touched it. The last of these is the one that matters, and it is
+     * the one a player is least likely to open first.
+     */
+    notifications: [
+      {
+        id: 'n1',
+        app: 'messages',
+        title: 'Claire',
+        body: 'call me when you get in',
+        time: '18:22',
+        item: null,
+      },
+      {
+        id: 'n2',
+        app: 'calls',
+        title: 'Missed call',
+        body: 'R. Vale · 21:58',
+        time: '21:58',
+        item: 'c2',
+      },
+      {
+        id: 'n3',
+        app: 'settings',
+        title: 'Cascade Mobile',
+        body: 'No service',
+        time: '22:51',
+        item: null,
+      },
+    ],
+
+    /*
+     * The applications this handset has. A case with a different phone lists different ones and
+     * the build draws whatever it knows how to draw.
+     */
+    apps: [
+      { id: 'messages', name: 'Messages', glyph: 'messages', badge: 1 },
+      { id: 'calls', name: 'Phone', glyph: 'calls', badge: 1 },
+      { id: 'contacts', name: 'Contacts', glyph: 'contacts', badge: 0 },
+      { id: 'photos', name: 'Photos', glyph: 'photos', badge: 0 },
+      { id: 'settings', name: 'Settings', glyph: 'settings', badge: 0 },
+    ],
+
+    /*
+     * Thirty days of call metadata, which is what the handset itself keeps. Anything older is
+     * the forensic service's to recover, and the note below says so in the device's own words.
+     */
+    callsNote: 'This device keeps 30 days. Records before 18 May are not on the handset.',
+    calls: [
+      /*
+       * The handset's own log says a call happened. It is not the record of it.
+       *
+       * e8 is the carrier's reconstruction, which is what the archive recovery sells and what
+       * goes on the file; a row in a phone's recents is not a document. So this row carries no
+       * evidence of its own, and a player who wants the call on the record still has to go and
+       * get it.
+       */
+      {
+        id: 'c1',
+        who: 'R. Vale',
+        number: '(503) 555-0197',
+        direction: 'out',
+        when: '09 Jun 22:51',
+        duration: 41,
+        evidenceId: null,
+      },
+      {
+        id: 'c2',
+        who: 'R. Vale',
+        number: '(503) 555-0197',
+        direction: 'missed',
+        when: '09 Jun 21:58',
+        duration: 0,
+        evidenceId: null,
+      },
+      {
+        id: 'c3',
+        who: 'Claire',
+        number: '(503) 555-0142',
+        direction: 'in',
+        when: '09 Jun 18:20',
+        duration: 96,
+        evidenceId: null,
+      },
+      {
+        id: 'c4',
+        who: 'R. Vale',
+        number: '(503) 555-0197',
+        direction: 'out',
+        when: '07 Jun 09:12',
+        duration: 412,
+        evidenceId: null,
+      },
+      {
+        id: 'c5',
+        who: 'N. Okafor',
+        number: '(503) 555-0163',
+        direction: 'in',
+        when: '05 Jun 12:40',
+        duration: 233,
+        evidenceId: null,
+      },
+      {
+        id: 'c6',
+        who: 'Ridgeline (office)',
+        number: '(503) 555-0100',
+        direction: 'out',
+        when: '02 Jun 08:58',
+        duration: 61,
+        evidenceId: null,
+      },
+    ],
+
+    /*
+     * The quietly damning surface. Nobody thinks about this list, and it says where the device
+     * physically was — including a network nothing else in the case mentions.
+     */
+    networks: [
+      { ssid: 'Mercer 2214', lastJoined: '09 Jun 18:04', evidenceId: null },
+      { ssid: 'Ridgeline Guest', lastJoined: '05 Jun 09:31', evidenceId: null },
+      { ssid: 'FREMONT-LOT-PUBLIC', lastJoined: '09 Jun 21:44', evidenceId: null },
+      { ssid: 'PDX Free Wi-Fi', lastJoined: '21 May 16:12', evidenceId: null },
+    ],
+
+    /*
+     * The battery is a clock nobody thinks to wipe. It keeps draining after 22:51, which is the
+     * minute the handset stopped syncing — so whatever stopped, it was not the phone.
+     */
+    batteryHistory: [
+      { hour: '18:00', level: 84 },
+      { hour: '19:00', level: 81 },
+      { hour: '20:00', level: 78 },
+      { hour: '21:00', level: 74 },
+      { hour: '22:00', level: 71 },
+      { hour: '23:00', level: 69 },
+      { hour: '00:00', level: 68 },
+    ],
     /*
      * The thread is read backwards, one message at a time.
      *
@@ -808,6 +1053,14 @@ export const case001: z.input<typeof CaseContentSchema> = {
         {
           whenFlag: 'phoneOpen',
           text: 'You got into the handset. The client gave you permission. Daniel did not.',
+        },
+        {
+          whenFlag: 'mirrorKilled',
+          text: 'You ended the session mirror. Whoever was on 10.24.0.1 has known since 22:04 that you found it.',
+        },
+        {
+          whenFlag: 'relayKilled',
+          text: 'You closed your own outbound route. Nothing you pulled before that is any less kept.',
         },
       ],
     },

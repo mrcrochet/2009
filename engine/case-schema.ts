@@ -270,6 +270,21 @@ export const FileDocSchema = z.object({
   disputedClaim: z.string().max(300).nullable().default(null),
   evidenceRequiresDecryption: z.boolean().default(false),
   beat: z.string().nullable().default(null),
+
+  /*
+   * Where this document actually is on the machine.
+   *
+   * The directory, not the whole path, so a file cannot end up with a name in one field and a
+   * different name in another. Empty means the investigator's desktop, which is where a case
+   * puts what it hands over at the door. A path on a volume is only there while that volume is
+   * open — which is how a passcode file recovered off somebody's laptop image stops being
+   * something the player is simply given.
+   */
+  dir: z.string().default(''),
+  /** What it weighs, when the body is not what it weighs — a scan, a recording, a sealed file. */
+  bytes: z.number().int().nonnegative().nullable().default(null),
+  created: z.string().default(''),
+  modified: z.string().default(''),
 })
 
 // --- Terminal --------------------------------------------------------------
@@ -279,13 +294,58 @@ const TerminalLineSchema = z.object({
   tone: z.enum(['prompt', 'out', 'ok', 'err', 'dim']),
 })
 
+/**
+ * A process this machine is running.
+ *
+ * The case decides what is on the table, including the one thing on it the case never explains.
+ * `system` is the machine refusing on its own behalf; `onKill` is the case deciding what it
+ * costs when the player does not take no for an answer.
+ */
+export const MachineProcessSchema = z.object({
+  pid: z.number().int().positive(),
+  command: z.string().min(1),
+  user: z.string().min(1),
+  cpu: z.number().min(0).max(100).default(0),
+  /** Megabytes resident. */
+  mem: z.number().int().nonnegative().default(0),
+  /** `kill` refuses, in the machine's own words. */
+  system: z.boolean().default(false),
+  /** Not on the table until the route has been opened. */
+  needsRelay: z.boolean().default(false),
+  /** What killing it does. `null` for something that simply dies. */
+  onKill: z
+    .object({
+      lines: z.array(TerminalLineSchema).default([]),
+      setsFlag: z.string().nullable().default(null),
+      beat: z.string().nullable().default(null),
+      /** Killing something that was watching is itself a thing that was noticed. */
+      exposure: z.number().int().default(0),
+    })
+    .nullable()
+    .default(null),
+  /**
+   * Minutes after which it is running again, and the number it is running under.
+   *
+   * Nothing announces the return. A player who killed it and looked again an hour later is the
+   * only person who finds out, which is the correct audience for that particular fact.
+   */
+  respawnAfter: z.number().int().positive().nullable().default(null),
+  respawnPid: z.number().int().positive().nullable().default(null),
+})
+
 export const TerminalConfigSchema = z.object({
   prompt: z.string().min(1),
   banner: TerminalLineSchema,
   statics: z.record(z.string(), z.array(TerminalLineSchema)),
   dateTemplate: z.string(),
-  catTargets: z.record(z.string(), id),
+  /** What `cat` says about a file that is not text. The shell resolves the path itself. */
   catBinary: z.string(),
+  /** What this machine is running. `ps` reads this; `kill` changes it. */
+  processes: z.array(MachineProcessSchema).default([]),
+  /** The machine's own refusals, so `kill` speaks in the case's voice. */
+  killProtected: z.string().default('kill: {{pid}}: operation not permitted'),
+  killNoSuch: z.string().default('kill: {{pid}}: no such process'),
+  killUsage: z.string().default('usage: kill <pid>'),
   whoami: z.array(TerminalLineSchema),
   /** The machine only contradicts itself once the player can see the contradiction. */
   whoamiAfterEvidence: z.object({ evidenceId: id, lines: z.array(TerminalLineSchema) }),
@@ -306,6 +366,17 @@ export const TerminalConfigSchema = z.object({
       granted: z.array(TerminalLineSchema),
       /** Run again, once it is known. */
       opened: z.array(TerminalLineSchema),
+      /**
+       * The process that *is* the route.
+       *
+       * A capability with nothing running behind it is a capability nobody can take away. With
+       * this, the relay is an application backed by a daemon: end the daemon and the route is
+       * gone for the session, because that is what ending it means. A case that names none keeps
+       * the old behaviour exactly.
+       */
+      daemonPid: z.number().int().positive().nullable().default(null),
+      /** What the command says once the player has closed their own route. */
+      killed: z.array(TerminalLineSchema).default([]),
     })
     .nullable()
     .default(null),
@@ -397,7 +468,12 @@ export const RelayConfigSchema = z.object({
    * a missing label should cost that case a label, not the whole content module.
    */
   /** The accessible name of the control that leaves the console. The glyph is not a word. */
-  closeLabel: z.string().default(''),
+  /** The tab that lists everything this investigation has brought back. */
+  capturesLabel: z.string().default(''),
+  /** What the captures list says before anything has been brought back. */
+  capturesEmpty: z.string().default(''),
+  /** One row of the captures list. `{{when}}` and `{{cost}}`. */
+  captureTemplate: z.string().default(''),
   /** Getting back to what came back, from inside a captured page. */
   backLabel: z.string().default(''),
   /** The heading over the rows the far end returned. */
@@ -441,6 +517,9 @@ export const PhotoSchema = z.object({
   /** What the extraction says about the file. Shown in the viewer, not on the handset. */
   detail: z.array(z.string()).default([]),
   evidenceId: id.nullable().default(null),
+  /** On the volume it came off, a frame is a file, and a file has a size and a date. */
+  bytes: z.number().int().nonnegative().default(0),
+  captured: z.string().default(''),
 })
 
 export const ContactSchema = z.object({ name: z.string(), number: z.string() })
@@ -450,11 +529,89 @@ export const ContactSchema = z.object({ name: z.string(), number: z.string() })
  * tagged with the source they came off, because the workstation has a viewer too and two copies
  * of one photograph is exactly the duplication the corpus exists to prevent.
  */
+/** An application the handset has. Which ones it has is the case's decision. */
+export const MobileAppSchema = z.object({
+  id,
+  name: z.string().min(1),
+  /** Which glyph the launcher draws. An id this build does not know gets the plain one. */
+  glyph: z
+    .enum(['messages', 'calls', 'contacts', 'photos', 'maps', 'browser', 'mail', 'notes', 'settings', 'app'])
+    .default('app'),
+  /** The badge on the icon, when the case wants one. */
+  badge: z.number().int().nonnegative().default(0),
+})
+
+/**
+ * An alert sitting on the lock screen when the handset is picked up.
+ *
+ * Reading one removes it, which is the single cheapest thing that makes a phone feel like a
+ * device: the state of the machine changes because the player touched it.
+ */
+export const MobileNotificationSchema = z.object({
+  id,
+  app: id,
+  title: z.string().min(1),
+  body: z.string().min(1),
+  time: z.string().min(1),
+  /** What it opens to inside the application, when it opens to something in particular. */
+  item: z.string().nullable().default(null),
+})
+
+/** One line of the recents list. Metadata, which is what a call actually leaves behind. */
+export const MobileCallSchema = z.object({
+  id,
+  who: z.string().min(1),
+  number: z.string().min(1),
+  direction: z.enum(['in', 'out', 'missed']),
+  when: z.string().min(1),
+  /** Seconds. Zero for a call nobody answered. */
+  duration: z.number().int().nonnegative(),
+  evidenceId: id.nullable().default(null),
+})
+
+/**
+ * A network the handset remembers joining.
+ *
+ * The most quietly damning surface on a phone: nobody thinks about the list, and it says where
+ * the device has physically been.
+ */
+export const MobileNetworkSchema = z.object({
+  ssid: z.string().min(1),
+  lastJoined: z.string().min(1),
+  evidenceId: id.nullable().default(null),
+})
+
+/** One bar of the battery history. The hour, and what was left at the end of it. */
+export const MobileBatteryPointSchema = z.object({
+  hour: z.string().min(1),
+  level: z.number().int().min(0).max(100),
+})
+
 export const PhoneConfigSchema = z.object({
   device: z.string().min(1),
   carrier: z.string().min(1),
   sms: z.array(SmsNodeSchema).min(1),
   contacts: z.array(ContactSchema),
+  /** The operating system the handset says it is running. */
+  os: z.string().min(1).default('NOVA Mobile'),
+  /*
+   * The date and time the handset itself is showing.
+   *
+   * Not the room's clock. What is on the desk is the device as it was — the notifications that
+   * were on the glass, the battery it had left, the hour it stopped having service — so its
+   * status bar keeps the device's own time rather than counting along with the session.
+   */
+  lockDate: z.string().min(1).default(''),
+  lockTime: z.string().min(1).default(''),
+  battery: z.number().int().min(0).max(100).default(68),
+  batteryHistory: z.array(MobileBatteryPointSchema).default([]),
+  networks: z.array(MobileNetworkSchema).default([]),
+  calls: z.array(MobileCallSchema).default([]),
+  callsNote: z.string().default(''),
+  notifications: z.array(MobileNotificationSchema).default([]),
+  apps: z.array(MobileAppSchema).min(1),
+  /** What the handset says when the passcode is wrong, in the case's own words. */
+  wrongPasscode: z.string().default(''),
 })
 
 
@@ -548,6 +705,16 @@ export const DeviceSchema = z.object({
   /** Set on the world when this device is opened. */
   setsFlag: z.string().nullable().default(null),
   beat: z.string().nullable().default(null),
+  /**
+   * What this source is called under `/Volumes` once it is attached.
+   *
+   * A mount name, so it has no spaces and no apostrophes in it: "Daniel's NOVA M12" is what the
+   * workstation calls the handset, and `Daniel-NOVA-M12` is what a path calls it.
+   */
+  volume: z
+    .string()
+    .min(1)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*$/, 'a volume name is a path segment'),
 })
 
 // --- Forensic services -----------------------------------------------------
@@ -687,9 +854,14 @@ export type Photo = z.infer<typeof PhotoSchema>
 export type Catalogue = z.infer<typeof CatalogueSchema>
 export type CaseArt = Catalogue['art']
 export type DocumentKind = z.infer<typeof DocumentKindSchema>
+export type MachineProcess = z.infer<typeof MachineProcessSchema>
 export type AudioDoc = z.infer<typeof AudioDocSchema>
 export type AudioCue = z.infer<typeof AudioCueSchema>
 export type Contact = z.infer<typeof ContactSchema>
+export type MobileApp = z.infer<typeof MobileAppSchema>
+export type MobileNotification = z.infer<typeof MobileNotificationSchema>
+export type MobileCall = z.infer<typeof MobileCallSchema>
+export type MobileNetwork = z.infer<typeof MobileNetworkSchema>
 export type Thread = z.infer<typeof ThreadSchema>
 export type ChatNode = z.infer<typeof ChatNodeSchema>
 export type Choice = z.infer<typeof ChoiceSchema>

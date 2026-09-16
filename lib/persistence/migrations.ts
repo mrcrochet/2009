@@ -52,6 +52,138 @@ const STEPS: readonly MigrationStep[] = [
       }
     },
   },
+  {
+    from: 14,
+    to: 15,
+    describe: 'makes the relay an application and gives every capture its provenance',
+    /**
+     * Three changes, and only one of them can lose anything.
+     *
+     * `relay.observed` was a list of snapshot ids. `relay.captures` is the same list with where
+     * each page came from and what the look cost — which a v14 save never recorded, so those
+     * fields come across as `null` and `0`. That is the honest shape for "this build did not
+     * keep it": the ids still make reopening free, and the list says so rather than inventing an
+     * address.
+     *
+     * `ui.relayOpen` is gone because the console is a window now, and `RELAY_TOGGLED` with it.
+     * The event has to be dropped from the log rather than left in: the log is validated against
+     * a closed vocabulary, and a save carrying a type this build has retired would be refused
+     * at the door.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const relay = asRecord(snapshot.relay) ?? {}
+      const ui = asRecord(snapshot.ui) ?? {}
+      const { relayOpen: _relayOpen, ...restUi } = ui
+      const observed = Array.isArray(relay.observed) ? relay.observed : []
+      const { observed: _observed, ...restRelay } = relay
+      const events = Array.isArray(row.events) ? row.events : []
+
+      return {
+        ...row,
+        events: events.filter((event) => !(asRecord(event)?.type === 'RELAY_TOGGLED')),
+        snapshot: {
+          ...snapshot,
+          ui: restUi,
+          relay: {
+            ...restRelay,
+            captures: Array.isArray(relay.captures)
+              ? relay.captures
+              : observed
+                  .filter((id): id is string => typeof id === 'string')
+                  .map((id) => ({ snapshotId: id, url: null, title: null, cost: 0, at: 0 })),
+          },
+        },
+      }
+    },
+  },
+  {
+    from: 15,
+    to: 16,
+    describe: 'turns the handset from three tabs into a device with a route stack',
+    /**
+     * `phone.tab` was one of three panels. A handset is a place you go into and come back out
+     * of, so it carries a stack now — and a save written mid-tab becomes a save with that
+     * application open, which is what the player was in fact looking at.
+     *
+     * `PHONE_TAB_CHANGED` leaves the log for the same reason `RELAY_TOGGLED` did: the vocabulary
+     * is closed, and a retired type would be refused at the door rather than migrated.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const phone = asRecord(snapshot.phone) ?? {}
+      const { tab, ...rest } = phone
+      const app = tab === 'photos' ? 'photos' : tab === 'contacts' ? 'contacts' : 'messages'
+      const events = Array.isArray(row.events) ? row.events : []
+
+      return {
+        ...row,
+        events: events.filter((event) => asRecord(event)?.type !== 'PHONE_TAB_CHANGED'),
+        snapshot: {
+          ...snapshot,
+          phone: {
+            ...rest,
+            route: Array.isArray(phone.route)
+              ? phone.route
+              : phone.open
+                ? [{ app, item: null }]
+                : [],
+            readNotifications: Array.isArray(phone.readNotifications)
+              ? phone.readNotifications
+              : [],
+            passcodeAttempts:
+              typeof phone.passcodeAttempts === 'number' ? phone.passcodeAttempts : 0,
+          },
+        },
+      }
+    },
+  },
+  {
+    from: 16,
+    to: 17,
+    describe: 'gives the machine a filesystem that Files and the shell both stand in',
+    /**
+     * Files and Terminal used to be two accounts of one disk that never had to agree. There is
+     * one tree now, derived from the case and from which sources are open — so nothing of it is
+     * written into a save, and all a save needs is where each of the two was standing.
+     *
+     * The file manager comes back on the desktop and the shell in the investigator's home, which
+     * is where they both start. A document that was open stays open: `files.openId` is a case
+     * document, not a path, and it survived the change.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const files = asRecord(snapshot.files) ?? {}
+      return {
+        ...row,
+        snapshot: {
+          ...snapshot,
+          files: { ...files, cwd: '/Users/investigator/Desktop' },
+          machine: { cwd: '/Users/investigator' },
+        },
+      }
+    },
+  },
+  {
+    from: 17,
+    to: 18,
+    describe: 'gives the machine a process table the player can act on',
+    /**
+     * `ps` was four lines of text in the case file, so there was nothing in a save about what
+     * was running. There still is not: the table is derived, and what is kept is only which
+     * processes the player ended and when — which is also what lets one of them come back later
+     * under a different number.
+     */
+    migrate(row) {
+      const snapshot = asRecord(row.snapshot)
+      if (!snapshot) return row
+      const machine = asRecord(snapshot.machine) ?? { cwd: '/Users/investigator' }
+      return { ...row, snapshot: { ...snapshot, machine: { ...machine, killed: [] } } }
+    },
+  },
 ]
 
 function asRecord(value: unknown): AnyRecord | null {

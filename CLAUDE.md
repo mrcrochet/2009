@@ -52,7 +52,11 @@ loud.
 - One search reaches every surface at once, and its counts say the world is larger than the
   question. It is a Find window, not a command palette.
 - The Directory holds only what this machine has learned. It is never a cast list.
-- The relay console is a focused in-world mode, like the board, and never a browser tab.
+- **The relay is an application on this workstation, and the only route out.** Metered, and
+  everything it brings back is captured: an immutable snapshot, held with where it came from and
+  what the look cost, so a replay shows the bytes the player read. It is never a tab inside the
+  fictional browser, and it is not on the machine until the process has been found — the dock
+  hides it and the reducer refuses to open it.
 - Consequences are experienced through changing world content, not through a meter.
 - Guest can begin immediately with no account.
 - Save/account prompt happens only after the case has earned it.
@@ -74,8 +78,8 @@ loud.
   window is a present-day operating system, a 22px card floating in a blur is a dashboard.
 - Emoji as shipping icons.
 - AI chat replacing authored narrative.
-- External live web search inside the fictional Browser. (The relay is the only route out, it is
-  metered, and what it returns is an immutable snapshot.)
+- External live web search inside the fictional Browser. The relay is the only route out; a case's
+  own web and the corpus are one closed internet.
 - Hardcoded story logic inside React components.
 - Client-side subscription or entitlement checks as the source of truth.
 - A price, a card field, or a purchase completed inside the fiction. Recovery is offered in-world
@@ -175,6 +179,31 @@ looks like the session. See `docs/AUTHORING.md`.
 `sourceId`; the handset's roll and the workstation's viewer are two surfaces over one set of
 files, and a picture off a source nobody has unlocked is on neither. The same rule gives a
 locked handset a lock screen instead of the thread it is hiding.
+
+**One machine.** `engine/machine/` is the workstation itself, and every application that talks
+about a file reads it. The filesystem is **derived, never stored** — from the case's own
+documents, from which sources are attached and open, and from which recoveries have been granted
+— so a save carries only where each window was standing. A document declares its `dir`, its
+`bytes` and its dates; a device declares its `volume`, and mounts under `/Volumes` when it is
+attached. **A source nobody has opened has no contents in the tree at all**: not hidden from the
+listing, not there to be reached, so the shell cannot be used to walk around the lock the file
+manager enforces. Files walks the tree and the shell answers `pwd`, `cd`, `ls`, `cat`, `stat`,
+`file`, `find`, `open` and `mount` out of the same nodes, which is why a shell command may never
+be authored as a static that contradicts the volume the case mounted. Reading a document at the
+prompt *is* reading it: it lands in the reader and the world graph records it.
+
+**Things are running.** `engine/machine/processes.ts` is the process table, derived like the
+filesystem, and `ps`, `top` and `kill` read and change it. A case authors what is on it,
+including the one line it never explains; `system: true` is the machine refusing on its own
+behalf, and `onKill` is the case deciding what it costs when the player does not take no for an
+answer. Respawns are timed against the **session clock, never a timer**, so a replay rebuilds the
+same table at the same minute — and nothing announces a return.
+
+**A capability is backed by something running.** The relay is not a permission the session was
+granted; it is an application with a daemon (`terminal.relay.daemonPid`). End the daemon and the
+window closes, the dock entry goes and the command says so rather than quietly restarting it. A
+dock icon for an application that refuses to open tells the player the machine is broken rather
+than that they broke it, so the dock asks the same question the reducer does.
 
 **One world.** `content/world/` is the corpus the cases happen inside — entities, artifacts,
 relations, facts — and `content/index.ts` projects every authored case into it, so a player who
@@ -299,6 +328,12 @@ Implemented, and asserted by `tests/unit/components.test.tsx` and `tests/e2e/mob
 
 ## 23. Testing
 
+`tests/unit/machine.test.ts` holds the two claims the machine rests on. Files and the shell are
+two windows onto one filesystem: a locked volume is locked in both, a document behind a recovery
+is in neither, and a path means the same thing wherever it is typed. And the process table is
+state: the machine refuses its own, what it lets you end really ends, what comes back is not what
+left, and the reducer refuses a kill the shell would have refused.
+
 Unit: evidence pinning idempotency, the service gate, claim requirement logic, device unlocking,
 page variants, the report gate, save migration, engine purity, and the reading of a document —
 the sheet parser, the waveform's determinism, what a locked source yields, and what Quick Look
@@ -336,3 +371,13 @@ npm run test
 npm run build
 npm run test:e2e -- --project=chromium
 ```
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

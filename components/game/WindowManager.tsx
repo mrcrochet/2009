@@ -23,6 +23,7 @@ const load: Record<string, () => Promise<Record<string, ComponentType>>> = {
   notes: () => import('./apps/NotesApp'),
   term: () => import('./apps/TerminalApp'),
   directory: () => import('./apps/DirectoryApp'),
+  relay: () => import('./apps/RelayApp'),
 }
 
 const REGISTRY: Record<string, ComponentType> = {
@@ -35,6 +36,7 @@ const REGISTRY: Record<string, ComponentType> = {
   notes: lazy(() => load.notes!().then((m) => ({ default: m.NotesApp! }))),
   term: lazy(() => load.term!().then((m) => ({ default: m.TerminalApp! }))),
   directory: lazy(() => load.directory!().then((m) => ({ default: m.DirectoryApp! }))),
+  relay: lazy(() => load.relay!().then((m) => ({ default: m.RelayApp! }))),
 }
 
 function MissingApp() {

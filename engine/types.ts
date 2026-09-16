@@ -7,7 +7,7 @@
  * everything that is merely the surface of the machine lives in another.
  */
 
-export const SCHEMA_VERSION = 14
+export const SCHEMA_VERSION = 18
 
 // ---------------------------------------------------------------------------
 // Apps & windows
@@ -66,7 +66,50 @@ export interface DeviceState {
   readonly unlocked: boolean
 }
 
-export type PhoneTab = 'sms' | 'photos' | 'contacts'
+/**
+ * An application on the handset, named by the case.
+ *
+ * Open like the workstation's `AppId`, and for the same reason: a case that hands over a phone
+ * with a banking app and no camera is a content decision. Which of these the build can draw is
+ * the registry's business; a case naming one this build does not have gets a screen saying so.
+ */
+export type MobileAppId = string
+
+/**
+ * Where the handset is, as a stack.
+ *
+ * A phone is not a set of tabs — it is a place you go into and come back out of, and the back
+ * gesture is most of what makes it feel like a device rather than a panel. The stack is the
+ * whole of that: home is an empty stack, an app pushes, an item inside the app pushes again.
+ */
+export interface MobileRoute {
+  readonly app: MobileAppId
+  /** The thing being looked at inside the app: a conversation, a photograph, a call. */
+  readonly item: string | null
+}
+
+/**
+ * The state of a handset on the desk.
+ *
+ * It is a device runtime rather than a view model. A notification that is still there after it
+ * has been read, an app that forgets which conversation was open, a passcode that is only
+ * checked by the workstation and never by the phone itself — each of those is a small moment
+ * where the player stops believing they are holding a thing.
+ */
+export interface PhoneState {
+  /** On the desk, picked up. Not the same as powered. */
+  readonly open: boolean
+  readonly x: number | null
+  readonly y: number | null
+  /** Empty is the home screen. */
+  readonly route: readonly MobileRoute[]
+  /** Notifications the player has opened. They do not come back. */
+  readonly readNotifications: readonly string[]
+  /** The lock screen's own attempt counter, separate from the workstation's. */
+  readonly passcodeAttempts: number
+  /** How far down the thread the player has read. */
+  readonly smsStep: number
+}
 
 /**
  * What Quick Look is holding up.
@@ -79,26 +122,12 @@ export interface QuickLookRef {
   readonly id: string
 }
 
-export interface PhoneState {
-  readonly open: boolean
-  readonly tab: PhoneTab
-  readonly x: number | null
-  readonly y: number | null
-  readonly smsStep: number
-}
-
 // ---------------------------------------------------------------------------
 // Investigation
 // ---------------------------------------------------------------------------
 
 export type EvidenceSourceKind =
-  | 'mail'
-  | 'files'
-  | 'browser'
-  | 'phone'
-  | 'terminal'
-  | 'messenger'
-  | 'device'
+  'mail' | 'files' | 'browser' | 'phone' | 'terminal' | 'messenger' | 'device'
 
 export type Reliability = 'documentary' | 'testimonial' | 'circumstantial'
 
@@ -160,7 +189,17 @@ export interface BrowserEntry {
   readonly view: BrowserView
   readonly url: string
   readonly query: string
+  /** Hits in the case's own authored index, which carries its own titles and snippets. */
   readonly resultIds: readonly string[]
+  /**
+   * Addresses the corpus answered with.
+   *
+   * The engine cannot search the world — only the shell holds the index — so the addresses come
+   * in on the event, the way a navigated artifact's id does. Without this the search engine on
+   * this machine saw ten authored pages and called the other eighty-four "0 found", which
+   * teaches a player in ten seconds that the internet is a puzzle box with ten rooms in it.
+   */
+  readonly resultUrls: readonly string[]
 }
 
 export interface BrowserState extends BrowserEntry {
@@ -216,6 +255,27 @@ export interface KeptExcerpt {
   readonly sourceUrl: string
   readonly sourceTitle: string
   readonly capturedAt: number
+}
+
+/**
+ * A page this investigation brought back through the relay.
+ *
+ * The id alone was enough to answer "has this been opened before, and is reopening it free".
+ * It is not enough to show an investigator what they have spent their signal on — for that the
+ * record has to carry where the page came from, and carry it on the event rather than in the
+ * snapshot cache, which is server-side and which a replay may not have.
+ *
+ * `url` and `title` are nullable because a save written before the relay kept them has the ids
+ * and nothing else. An empty provenance is the honest shape for "this build did not record it".
+ */
+export interface RelayCapture {
+  readonly snapshotId: string
+  readonly url: string | null
+  readonly title: string | null
+  /** What the look cost in signal. */
+  readonly cost: number
+  /** The minute of the session it was brought back at. */
+  readonly at: number
 }
 
 export type Stage = 'intake' | 'boot' | 'playing' | 'report'
@@ -302,7 +362,8 @@ export interface InvestigationState {
      * makes it a case's decision rather than a build's.
      */
     readonly unlocked: boolean
-    readonly observed: readonly string[]
+    /** Everything brought back, newest last, with what it cost and where it came from. */
+    readonly captures: readonly RelayCapture[]
     readonly kept: readonly KeptExcerpt[]
     /** Community puzzles this investigation has opened. */
     readonly mysteries: readonly string[]
@@ -344,6 +405,29 @@ export interface InvestigationState {
     readonly openId: string
     readonly decrypted: Readonly<Record<string, boolean>>
     readonly decryptAttempts: Readonly<Record<string, number>>
+    /** Which directory the file manager is showing. */
+    readonly cwd: string
+  }
+
+  /**
+   * The machine itself, rather than one application's view of it.
+   *
+   * Only what the player has changed lives here. The filesystem is derived from the case and
+   * from which sources are open, every time it is asked for — a tree written into a save is a
+   * tree that can disagree with the case that authored it, and the first thing anybody would do
+   * with the disagreement is edit a locked volume open.
+   */
+  readonly machine: {
+    /** Where the shell is standing. */
+    readonly cwd: string
+    /**
+     * What the player has killed, and when.
+     *
+     * The minute is kept because some of it comes back: a process that respawns is timed against
+     * the session clock rather than a timer, so a replay of the same log rebuilds the same table
+     * at the same minute.
+     */
+    readonly killed: readonly { readonly pid: number; readonly at: number }[]
   }
   /** Which frame the viewer is on. Playback position is not here: a transport is not state. */
   readonly media: { readonly openPhotoId: string }
@@ -354,8 +438,6 @@ export interface InvestigationState {
     readonly boardOpen: boolean
     readonly watched: boolean
     readonly reportCard: boolean
-    /** The relay console, which takes the screen the way the board does. */
-    readonly relayOpen: boolean
     /** Space, on whatever the player has their hands on. `null` when nothing is held up. */
     readonly quickLook: QuickLookRef | null
   }
@@ -391,7 +473,24 @@ export type GameEvent =
   | (Base & { type: 'DEVICE_CONNECTED'; deviceId: string })
   | (Base & { type: 'DEVICE_UNLOCK_ATTEMPTED'; deviceId: string; key: string })
   | (Base & { type: 'PHONE_TOGGLED' })
-  | (Base & { type: 'PHONE_TAB_CHANGED'; tab: PhoneTab })
+  /** Into an application on the handset, or into a thing inside one. */
+  | (Base & { type: 'MOBILE_OPENED'; app: MobileAppId; item?: string | null })
+  | (Base & { type: 'MOBILE_BACK' })
+  | (Base & { type: 'MOBILE_HOME' })
+  /**
+   * A notification, read.
+   *
+   * It carries where it goes, because a notification is a shortcut into an application and the
+   * engine should not have to know which. Reading it is what removes it — an alert that survives
+   * being opened is the clearest sign a phone is a picture of a phone.
+   */
+  | (Base & {
+      type: 'MOBILE_NOTIFICATION_OPENED'
+      notificationId: string
+      app: MobileAppId
+      item?: string | null
+    })
+  | (Base & { type: 'PHONE_PASSCODE_ATTEMPTED'; deviceId: string; key: string })
   | (Base & { type: 'PHONE_MOVED'; x: number; y: number })
   | (Base & { type: 'SMS_ADVANCED' })
   | (Base & { type: 'MAIL_OPENED'; mailId: string })
@@ -409,7 +508,12 @@ export type GameEvent =
   | (Base & { type: 'CHAT_ADVANCED'; thread: ThreadId })
   | (Base & { type: 'BROWSER_QUERY_CHANGED'; query: string })
   | (Base & { type: 'BROWSER_URL_CHANGED'; url: string })
-  | (Base & { type: 'BROWSER_SEARCHED'; query: string })
+  | (Base & {
+      type: 'BROWSER_SEARCHED'
+      query: string
+      /** What the corpus answered, resolved by the shell. */
+      webUrls?: readonly string[]
+    })
   | (Base & {
       type: 'BROWSER_NAVIGATED'
       url: string
@@ -425,6 +529,10 @@ export type GameEvent =
   | (Base & { type: 'BROWSER_WENT_BACK' })
   | (Base & { type: 'BROWSER_WENT_FORWARD' })
   | (Base & { type: 'FILE_OPENED'; fileId: string })
+  /** The file manager moved to a directory. The shell has its own working directory. */
+  | (Base & { type: 'FILES_NAVIGATED'; path: string })
+  /** Something the machine was running is no longer running. */
+  | (Base & { type: 'PROCESS_KILLED'; pid: number })
   | (Base & { type: 'PHOTO_SELECTED'; photoId: string })
   /**
    * Held up to the light without opening anything.
@@ -455,7 +563,6 @@ export type GameEvent =
   | (Base & { type: 'REPORT_CARD_SHOWN' })
   | (Base & { type: 'INVESTIGATION_CLAIMED'; ownerId: string })
   | (Base & { type: 'RELAY_UNLOCKED'; via: string })
-  | (Base & { type: 'RELAY_TOGGLED'; open?: boolean })
   /**
    * Asking costs signal even when nothing useful comes back, which is what makes the player
    * think before they ask. The query itself is never carried: freeform player text does not
@@ -467,7 +574,20 @@ export type GameEvent =
    * immutable snapshot the player saw, so a replay shows the bytes they read rather than
    * whatever the site says today.
    */
-  | (Base & { type: 'RELAY_SNAPSHOT_OBSERVED'; snapshotId: string; signalCost: number })
+  | (Base & {
+      type: 'RELAY_SNAPSHOT_OBSERVED'
+      snapshotId: string
+      signalCost: number
+      /**
+       * Where the page came from, carried on the event.
+       *
+       * The state holds snapshot *ids*; the snapshots themselves live in a cache the engine
+       * cannot see and a replay may not have. Without this the captures list could say how much
+       * signal was spent and never what it was spent on.
+       */
+      url: string
+      title: string
+    })
   | (Base & {
       type: 'RELAY_EXCERPT_KEPT'
       id: string

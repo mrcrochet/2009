@@ -9,6 +9,9 @@ import {
   photoAvailable,
   searchIndex,
 } from './rules'
+import { isShellCommand, promptFor, runShellCommand } from './machine/shell'
+import { processFor, relayRunning } from './machine/processes'
+import { buildFileSystem, nodeAt, normalise } from './machine/vfs'
 import { findPage } from './pages'
 import { normalizeUrl } from './url'
 import { projectedId } from './world/project'
@@ -41,11 +44,14 @@ import {
  */
 export const LIMITS = {
   terminalLines: 512,
+  killed: 64,
   claimLog: 128,
   notes: 20_000,
   discovered: 4096,
-  relayObserved: 512,
+  relayCaptures: 512,
   kept: 256,
+  /** Matches the schema's cap on a results page, so a wide query cannot grow a save. */
+  browserResults: 64,
 } as const
 
 // How much of the session each action costs.
@@ -70,7 +76,11 @@ const TICK: Partial<Record<GameEvent['type'], number>> = {
  * happens because a React tree rendered is not in the event log, so a replay would produce a
  * different world from the one that was played.
  */
-function revealed(next: InvestigationState, event: GameEvent, content: CaseContent): readonly string[] {
+function revealed(
+  next: InvestigationState,
+  event: GameEvent,
+  content: CaseContent,
+): readonly string[] {
   const kase = content.id
   switch (event.type) {
     case 'MAIL_OPENED':
@@ -116,7 +126,8 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
     }
 
     case 'PHONE_TOGGLED':
-    case 'PHONE_TAB_CHANGED':
+    case 'MOBILE_OPENED':
+    case 'MOBILE_NOTIFICATION_OPENED':
     case 'SMS_ADVANCED': {
       // A case may supply no phone at all, and then there is nothing to have looked at.
       const phone = content.phone
@@ -124,14 +135,17 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
       // A handset nobody has opened shows a lock screen, and a lock screen is not a document.
       const handset = phoneDeviceId(content)
       if (handset && !next.devices[handset]?.unlocked) return []
-      if (next.phone.tab === 'photos')
+      const here = next.phone.route.at(-1)?.app
+      if (here === 'photos')
         // The roll on this handset, not every picture the case holds.
         return content.photos
           .filter((photo) => photo.sourceId !== null && photoAvailable(photo, next.devices))
           .map((photo) => projectedId.photo(kase, photo.id))
-      if (next.phone.tab === 'sms')
+      if (here === 'messages')
         // Only as far down the thread as the player has actually scrolled.
-        return phone.sms.slice(0, next.phone.smsStep + 1).map((sms) => projectedId.sms(kase, sms.time))
+        return phone.sms
+          .slice(0, next.phone.smsStep + 1)
+          .map((sms) => projectedId.sms(kase, sms.time))
       return []
     }
 
@@ -140,7 +154,11 @@ function revealed(next: InvestigationState, event: GameEvent, content: CaseConte
   }
 }
 
-export function reduce(state: InvestigationState, event: GameEvent, content: CaseContent): InvestigationState {
+export function reduce(
+  state: InvestigationState,
+  event: GameEvent,
+  content: CaseContent,
+): InvestigationState {
   const next = apply(state, event, content)
   if (next === state) return state
 
@@ -186,6 +204,33 @@ function appDef(content: CaseContent, app: AppId) {
   return def
 }
 
+/**
+ * The application id the relay's window is registered under.
+ *
+ * The console used to be a focused mode with a boolean on `ui`. It is a window now, so the
+ * terminal command that reveals it opens a window like anything else — and a case that ships a
+ * relay has to declare the application, which `tests/unit/content.test.ts` enforces.
+ */
+export const RELAY_APP = 'relay'
+
+function openWindow(
+  state: InvestigationState,
+  content: CaseContent,
+  app: AppId,
+  viewport?: Viewport,
+): InvestigationState {
+  const def = appDef(content, app)
+  if (state.windows.some((w) => w.app === app)) return focusWindows(state, app)
+  const measured: Viewport = viewport ?? DEFAULT_VIEWPORT
+  const { x, y } = cascadePosition(state.windows.length, def.width, def.height, measured)
+  const z = state.nextZ + 1
+  return {
+    ...state,
+    nextZ: z,
+    windows: [...state.windows, { app, x, y, z, minimized: false, zoomed: false }],
+  }
+}
+
 function focusWindows(state: InvestigationState, app: AppId): InvestigationState {
   const z = state.nextZ + 1
   return {
@@ -201,6 +246,7 @@ function currentEntry(state: InvestigationState): BrowserEntry {
     url: state.browser.url,
     query: state.browser.query,
     resultIds: state.browser.resultIds,
+    resultUrls: state.browser.resultUrls,
   }
 }
 
@@ -239,7 +285,11 @@ function pinEvidence(
 
 // ---------------------------------------------------------------------------
 
-function apply(state: InvestigationState, event: GameEvent, content: CaseContent): InvestigationState {
+function apply(
+  state: InvestigationState,
+  event: GameEvent,
+  content: CaseContent,
+): InvestigationState {
   switch (event.type) {
     // --- stage -------------------------------------------------------------
     case 'CASE_OPENED':
@@ -260,18 +310,13 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return { ...state, desktopIcons: [...state.desktopIcons, event.iconId] }
 
     // --- windows -----------------------------------------------------------
-    case 'APP_OPENED': {
-      const def = appDef(content, event.app)
-      if (state.windows.some((w) => w.app === event.app)) return focusWindows(state, event.app)
-      const viewport: Viewport = event.viewport ?? DEFAULT_VIEWPORT
-      const { x, y } = cascadePosition(state.windows.length, def.width, def.height, viewport)
-      const z = state.nextZ + 1
-      return {
-        ...state,
-        nextZ: z,
-        windows: [...state.windows, { app: event.app, x, y, z, minimized: false, zoomed: false }],
-      }
-    }
+    case 'APP_OPENED':
+      // Nothing opens the relay until the machine has admitted the process exists. The dock
+      // hides it; this is what makes hiding it a rule rather than a decoration.
+      // The route is an application backed by a daemon. Without the daemon there is no route,
+      // whatever the session once knew — and a save cannot be edited past a process table.
+      if (event.app === RELAY_APP && !relayRunning(state, content)) return state
+      return openWindow(state, content, event.app, event.viewport)
 
     case 'APP_CLOSED': {
       if (!state.windows.some((w) => w.app === event.app)) return state
@@ -319,9 +364,83 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     case 'PHONE_TOGGLED':
       return { ...state, phone: { ...state.phone, open: !state.phone.open } }
 
-    case 'PHONE_TAB_CHANGED':
-      if (state.phone.tab === event.tab) return state
-      return { ...state, phone: { ...state.phone, tab: event.tab } }
+    /**
+     * Into an application, or into something inside one.
+     *
+     * The route is a stack rather than a current tab, because coming back out is most of what
+     * makes a handset feel like a device. Opening the application you are already in is not a
+     * second copy of it; opening a thing inside it pushes.
+     */
+    case 'MOBILE_OPENED': {
+      if (!content.phone?.apps.some((a) => a.id === event.app)) return state
+      const item = event.item ?? null
+      const top = state.phone.route.at(-1)
+      if (top?.app === event.app && top.item === item) return state
+      const route =
+        top?.app === event.app && item !== null
+          ? [...state.phone.route, { app: event.app, item }]
+          : [...state.phone.route.filter((r) => r.app !== event.app), { app: event.app, item }]
+      return { ...state, phone: { ...state.phone, route: route.slice(-8) } }
+    }
+
+    case 'MOBILE_BACK': {
+      if (state.phone.route.length === 0) return state
+      return { ...state, phone: { ...state.phone, route: state.phone.route.slice(0, -1) } }
+    }
+
+    case 'MOBILE_HOME':
+      if (state.phone.route.length === 0) return state
+      return { ...state, phone: { ...state.phone, route: [] } }
+
+    /**
+     * An alert, read.
+     *
+     * Reading it is what removes it. A notification that survives being opened is the clearest
+     * sign that a phone is a picture of a phone.
+     */
+    case 'MOBILE_NOTIFICATION_OPENED': {
+      const alert = content.phone?.notifications.find((n) => n.id === event.notificationId)
+      if (!alert) return state
+      if (state.phone.readNotifications.includes(event.notificationId)) return state
+      return {
+        ...state,
+        phone: {
+          ...state.phone,
+          readNotifications: [...state.phone.readNotifications, event.notificationId],
+          route: [{ app: event.app, item: event.item ?? null }],
+        },
+      }
+    }
+
+    /**
+     * The passcode, entered on the handset itself.
+     *
+     * It unlocks the same device the workstation's Devices application unlocks, because it is the
+     * same device — a phone that opens on the desk and stays shut in the forensic tool is two
+     * phones. The attempt counter is the handset's own: the case's copy talks about the device
+     * not saying how many tries are left, and that only works if the device is counting.
+     */
+    case 'PHONE_PASSCODE_ATTEMPTED': {
+      const device = content.devices.find((d) => d.id === event.deviceId)
+      const live = state.devices[event.deviceId]
+      if (!device || !live || live.unlocked || !live.connected) return state
+      const right =
+        device.unlockKey.length > 0 &&
+        event.key.trim().toLowerCase() === device.unlockKey.trim().toLowerCase()
+      if (!right) {
+        return {
+          ...state,
+          phone: { ...state.phone, passcodeAttempts: state.phone.passcodeAttempts + 1 },
+        }
+      }
+      const opened: InvestigationState = {
+        ...state,
+        phone: { ...state.phone, passcodeAttempts: 0 },
+        devices: { ...state.devices, [event.deviceId]: { ...live, unlocked: true } },
+        flags: device.setsFlag ? { ...state.flags, [device.setsFlag]: true } : state.flags,
+      }
+      return withBeat(opened, device.beat as BeatId | null)
+    }
 
     case 'PHONE_MOVED': {
       if (!Number.isFinite(event.x) || !Number.isFinite(event.y)) return state
@@ -358,7 +477,11 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
 
     case 'MAIL_UNKNOWN_ARRIVED':
       if (state.mail.unknownArrived) return state
-      return { ...state, mail: { ...state.mail, unknownArrived: true }, exposure: state.exposure + 5 }
+      return {
+        ...state,
+        mail: { ...state.mail, unknownArrived: true },
+        exposure: state.exposure + 5,
+      }
 
     // --- messenger ---------------------------------------------------------
     case 'THREAD_SELECTED':
@@ -465,6 +588,9 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
           url: `${content.browser.home}/search?q=${encodeURIComponent(query)}`,
           query,
           resultIds,
+          // Addresses the corpus answered with, resolved by the shell — the engine holds no
+          // world index and a pure reducer may not ask a question it cannot replay.
+          resultUrls: (event.webUrls ?? []).slice(0, LIMITS.browserResults),
           draftUrl: null,
           history: pushHistory(state),
           forward: [],
@@ -484,6 +610,7 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
           url,
           query: state.browser.query,
           resultIds: state.browser.resultIds,
+          resultUrls: state.browser.resultUrls,
           draftUrl: null,
           history,
           // Going somewhere new is what discards the forward stack, exactly as a
@@ -527,8 +654,57 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     case 'FILE_OPENED': {
       const doc = content.files.find((f) => f.id === event.fileId)
       if (!doc) return state
-      const opened: InvestigationState = { ...state, files: { ...state.files, openId: event.fileId } }
+      const opened: InvestigationState = {
+        ...state,
+        files: { ...state.files, openId: event.fileId },
+      }
       return withBeat(opened, doc.beat as BeatId | null)
+    }
+
+    /**
+     * Something stops running.
+     *
+     * The table is derived, so all that is recorded is the number and the minute — which is also
+     * what lets a process come back later under a different one without anybody being told.
+     */
+    case 'PROCESS_KILLED': {
+      const process = processFor(state, content, event.pid)
+      if (!process || process.system) return state
+      // Killing the route's daemon takes the window with it. Nothing else on the desk changes.
+      const daemon = content.terminal.relay?.daemonPid
+      const killed: InvestigationState = {
+        ...state,
+        windows:
+          daemon && process.pid === daemon
+            ? state.windows.filter((w) => w.app !== RELAY_APP)
+            : state.windows,
+        machine: {
+          ...state.machine,
+          killed: [...state.machine.killed, { pid: process.pid, at: event.at }].slice(
+            -LIMITS.killed,
+          ),
+        },
+        exposure: state.exposure + (process.onKill?.exposure ?? 0),
+        flags: process.onKill?.setsFlag
+          ? { ...state.flags, [process.onKill.setsFlag]: true }
+          : state.flags,
+      }
+      return withBeat(killed, (process.onKill?.beat ?? null) as BeatId | null)
+    }
+
+    /**
+     * The file manager moves to a directory.
+     *
+     * Checked against the tree rather than taken on trust: a path on a volume nobody has opened
+     * is not a directory this machine has, and a save that claims the manager is standing inside
+     * one is a save that has been edited.
+     */
+    case 'FILES_NAVIGATED': {
+      const path = normalise(event.path)
+      const node = nodeAt(buildFileSystem(state, content), path)
+      if (!node || node.type === 'file' || node.locked) return state
+      if (state.files.cwd === path) return state
+      return { ...state, files: { ...state.files, cwd: path, openId: '' } }
     }
 
     /**
@@ -708,7 +884,6 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
           boardOpen: false,
           watched: true,
           reportCard: false,
-          relayOpen: false,
           quickLook: null,
         },
         mail: { ...state.mail, unknownArrived: true, openId: content.unknownMail.id },
@@ -725,14 +900,6 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
       return { ...state, relay: { ...state.relay, unlocked: true } }
     }
 
-    case 'RELAY_TOGGLED': {
-      // Nothing to open until the machine has admitted the process exists.
-      if (!state.relay.unlocked) return state
-      const open = event.open ?? !state.ui.relayOpen
-      if (open === state.ui.relayOpen) return state
-      return { ...state, ui: { ...state.ui, relayOpen: open } }
-    }
-
     /**
      * The network happened outside the engine. What lands here is the id of an immutable
      * snapshot and what the look cost, so a replay shows the bytes the player read rather than
@@ -740,7 +907,7 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
      */
     case 'RELAY_SNAPSHOT_OBSERVED': {
       if (!state.relay.unlocked) return state
-      const seen = state.relay.observed.includes(event.snapshotId)
+      const seen = state.relay.captures.some((c) => c.snapshotId === event.snapshotId)
       // The budget is the mechanic. Without this the cost is a number the console prints and
       // the player can ignore, and a metered look at the future is not metered at all.
       const budget = content.relay?.signalBudget ?? 0
@@ -749,9 +916,18 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
         ...state,
         relay: {
           ...state.relay,
-          observed: seen
-            ? state.relay.observed
-            : [...state.relay.observed, event.snapshotId].slice(-LIMITS.relayObserved),
+          captures: seen
+            ? state.relay.captures
+            : [
+                ...state.relay.captures,
+                {
+                  snapshotId: event.snapshotId,
+                  url: event.url,
+                  title: event.title,
+                  cost: event.signalCost,
+                  at: event.at,
+                },
+              ].slice(-LIMITS.relayCaptures),
           // A page already read costs nothing to read again. The cost is in reaching for it.
           signalSpent: seen ? state.relay.signalSpent : state.relay.signalSpent + event.signalCost,
         },
@@ -770,7 +946,7 @@ function apply(state: InvestigationState, event: GameEvent, content: CaseContent
     }
 
     case 'RELAY_EXCERPT_KEPT': {
-      if (!state.relay.observed.includes(event.snapshotId)) return state
+      if (!state.relay.captures.some((c) => c.snapshotId === event.snapshotId)) return state
       if (state.relay.kept.some((e) => e.excerptHash === event.excerptHash)) return state
       /*
        * Keeping a line is not free, and it is not free in the currency signal is.
@@ -852,7 +1028,9 @@ function runTerminal(
   const cfg = content.terminal
   const command = rawCommand.trim()
   const lower = command.toLowerCase()
-  const out: TerminalLine[] = [{ text: `${cfg.prompt} ${command}`, tone: 'prompt' }]
+  const out: TerminalLine[] = [
+    { text: `${promptFor(content, state.machine.cwd)} ${command}`, tone: 'prompt' },
+  ]
 
   let nextState: InvestigationState = { ...state, terminal: { ...state.terminal, input: '' } }
 
@@ -869,6 +1047,58 @@ function runTerminal(
   const verb = lower.split(/\s+/)[0] ?? ''
   const staticOut = cfg.statics[verb]
 
+  /*
+   * The shell reads the machine first.
+   *
+   * Before this, `ls` was a paragraph in the case file and `cat` was a lookup table of three
+   * filenames, so the terminal and the file manager were two accounts of a disk that never had
+   * to agree. They go through one tree now, which is also why these win over a case's static of
+   * the same name: a case may still author `help` or `ps`, but it may not author a listing that
+   * contradicts the volume it mounted.
+   */
+  if (isShellCommand(verb)) {
+    // Case matters in a path. Split the raw command, not the lowered one.
+    const argv = command.split(/\s+/)
+    const result = runShellCommand(
+      buildFileSystem(state, content),
+      state,
+      [verb, ...argv.slice(1)],
+      content,
+    )
+    out.push(...result.lines)
+    if (result.cwd !== null) {
+      nextState = { ...nextState, machine: { ...nextState.machine, cwd: result.cwd } }
+    }
+    // Opening it here is opening it. The document lands in the reader, and the world graph
+    // records that this investigator has read it — whichever window they read it through.
+    if (result.opened) {
+      nextState = reduce(nextState, { type: 'FILE_OPENED', fileId: result.opened, at }, content)
+    }
+    if (result.openedPhoto) {
+      nextState = reduce(
+        nextState,
+        { type: 'PHOTO_SELECTED', photoId: result.openedPhoto, at },
+        content,
+      )
+    }
+    if (result.killed !== null) {
+      nextState = reduce(nextState, { type: 'PROCESS_KILLED', pid: result.killed, at }, content)
+      // The consequence speaks after the command, the way a machine reports a thing it noticed
+      // rather than a thing it did.
+      const process = content.terminal.processes.find(
+        (row) => row.pid === result.killed || row.respawnPid === result.killed,
+      )
+      if (process?.onKill) out.push(...process.onKill.lines)
+    }
+    return {
+      ...nextState,
+      terminal: {
+        lines: [...state.terminal.lines, ...out].slice(-LIMITS.terminalLines),
+        input: '',
+      },
+    }
+  }
+
   if (verb === 'whoami') {
     out.push(...cfg.whoami)
     const contradiction = cfg.whoamiAfterEvidence
@@ -882,25 +1112,24 @@ function runTerminal(
       text: cfg.dateTemplate.replace('{{clock}}', clockAt(content, state.minute)),
       tone: 'out',
     })
-  } else if (verb === 'cat') {
-    const arg = lower.slice(3).trim()
-    const fileId = cfg.catTargets[arg]
-    const doc = fileId ? content.files.find((f) => f.id === fileId) : undefined
-    out.push(doc ? { text: doc.body, tone: 'out' } : { text: cfg.catBinary, tone: 'out' })
   } else if (cfg.relay && verb === cfg.relay.command) {
     const relay = cfg.relay
-    if (state.relay.unlocked) {
+    // A route whose daemon the player ended does not reopen by asking again. The command says
+    // so rather than quietly starting it: what they did was deliberate, and it stands.
+    if (state.relay.unlocked && !relayRunning(state, content)) {
+      out.push(...relay.killed)
+    } else if (state.relay.unlocked) {
       out.push(...relay.opened)
-      nextState = { ...nextState, ui: { ...nextState.ui, relayOpen: true } }
+      nextState = openWindow(nextState, content, RELAY_APP)
     } else if (lower.includes(relay.unlockPhrase.toLowerCase())) {
       // The player worked out the argument from three pages that never mention each other.
       // Nothing announces it; the machine simply stops refusing.
       out.push(...relay.granted)
-      nextState = {
-        ...nextState,
-        relay: { ...nextState.relay, unlocked: true },
-        ui: { ...nextState.ui, relayOpen: true },
-      }
+      nextState = openWindow(
+        { ...nextState, relay: { ...nextState.relay, unlocked: true } },
+        content,
+        RELAY_APP,
+      )
     } else {
       out.push(...relay.locked)
     }

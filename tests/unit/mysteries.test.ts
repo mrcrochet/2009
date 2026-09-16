@@ -173,12 +173,24 @@ describe('signal', () => {
     let state = dispatch(fresh(), { type: 'RELAY_UNLOCKED', via: 'terminal' })
     const before = signalRemaining(state, content)
 
-    state = dispatch(state, { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
+    state = dispatch(state, {
+      type: 'RELAY_SNAPSHOT_OBSERVED',
+      snapshotId: 'wu_a',
+      signalCost: 6,
+      url: 'https://example.test/wu_a',
+      title: 'wu_a',
+    })
     expect(signalRemaining(state, content)).toBe(before - 6)
 
-    state = dispatch(state, { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 6 })
+    state = dispatch(state, {
+      type: 'RELAY_SNAPSHOT_OBSERVED',
+      snapshotId: 'wu_a',
+      signalCost: 6,
+      url: 'https://example.test/wu_a',
+      title: 'wu_a',
+    })
     expect(signalRemaining(state, content)).toBe(before - 6)
-    expect(state.relay.observed).toEqual(['wu_a'])
+    expect(state.relay.captures.map((c) => c.snapshotId)).toEqual(['wu_a'])
   })
 
   it('nothing is observed before the relay has been found', () => {
@@ -186,8 +198,10 @@ describe('signal', () => {
       type: 'RELAY_SNAPSHOT_OBSERVED',
       snapshotId: 'wu_a',
       signalCost: 6,
+      url: 'https://example.test/wu_a',
+      title: 'wu_a',
     })
-    expect(state.relay.observed).toEqual([])
+    expect(state.relay.captures.map((c) => c.snapshotId)).toEqual([])
   })
 
   /**
@@ -200,10 +214,16 @@ describe('signal', () => {
   it('does not refill, because a case is one sitting', () => {
     const state = run(fresh(), [
       { type: 'RELAY_UNLOCKED', via: 'terminal' },
-      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 9 },
+      {
+        type: 'RELAY_SNAPSHOT_OBSERVED',
+        snapshotId: 'wu_a',
+        signalCost: 9,
+        url: 'https://example.test/wu_a',
+        title: 'wu_a',
+      },
     ])
     expect(signalRemaining(state, content)).toBe(content.relay!.signalBudget - 9)
-    expect(state.relay.observed).toEqual(['wu_a'])
+    expect(state.relay.captures.map((c) => c.snapshotId)).toEqual(['wu_a'])
     expect(state.relay.unlocked).toBe(true)
   })
 
@@ -221,7 +241,13 @@ describe('signal', () => {
 
     const seen = run(fresh(), [
       { type: 'RELAY_UNLOCKED', via: 'terminal' },
-      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
+      {
+        type: 'RELAY_SNAPSHOT_OBSERVED',
+        snapshotId: 'wu_a',
+        signalCost: 2,
+        url: 'https://example.test/wu_a',
+        title: 'wu_a',
+      },
       {
         type: 'RELAY_EXCERPT_KEPT',
         id: 'f1',
@@ -255,7 +281,13 @@ describe('what a kept line costs, and where it goes', () => {
   const seen = () =>
     run(fresh(), [
       { type: 'RELAY_UNLOCKED', via: 'terminal' },
-      { type: 'RELAY_SNAPSHOT_OBSERVED', snapshotId: 'wu_a', signalCost: 2 },
+      {
+        type: 'RELAY_SNAPSHOT_OBSERVED',
+        snapshotId: 'wu_a',
+        signalCost: 2,
+        url: 'https://example.test/wu_a',
+        title: 'wu_a',
+      },
     ])
 
   it('moves the world, because the sentence is now somewhere it was not', () => {

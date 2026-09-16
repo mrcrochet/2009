@@ -3,6 +3,8 @@ import {
   selectReportSummary,
   selectEvidenceCards,
   selectFiles,
+  selectFileSystem,
+  selectPlaces,
   selectDevices,
   selectMail,
   selectOpenDocument,
@@ -36,6 +38,10 @@ describe('selector stability', () => {
     ['selectPhotos', selectPhotos],
     ['selectOpenPhoto', selectOpenPhoto],
     ['selectQuickLook', selectQuickLook],
+    // The tree is built once and shared by the file manager, the shell and Quick Look. Rebuilt
+    // per render it would be three trees, and the file manager would never stop reconciling.
+    ['selectFileSystem', selectFileSystem],
+    ['selectPlaces', selectPlaces],
   ] as const
 
   it('an unrelated event does not invalidate anything', () => {

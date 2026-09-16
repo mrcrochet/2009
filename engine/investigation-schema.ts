@@ -27,15 +27,7 @@ const minute = z
  */
 const AppId = z.string().min(1).max(64)
 const ThreadId = z.string().min(1).max(64)
-const SourceKind = z.enum([
-  'mail',
-  'files',
-  'browser',
-  'phone',
-  'terminal',
-  'messenger',
-  'device',
-])
+const SourceKind = z.enum(['mail', 'files', 'browser', 'phone', 'terminal', 'messenger', 'device'])
 
 const WindowStateSchema = z.object({
   app: AppId,
@@ -51,6 +43,7 @@ const BrowserEntrySchema = z.object({
   url: z.string().max(2048),
   query: z.string().max(2048),
   resultIds: z.array(z.string().max(128)).max(64),
+  resultUrls: z.array(z.string().max(2048)).max(64).default([]),
 })
 
 const ChatLineSchema = z.object({
@@ -98,9 +91,13 @@ export const InvestigationStateSchema = z.object({
   ),
   phone: z.object({
     open: z.boolean(),
-    tab: z.enum(['sms', 'photos', 'contacts']),
     x: z.number().finite().nullable(),
     y: z.number().finite().nullable(),
+    route: z
+      .array(z.object({ app: z.string().max(64), item: z.string().max(128).nullable() }))
+      .max(8),
+    readNotifications: z.array(z.string().max(64)).max(64),
+    passcodeAttempts: z.number().int().min(0).max(999),
     smsStep: z.number().int().min(0).max(64),
   }),
 
@@ -150,7 +147,17 @@ export const InvestigationStateSchema = z.object({
     openId: z.string().max(64),
     decrypted: z.record(z.string().max(64), z.boolean()),
     decryptAttempts: z.record(z.string().max(64), z.number().int().min(0).max(64)),
+    cwd: z.string().max(512).default('/Users/investigator/Desktop'),
   }),
+  machine: z
+    .object({
+      cwd: z.string().max(512),
+      killed: z
+        .array(z.object({ pid: z.number().int(), at: z.number().int().nonnegative() }))
+        .max(64)
+        .default([]),
+    })
+    .default({ cwd: '/Users/investigator', killed: [] }),
   media: z.object({ openPhotoId: z.string().max(64) }).default({ openPhotoId: '' }),
   terminal: z.object({
     lines: z
@@ -168,7 +175,17 @@ export const InvestigationStateSchema = z.object({
 
   relay: z.object({
     unlocked: z.boolean(),
-    observed: z.array(z.string().max(128)).max(512),
+    captures: z
+      .array(
+        z.object({
+          snapshotId: z.string().max(128),
+          url: z.string().max(2048).nullable(),
+          title: z.string().max(300).nullable(),
+          cost: z.number().int().min(0).max(1000),
+          at: minute,
+        }),
+      )
+      .max(512),
     kept: z
       .array(
         z.object({
@@ -189,7 +206,6 @@ export const InvestigationStateSchema = z.object({
   ui: z.object({
     trayOpen: z.boolean(),
     boardOpen: z.boolean(),
-    relayOpen: z.boolean().default(false),
     watched: z.boolean(),
     reportCard: z.boolean(),
     quickLook: z

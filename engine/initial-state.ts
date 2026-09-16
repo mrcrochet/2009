@@ -1,4 +1,5 @@
 import type { CaseContent } from './case-schema'
+import { HOME } from './machine/vfs'
 import { hashSeed } from './seed'
 import { projectedId } from './world/project'
 import {
@@ -70,7 +71,7 @@ export function createInvestigation(
 
     relay: {
       unlocked: content.relay?.availableAtStart ?? false,
-      observed: [],
+      captures: [],
       kept: [],
       mysteries: [],
       signalSpent: 0,
@@ -81,7 +82,15 @@ export function createInvestigation(
     windows: [],
     nextZ: 20,
     desktopIcons: [],
-    phone: { open: false, tab: 'sms', x: null, y: null, smsStep: 0 },
+    phone: {
+      open: false,
+      x: null,
+      y: null,
+      route: [],
+      readNotifications: [],
+      passcodeAttempts: 0,
+      smsStep: 0,
+    },
 
     selectedEvidenceIds: [],
     selectedClaimId: null,
@@ -106,11 +115,23 @@ export function createInvestigation(
       url: content.browser.home,
       query: '',
       resultIds: [],
+      resultUrls: [],
       draftUrl: null,
       history: [],
       forward: [],
     },
-    files: { openId: content.files[0]?.id ?? '', decrypted: {}, decryptAttempts: {} },
+    /*
+     * The file manager opens where the case put what it handed over, and the shell opens in the
+     * investigator's home. They are two windows onto one machine, not one window twice, so they
+     * are allowed to be standing in different places.
+     */
+    files: {
+      openId: '',
+      decrypted: {},
+      decryptAttempts: {},
+      cwd: `${HOME}/Desktop`,
+    },
+    machine: { cwd: HOME, killed: [] },
     media: { openPhotoId: content.photos[0]?.id ?? '' },
     terminal: { lines: [content.terminal.banner], input: '' },
 
@@ -119,7 +140,6 @@ export function createInvestigation(
       boardOpen: false,
       watched: false,
       reportCard: false,
-      relayOpen: false,
       quickLook: null,
     },
 

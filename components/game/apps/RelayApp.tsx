@@ -1,26 +1,29 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { clockString } from '@/engine/clock'
 import { canAfford, signalBudget, signalRemaining } from '@/engine/mysteries'
 import { reportError } from '@/lib/errors'
 import type { RelayBlock, RelayResult, RelaySearchResponse, RelaySnapshot } from '@/lib/relay/types'
-import { useContent, useDispatch, useInvestigation } from './GameContext'
-import { useFocusTrap } from './useFocusTrap'
-import { pace, useReducedMotion } from './useReducedMotion'
+import { useContent, useDispatch, useInvestigation } from '../GameContext'
+import { pace, useReducedMotion } from '../useReducedMotion'
 
 /**
- * The relay console — a process on the workstation reaching somewhere it has no words
- * for.
+ * The relay — a process on the workstation reaching somewhere it has no words for.
  *
- * It is built like the investigation board and not like a browser: a focused in-world mode that
- * takes the screen, traps focus, and is left with Escape. What it renders is never markup from
- * the other side. The API hands back an immutable snapshot of normalised text blocks; this draws
- * those blocks with NOVA's own elements, and an address the page names is a line of text the
- * player may send back through the relay, never something the browser can follow on its own.
+ * It is an application on this workstation, not a tab in the fictional browser: one route out,
+ * metered, and everything it brings back is captured. It used to be a focused mode that took the
+ * whole screen, which made a thing the investigator works *alongside* into something they had to
+ * leave the desk for — the address they wanted to send was usually in a window behind it.
  *
- * Every word on this screen is authored in `content/day01/relay.ts`. Nothing about the machine's
- * voice is decided here, because the moment one line of it is written in TypeScript the console
- * starts sounding like software that understands what it is doing.
+ * What it renders is never markup from the other side. The API hands back an immutable snapshot
+ * of normalised text blocks; this draws those blocks with NOVA's own elements, and an address the
+ * page names is a line of text the player may send back through the relay, never something the
+ * browser can follow on its own.
+ *
+ * Every word on this screen is authored by the case. Nothing about the machine's voice is decided
+ * here, because the moment one line of it is written in TypeScript the console starts sounding
+ * like software that understands what it is doing.
  */
 
 /** A line kept from a page has to be a line, not a page. */
@@ -36,7 +39,7 @@ const MAX_EXCERPT = 600
  */
 const CARRIER_HOLD_MS = 340
 
-type Screen = 'blank' | 'offline' | 'results' | 'page'
+type Screen = 'blank' | 'offline' | 'results' | 'page' | 'captures'
 
 /**
  * What came back from one of our own routes, with the player's text already out of it.
@@ -61,7 +64,11 @@ async function readJson<T>(response: Response): Promise<T | null> {
   }
 }
 
-async function relay<T>(path: string, body: unknown, signal: AbortSignal): Promise<RequestOutcome<T>> {
+async function relay<T>(
+  path: string,
+  body: unknown,
+  signal: AbortSignal,
+): Promise<RequestOutcome<T>> {
   let response: Response
   try {
     response = await globalThis.fetch(path, {
@@ -160,22 +167,20 @@ function Block({ block }: { block: RelayBlock }) {
   }
 }
 
-export function RelayOverlay() {
+export function RelayApp() {
   const content = useContent()
   const dispatch = useDispatch()
   const cfg = content.relay
-  const open = useInvestigation((s) => s.ui.relayOpen)
-  const observed = useInvestigation((s) => s.relay.observed)
+  const found = useInvestigation((s) => s.relay.unlocked)
+  const captures = useInvestigation((s) => s.relay.captures)
   const futureEvidence = useInvestigation((s) => s.relay.kept)
   const remaining = useInvestigation((s) => signalRemaining(s, content))
   const affordsOpen = useInvestigation((s) => canAfford(s, content, cfg?.openCost ?? 0))
   const affordsSearch = useInvestigation((s) => canAfford(s, content, cfg?.searchCost ?? 0))
   const reduced = useReducedMotion()
 
-  const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const blocksRef = useRef<HTMLDivElement>(null)
-  useFocusTrap(panelRef, open, inputRef)
 
   const [query, setQuery] = useState('')
   const [sending, setSending] = useState(false)
@@ -209,19 +214,31 @@ export function RelayOverlay() {
   const requestRef = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
 
-  /** Read after an await, where `open` from the render that started the request is already old. */
-  const openRef = useRef(open)
+  /**
+   * Read after an await, to find out whether the window is still open.
+   *
+   * Closing the relay ends the session: a request in flight is dropped rather than landing on a
+   * console the player has already left — and, worse, spending signal on a page nobody saw. The
+   * window unmounting is what closing *is* now, so the cleanup below is the whole of it.
+   */
+  const liveRef = useRef(true)
   useEffect(() => {
-    openRef.current = open
-  }, [open])
+    liveRef.current = true
+    return () => {
+      liveRef.current = false
+    }
+  }, [])
 
+  /*
+   * The window opens on its one field.
+   *
+   * Not a focus trap — a window is a region and this one claims no modal contract. But the way
+   * in is a terminal command, and a player who has just typed `relay` should land where they can
+   * type the next thing rather than hunting for it.
+   */
   useEffect(() => {
-    if (open) return
-    // Detaching ends the session: a request in flight is dropped rather than landing on a
-    // console the player has already left — and, worse, spending signal on a page nobody saw.
-    abortRef.current?.abort()
-    abortRef.current = null
-  }, [open])
+    inputRef.current?.focus()
+  }, [])
 
   useEffect(
     () => () => {
@@ -229,19 +246,6 @@ export function RelayOverlay() {
     },
     [],
   )
-
-  const close = useCallback(() => {
-    dispatch({ type: 'RELAY_TOGGLED', open: false })
-  }, [dispatch])
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') close()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, close])
 
   /** The live selection, read from the document rather than remembered, so it cannot go stale. */
   const readSelection = useCallback((): string => {
@@ -281,7 +285,7 @@ export function RelayOverlay() {
       // A newer request owns the screen now, and owns the flag with it.
       if (ticket !== requestRef.current) return null
       setSending(false)
-      if (outcome.status === 'aborted' || !openRef.current) return null
+      if (outcome.status === 'aborted' || !liveRef.current) return null
       return outcome
     },
     [reduced],
@@ -293,7 +297,9 @@ export function RelayOverlay() {
     [snapshot],
   )
 
-  if (!cfg || !open) return null
+  // A case with no line out, or a machine that has not admitted the process exists yet. The
+  // reducer refuses to open the window either way; this is the second lock on the same door.
+  if (!cfg || !found) return null
 
   const budget = signalBudget(content)
   const refusalLine = (refusal: string | null): string => {
@@ -358,10 +364,10 @@ export function RelayOverlay() {
     setScreen('results')
   }
 
-  /** Free to open again: this address already produced a snapshot this investigation has observed. */
+  /** Free to open again: this address already produced a snapshot this investigation has brought back. */
   const alreadyObserved = (url: string): boolean => {
     const known = snapshotByUrl.get(url)
-    return known !== undefined && observed.includes(known)
+    return known !== undefined && captures.some((c) => c.snapshotId === known)
   }
 
   const openAddress = async (url: string) => {
@@ -387,11 +393,15 @@ export function RelayOverlay() {
     // A page already read costs nothing to read again, and the log should not carry a second
     // observation of it either — the reducer refuses the spend, but only this can keep the event
     // out of the save.
-    if (!observed.includes(captured.id)) {
+    if (!captures.some((c) => c.snapshotId === captured.id)) {
       dispatch({
         type: 'RELAY_SNAPSHOT_OBSERVED',
         snapshotId: captured.id,
         signalCost: cfg.openCost,
+        // Carried on the event so the captures list can say what the signal was spent on,
+        // in a replay that never had the snapshot cache.
+        url: captured.canonicalUrl,
+        title: captured.title,
       })
     }
     setSnapshot(captured)
@@ -471,24 +481,17 @@ export function RelayOverlay() {
 
   return (
     <div className="nova-relay" data-testid="relay">
-      <div
-        className="nova-relay__panel"
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label={cfg.title}
-        tabIndex={-1}
-      >
+      <div className="nova-relay__panel">
         <div className="nova-relay__head">
-          <span className="nova-relay__title">{cfg.title}</span>
           <span className="nova-relay__sub">{cfg.subtitle}</span>
           <button
             type="button"
-            className="nova-relay__close"
-            aria-label={cfg.closeLabel}
-            onClick={close}
+            className="nova-relay__tab"
+            data-active={screen === 'captures'}
+            aria-pressed={screen === 'captures'}
+            onClick={() => setScreen(screen === 'captures' ? 'blank' : 'captures')}
           >
-            ×
+            {cfg.capturesLabel} <span>{captures.length}</span>
           </button>
         </div>
 
@@ -534,6 +537,44 @@ export function RelayOverlay() {
         </div>
 
         <div className="nova-relay__out">
+          {/*
+            Everything this investigation has brought back, and what each look cost.
+            The list is read from the save, not from the snapshot cache — a page opened last
+            session is still here after a reload, and reopening it is free because the reducer
+            already knows the id.
+          */}
+          {screen === 'captures' ? (
+            captures.length === 0 ? (
+              <p className="nova-relay__empty">{cfg.capturesEmpty}</p>
+            ) : (
+              <div className="nova-relay__rows">
+                {[...captures].reverse().map((capture) => (
+                  <button
+                    key={capture.snapshotId}
+                    type="button"
+                    className="nova-relay__row"
+                    data-capture={capture.snapshotId}
+                    onClick={() => {
+                      if (capture.url) void openAddress(capture.url)
+                    }}
+                    aria-disabled={capture.url === null}
+                  >
+                    <span className="nova-relay__rowtitle">
+                      {capture.title ?? capture.snapshotId}
+                    </span>
+                    <span className="nova-relay__rowurl">{capture.url ?? ''}</span>
+                    <span className="nova-relay__rowcost">
+                      {fill(cfg.captureTemplate, {
+                        when: clockString(capture.at),
+                        cost: String(capture.cost),
+                      })}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )
+          ) : null}
+
           {screen === 'offline' ? (
             <section className="nova-relay__notice" aria-labelledby="relay-offline">
               <h2 className="nova-relay__noticetitle" id="relay-offline">

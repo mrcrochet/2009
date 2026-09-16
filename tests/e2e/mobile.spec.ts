@@ -140,6 +140,8 @@ test.describe('The workstation on a narrow screen', () => {
 
     // One piece from Files…
     await openApp(page, 'Files')
+    await win(page, 'files').locator('[data-place="Daniel-MBP"]').click()
+    await win(page, 'files').getByRole('option', { name: 'Documents', exact: true }).click()
     await win(page, 'files')
       .getByRole('option', { name: /draft-statement-v3/ })
       .click()
@@ -189,6 +191,11 @@ test.describe('The workstation on a narrow screen', () => {
     await expect(page.getByTestId('phone-overlay')).toHaveCount(0)
 
     await openApp(page, 'Files')
+    await page.locator('[data-app="files"] [data-place="Daniel-MBP"]').click()
+    await page
+      .locator('[data-app="files"]')
+      .getByRole('option', { name: 'Documents', exact: true })
+      .click()
     await page
       .locator('[data-app="files"]')
       .getByRole('option', { name: /draft-statement-v3/ })

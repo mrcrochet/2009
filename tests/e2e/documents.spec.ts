@@ -32,12 +32,25 @@ async function openTheHandset(page: Page) {
   await expect(row).toHaveAttribute('data-unlocked', 'true')
 }
 
+/** Where the case put each document. The file manager is a file manager; you have to go there. */
+async function goTo(page: Page, ...folders: readonly string[]) {
+  const files = page.locator('[data-app="files"]')
+  for (const folder of folders) {
+    // A folder in the listing wins over a shortcut of the same name: "Documents" inside a
+    // mounted image is not the investigator's own Documents, and Places holds both.
+    const row = files.getByRole('option', { name: folder, exact: true })
+    if (await row.count()) await row.click()
+    else await files.locator(`[data-place="${folder}"]`).click()
+  }
+}
+
 test.describe('documents look like what they are', () => {
   test('a spreadsheet is a spreadsheet, and a recording can be played', async ({ page }) => {
     await boot(page)
     await openApp(page, 'Files')
     const files = page.locator('[data-app="files"]')
 
+    await goTo(page, 'Daniel-MBP', 'Documents')
     await files.getByRole('option', { name: /grant-disbursements-2013\.csv/ }).click()
     const table = files.getByRole('table')
     await expect(table).toBeVisible()
@@ -46,6 +59,7 @@ test.describe('documents look like what they are', () => {
     // The comment somebody left in a cell, in the margin where a spreadsheet puts it.
     await expect(files.getByText('D1')).toBeVisible()
 
+    await goTo(page, 'Documents')
     await files.getByRole('option', { name: /voicemail-0610\.m4a/ }).click()
     // The transcript is legible before anything is pressed.
     await expect(files.getByText('I am not going to keep doing this by message.')).toBeVisible()
@@ -58,6 +72,7 @@ test.describe('documents look like what they are', () => {
     await openApp(page, 'Files')
     const files = page.locator('[data-app="files"]')
 
+    await goTo(page, 'Documents')
     await files.getByRole('option', { name: /receipt-fremont-0609\.pdf/ }).focus()
     await page.keyboard.press(' ')
 
@@ -96,7 +111,11 @@ test.describe('the photo viewer', () => {
 })
 
 test.describe('the handset', () => {
-  test('shows a lock screen rather than the thread it is hiding', async ({ page }) => {
+  /**
+   * A phone, not a panel: it comes up on its own lock screen, it takes a passcode on its own
+   * keypad, and the thread it is hiding stays hidden until somebody opens it.
+   */
+  test('takes its passcode on its own keypad, and opens on a home screen', async ({ page }) => {
     await boot(page)
     await page
       .getByRole('navigation', { name: 'Dock' })
@@ -105,10 +124,29 @@ test.describe('the handset', () => {
 
     const phone = page.getByTestId('phone-overlay')
     await expect(phone).toBeVisible()
-    await expect(phone).toContainText('Locked')
+    await expect(phone).toContainText('Enter Passcode')
+    // The notifications are on the glass; what they are about is not.
+    await expect(phone).toContainText('Missed call')
+    await expect(phone).not.toContainText('(503) 555-0197')
     await expect(phone.getByRole('tablist')).toHaveCount(0)
 
-    await openTheHandset(page)
-    await expect(phone.getByRole('tablist', { name: 'Phone' })).toBeVisible()
+    // Wrong first, because a keypad that accepts anything is not a lock.
+    for (const d of ['1', '1', '1', '1', '1', '1']) {
+      await phone.getByRole('button', { name: d, exact: true }).click()
+    }
+    await expect(phone).toContainText('Wrong passcode')
+
+    for (const d of ['1', '9', '0', '4', '5', '5']) {
+      await phone.getByRole('button', { name: d, exact: true }).click()
+    }
+
+    // The home screen, and the same device the Devices app was holding shut.
+    await expect(phone.locator('[data-mobile-app="messages"]')).toBeVisible()
+    await expect(phone).not.toContainText('Enter Passcode')
+    await openApp(page, 'Devices')
+    await expect(page.locator('[data-app="devices"] [data-device="dev-phone"]')).toHaveAttribute(
+      'data-unlocked',
+      'true',
+    )
   })
 })

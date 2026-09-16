@@ -48,11 +48,12 @@ test.describe('the relay', () => {
     await run(page, 'relay open the line')
     await expect(log).toContainText('route opened. metered.')
 
-    const console_ = page.getByRole('dialog', { name: 'relay — attached' })
+    // A window, not a mode: the dock now carries it, and the desk behind it is still there.
+    const console_ = page.locator('[data-app="relay"]')
     await expect(console_).toBeVisible()
-    // Focus moves into the console, on the one field it has.
+    await expect(page.locator('.nova-dockitem[data-dock="relay"]')).toBeVisible()
     await expect(page.getByLabel('ask:')).toBeFocused()
-    await expect(console_).toContainText('lookups 24 of 24')
+    await expect(console_).toContainText('lookups 40 of 40')
 
     await page.getByLabel('ask:').fill('marlow foundation 2013 filing')
     await console_.getByRole('button', { name: 'SEND' }).click()
@@ -63,12 +64,59 @@ test.describe('the relay', () => {
     await expect(console_).toContainText('There is no index on this side of the route')
     await expect(console_).not.toContainText('the relay has no index on this side')
     // Nothing on the screen could have spent the case's signal.
-    await expect(console_).toContainText('lookups 24 of 24')
+    await expect(console_).toContainText('lookups 40 of 40')
 
-    // Escape leaves the mode and hands the command line back — which is the only place in this
-    // application a player can type.
-    await page.keyboard.press('Escape')
-    await expect(console_).toBeHidden()
-    await expect(page.getByLabel('Terminal command')).toBeFocused()
+    // Nothing has come back through the route, and the captures list says so in the case's words.
+    await console_.getByRole('button', { name: /brought back/ }).click()
+    await expect(console_).toContainText('Nothing has come back through this route yet')
+
+    // It closes like a window, and the desk it was sitting on is still underneath.
+    await console_.getByLabel('Close Relay').click()
+    await expect(console_).toHaveCount(0)
+    await expect(page.locator('[data-app="term"]')).toBeVisible()
+  })
+
+  /**
+   * The route is an application with something running behind it.
+   *
+   * A capability nothing is carrying is a capability nobody can take away, so this is the whole
+   * point of the machine having a process table: a player can look at what is running, decide
+   * they do not want one of it, and be right — the window goes, the dock entry goes, and asking
+   * again does not quietly start it back up.
+   */
+  test('a player can close their own route, and the machine lets them', async ({ page }) => {
+    await boot(page)
+    await page
+      .getByRole('navigation', { name: 'Dock' })
+      .getByRole('button', { name: 'Console' })
+      .click()
+
+    await run(page, 'relay open the line')
+    await expect(page.locator('[data-app="relay"]')).toBeVisible()
+    await expect(page.locator('.nova-dockitem[data-dock="relay"]')).toBeVisible()
+
+    // The relay took the front when it opened, so the console has to be raised to type into it —
+    // which is what a player does too.
+    const console_ = () =>
+      page.getByRole('navigation', { name: 'Dock' }).getByRole('button', { name: 'Console' })
+
+    // It is on the table, under its own name, next to everything else the machine is running.
+    await console_().click()
+    await run(page, 'ps')
+    await expect(page.getByRole('log')).toContainText('relayd --route open --metered')
+
+    // The machine refuses its own, and does not refuse this.
+    await console_().click()
+    await run(page, 'kill 118')
+    await expect(page.getByRole('log')).toContainText('operation not permitted')
+    await run(page, 'kill 604')
+    await expect(page.getByRole('log')).toContainText('route closed')
+
+    await expect(page.locator('[data-app="relay"]')).toHaveCount(0)
+    await expect(page.locator('.nova-dockitem[data-dock="relay"]')).toHaveCount(0)
+
+    await run(page, 'relay open the line')
+    await expect(page.getByRole('log')).toContainText('it does not come back from here')
+    await expect(page.locator('[data-app="relay"]')).toHaveCount(0)
   })
 })

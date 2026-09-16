@@ -1,12 +1,16 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { promptFor } from '@/engine/machine/shell'
 import { useContent, useDispatch, useInvestigation } from '../GameContext'
 
 export function TerminalApp() {
   const content = useContent()
   const dispatch = useDispatch()
   const lines = useInvestigation((s) => s.terminal.lines)
+  // The prompt carries the working directory, because a shell that never says where it is
+  // standing is a shell nobody can be lost in.
+  const prompt = useInvestigation((s) => promptFor(content, s.machine.cwd))
   const input = useInvestigation((s) => s.terminal.input)
   const logRef = useRef<HTMLDivElement>(null)
 
@@ -25,7 +29,7 @@ export function TerminalApp() {
         ))}
       </div>
       <div className="nova-term__inputrow">
-        <span aria-hidden="true">{content.terminal.prompt}</span>
+        <span aria-hidden="true">{prompt}</span>
         <input
           className="nova-term__input"
           aria-label="Terminal command"
